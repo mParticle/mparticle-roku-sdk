@@ -6,11 +6,17 @@ function mParticleConstants() as object
         INFO:   2,
         DEBUG:  3
     }
+    ENVIRONMENT = {
+        AUTO_DETECT:        0,
+        FORCE_DEVELOPMENT:  1,
+        FORCE_PRODUCTION:   2
+    }
     DEFAULT_OPTIONS = {
-        development:    false,
-        logLevel:       LOG_LEVEL.ERROR,
-        enablePinning:  true,
-        certificateDir: "pkg:/source/mparticle/mparticle.crt"
+        environment:            ENVIRONMENT.AUTO_DETECT,
+        logLevel:               LOG_LEVEL.ERROR,
+        enablePinning:          true,
+        certificateDir:         "pkg:/source/mparticle/mparticle.crt",
+        sessionTimeoutMillis:   60 * 1000
     }
     MESSAGE_TYPE = {
         SESSION_START:          "ss",
@@ -50,7 +56,8 @@ function mParticleConstants() as object
         DEFAULT_OPTIONS:    DEFAULT_OPTIONS,
         MESSAGE_TYPE:       MESSAGE_TYPE,
         CUSTOM_EVENT_TYPE:  CUSTOM_EVENT_TYPE,
-        IDENTITY_TYPE:      IDENTITY_TYPE
+        IDENTITY_TYPE:      IDENTITY_TYPE,
+        ENVIRONMENT:        ENVIRONMENT
     }
     
 end function
@@ -70,7 +77,7 @@ end function
 '
 ' Optionally pass in additional configuration options, see mParticleConstants().DEFAULT_OPTIONS
 '
-function mParticleStart(apiKey as string, apiSecret as string, options={} as object)
+function mParticleStart(startupArgs as object, apiKey as string, apiSecret as string, options={} as object)
     if (getGlobalAA().mparticleInstance <> invalid) then
         logger = mparticle()._internal.logger
         logger.info("mParticleStart called twice.")
@@ -100,13 +107,19 @@ function mParticleStart(apiKey as string, apiSecret as string, options={} as obj
     }
     
     utils = {
+        currentChannelVersion : function() as string
+             manifest = mparticle()._internal.utils.readManifest()
+             return manifest.major_version + "." + manifest.minor_version
+        end function,
         randomGuid : function() as string
             return CreateObject("roDeviceInfo").GetRandomUUID() 
         end function,
         
-        unixTimeMillis : function() as string
+        unixTimeMillis : function() as longinteger
             date = CreateObject("roDateTime")
-            return date.asSeconds().tostr() + date.getMilliseconds().tostr()
+            currentTime = CreateObject("roLongInteger")
+            currentTime.SetLongInt(date.asSeconds())
+            return (currentTime * 1000) + date.getMilliseconds()
         end function,
         
         isEmpty : function(input as string) as boolean
@@ -152,18 +165,20 @@ function mParticleStart(apiKey as string, apiSecret as string, options={} as obj
         end function,
     }
     
-    createPersistence = function()
-        persistence = {}
-        persistence.mpkeys = {
-            SECTION_NAME : "mparticle_persistence",
+    createStorage = function()
+        storage = {}
+        storage.mpkeys = {
+            SECTION_NAME : "mparticle_storage",
             USER_IDENTITIES : "user_identities",
             USER_ATTRIBUTES : "user_attributes",
             MPID : "mpid",
-            COOKIES : "cookies"
+            COOKIES : "cookies",
+            SESSION : "saved_session",
+            CHANNEL_VERSION : "channel_version"
         }
-        persistence.section = CreateObject("roRegistrySection", persistence.mpkeys.SECTION_NAME)
+        storage.section = CreateObject("roRegistrySection", storage.mpkeys.SECTION_NAME)
         
-        persistence.cleanCookies = sub()
+        storage.cleanCookies = sub()
             cookies = m.getCookies()
             validCookies = {}
             nowSeconds = CreateObject("roDateTime").AsSeconds()
@@ -179,26 +194,26 @@ function mParticleStart(apiKey as string, apiSecret as string, options={} as obj
             end if
         end sub
         
-        persistence.set = function(key as string, value as string) as boolean
+        storage.set = function(key as string, value as string) as boolean
              return m.section.Write(key, value)
         end function
         
-        persistence.flush = function() as boolean
+        storage.flush = function() as boolean
              return m.section.Flush()
         end function
         
-        persistence.get = function(key as string) as string
+        storage.get = function(key as string) as string
              return m.section.Read(key)
         end function
         
-        persistence.clear = function()
+        storage.clear = function()
              for each key in m.mpkeys
                 m.section.delete(key)
              end for
              m.flush()
         end function
         
-        persistence.setUserIdentity = sub(identityType as integer, identityValue as string)
+        storage.setUserIdentity = sub(identityType as integer, identityValue as string)
             identities = m.getUserIdentities()
             identity = identities.Lookup(str(identityType))
             if (identity = invalid) then
@@ -210,7 +225,7 @@ function mParticleStart(apiKey as string, apiSecret as string, options={} as obj
             m.flush()
         end sub
         
-        persistence.getUserIdentities = function() as object
+        storage.getUserIdentities = function() as object
             if (m.userIdentities = invalid) then
                 identityJson = m.get(m.mpkeys.USER_IDENTITIES)
                 if (not mparticle()._internal.utils.isEmpty(identityJson)) then
@@ -223,14 +238,14 @@ function mParticleStart(apiKey as string, apiSecret as string, options={} as obj
             return m.userIdentities
         end function
         
-        persistence.setUserAttribute = sub(attributeKey as string, attributeValue as object)
+        storage.setUserAttribute = sub(attributeKey as string, attributeValue as object)
             attributes = m.getUserAttributes()
             attributes[attributeKey] = attributeValue
             m.set(m.mpkeys.USER_ATTRIBUTES, FormatJson(attributes))
             m.flush()
         end sub
         
-        persistence.getUserAttributes = function() as object
+        storage.getUserAttributes = function() as object
             if (m.userAttributes = invalid) then
                 attributeJson = m.get(m.mpkeys.USER_ATTRIBUTES)
                 if (not mparticle()._internal.utils.isEmpty(attributeJson)) then
@@ -243,23 +258,23 @@ function mParticleStart(apiKey as string, apiSecret as string, options={} as obj
             return m.userAttributes
         end function
         
-        persistence.setMpid = function(mpid as string) 
+        storage.setMpid = function(mpid as string) 
             m.set(m.mpkeys.MPID, mpid)
             m.flush()
         end function
         
-        persistence.getMpid = function() as string
+        storage.getMpid = function() as string
             return m.get(m.mpkeys.MPID)
         end function
         
-        persistence.setCookies = function(cookies as object)
+        storage.setCookies = function(cookies as object)
             currentCookies = m.getCookies()
             currentCookies.append(cookies)
             m.set(m.mpkeys.COOKIES, FormatJson(currentCookies))
             m.flush()
         end function
         
-        persistence.getCookies = function() as object 
+        storage.getCookies = function() as object 
             if (m.cookies = invalid) then
                 cookieJson = m.get(m.mpkeys.COOKIES)
                 if (not mparticle()._internal.utils.isEmpty(cookieJson)) then
@@ -272,7 +287,32 @@ function mParticleStart(apiKey as string, apiSecret as string, options={} as obj
             return m.cookies
         end function
         
-        return persistence
+        storage.setSession = function(session as object)
+            if (session <> invalid) then
+                m.set(m.mpkeys.SESSION, FormatJson(session))
+                m.flush()
+            end if
+        end function
+        
+        storage.getSession = function() as object
+            sessionJson = m.get(m.mpkeys.SESSION)
+            if (not mparticle()._internal.utils.isEmpty(sessionJson)) then
+                return ParseJson(sessionJson)
+            else
+                return invalid
+            end if
+        end function
+        
+        storage.getChannelVersion = function() as string
+            return m.get(m.mpkeys.CHANNEL_VERSION)
+        end function
+        
+        storage.setChannelVersion = function(version as string)
+            m.set(m.mpkeys.CHANNEL_VERSION, version)
+            m.flush()
+        end function
+        
+        return storage
     end function
     
     networking = {
@@ -331,11 +371,11 @@ function mParticleStart(apiKey as string, apiSecret as string, options={} as obj
         end function,
         
         mpid : function() as object
-            persistence = mparticle()._internal.persistence
-            mpid = persistence.getMpid()
+            storage = mparticle()._internal.storage
+            mpid = storage.getMpid()
             if (mparticle()._internal.utils.isEmpty(mpid)) then
                 mpid = mparticle()._internal.utils.generateMpid()
-                persistence.setMpid(mpid)
+                storage.setMpid(mpid)
             end if
             return mpid
         end function,
@@ -349,11 +389,11 @@ function mParticleStart(apiKey as string, apiSecret as string, options={} as obj
             batch.ct = mParticle()._internal.utils.unixTimeMillis()
             batch.sdk = mParticleConstants().SDK_VERSION
             batch.ui = []
-            identities = mparticle()._internal.persistence.getUserIdentities()
+            identities = mparticle()._internal.storage.getUserIdentities()
             for each identity in identities
                 batch.ui.push(identities[identity])
             end for
-            batch.ua = mparticle()._internal.persistence.getUserAttributes()
+            batch.ua = mparticle()._internal.storage.getUserAttributes()
             batch.msgs = messages
             batch.ai = m.applicationInfo()
             batch.di = m.deviceInfo()
@@ -413,12 +453,12 @@ function mParticleStart(apiKey as string, apiSecret as string, options={} as obj
             if mparticle()._internal.utils.isEmpty(apiResponse) then : return 0 : end if
             responseObject = parsejson(apiResponse)
             if (responseObject <> invalid) then
-                persistence = mparticle()._internal.persistence
+                storage = mparticle()._internal.storage
                 if (responseObject.DoesExist("ci") and responseObject.ci.DoesExist("mpid")) then
-                    persistence.setMpid(responseObject.ci.mpid.tostr())
+                    storage.setMpid(responseObject.ci.mpid.tostr())
                 end if
                 if (responseObject.DoesExist("ci") and responseObject.ci.DoesExist("ck")) then
-                    persistence.setCookies(responseObject.ci.ck)
+                    storage.setCookies(responseObject.ci.ck)
                 end if
             end if
             
@@ -426,8 +466,108 @@ function mParticleStart(apiKey as string, apiSecret as string, options={} as obj
         
     }
     
+    createSessionManager = function(startupArgs as object) as object
+        sessionManager = {}
+        sessionManager.startupArgs = startupArgs
+        sessionManagerApi = {
+            onSdkStart : function()
+                isFirstRun = true
+                isUpgrade = false
+                storedChannelVersion = mparticle()._internal.storage.getChannelVersion()
+                currentChannelVersion = mparticle()._internal.utils.currentChannelVersion()
+                if (storedChannelVersion <> invalid and storedChannelVersion <> currentChannelVersion) then
+                    isUpgrade = true
+                end if
+                if (isUpgrade or storedChannelVersion = invalid) then
+                    storage = mparticle()._internal.storage
+                    storage.setChannelVersion(currentChannelVersion)
+                end if
+                logger = mparticle()._internal.logger
+                if (m.currentSession = invalid) then
+                    logger.debug("Restoring previous session.")
+                    m.currentSession = mparticle()._internal.storage.getSession()
+                    if (m.currentSession = invalid) then
+                        logger.debug("No previous session found, creating new session.")
+                        m.onSessionStart()
+                    else
+                        isFirstRun = false
+                        currentTime = mparticle()._internal.utils.unixTimeMillis()
+                        sessionTimeoutMillis = mparticle()._internal.configuration.sessionTimeoutMillis
+                        lastEventTime = m.currentSession.lastEventTime
+                        if ((currentTime - lastEventTime) >= sessionTimeoutMillis) then
+                            logger.debug("Previous session timed out - creating new session.")
+                            m.onSessionEnd(m.currentSession)
+                            m.onSessionStart(m.currentSession)
+                        else
+                            logger.debug("Previous session still valid - it will be reused.")
+                            m.onForeground(currentTime)
+                        end if
+                    end if
+                end if
+                mparticle().logMessage(mparticle().model.AppStateTransition("app_init", isFirstRun, isUpgrade, m.startupArgs))
+            end function,
+            updateLastEventTime : function(time as longinteger)
+                m.currentSession.lastEventTime = time
+                m.saveSession()
+            end function,
+            onForeground : function(time as longinteger)
+                m.updateLastEventTime(time)
+                
+            end function,
+            setSessionAttribute: function(attributeKey as string, attributeValue as object)
+                m.currentSession.attributes[attributeKey] = attributeValue
+                m.updateLastEventTime(mparticle()._internal.utils.unixTimeMillis())
+            end function,
+            onSessionStart: function(previousSession = invalid as object)
+                m.currentSession = m.createSession(previousSession)
+                m.saveSession()
+                mparticle().logMessage(mparticle().model.SessionStart(m.currentSession))
+            end function,
+            onSessionEnd: function(session as object)
+                mparticle().logMessage(mparticle().model.SessionEnd(session))
+            end function,
+            saveSession: function()
+                storage = mparticle()._internal.storage
+                storage.setSession(m.currentSession)
+            end function,
+            createSession : function(previousSession = invalid as object)
+                deviceInfo = CreateObject("roDeviceInfo")
+                currentTime = mparticle()._internal.utils.unixTimeMillis()
+                launchReferral = invalid
+                if (m.startupArgs <> invalid) then
+                    launchReferrer = m.startupArgs.contentId
+                end if
+                previousSessionLength = invalid
+                previousSessionId = invalid
+                previousSessionStartTime = invalid
+                if (previousSession <> invalid) then
+                    previousSessionLength = m.sessionLength(previousSession)
+                    previousSessionId = previousSession.sessionId
+                    previousSessionStartTime = previousSession.startTime
+                end if
+                
+                return {
+                    sessionId : mparticle()._internal.utils.randomGuid()
+                    startTime : currentTime,
+                    dataConnection : deviceInfo.GetConnectionType(),
+                    launchReferrer: launchReferrer
+                    lastEventTime : currentTime,
+                    previousSessionLength : previousSessionLength,
+                    previousSessionId: previousSessionId,
+                    previousSessionStartTime: previousSessionStartTime,
+                    attributes : {}
+                }
+            end function,
+            sessionLength : function(session as object) as integer
+                return (session.lastEventTime - session.startTime) / 1000
+            end function, 
+        }
+        sessionManager.append(sessionManagerApi)
+        return sessionManager
+    end function
+    
     model = {
-        Message : function(messageType as string, attributes={}) as object
+        Message : function(messageType as string, attributes=invalid) as object
             return {
                 dt : messageType,
                 id : mparticle()._internal.utils.randomGuid(),
@@ -436,10 +576,48 @@ function mParticleStart(apiKey as string, apiSecret as string, options={} as obj
             }
         end function,
         
-        CustomEvent : function(eventName as string, eventType, customAttributes = {}) as object
+        CustomEvent: function(eventName as string, eventType, customAttributes = {}) as object
             message = m.Message(mParticleConstants().MESSAGE_TYPE.CUSTOM, customAttributes)
             message.n = eventName
             message.et = eventType
+            return message
+        end function,
+        
+        SessionStart: function(session) as object
+            message = m.Message(mParticleConstants().MESSAGE_TYPE.SESSION_START)
+            message.ct = session.startTime
+            message.sid = session.sessionId
+            message.dct = session.dataConnection
+            message.lr = session.launchReferrer
+            message.psl = session.previousSessionLength / 60
+            message.pid = session.previousSessionId
+            message.pss = session.previousSessionStartTime
+            return message
+        end function,
+        
+        SessionEnd: function(session as object) as object
+            message = m.Message(mParticleConstants().MESSAGE_TYPE.SESSION_END)
+            message.sid = session.sessionId
+            message.sct = session.startTime
+            message.dct = session.dataConnection
+            message.slx = mparticle()._internal.sessionManager.sessionLength(session)
+            message.sl = message.slx
+            message.attrs = session.attributes
+            return message
+        end function,
+        
+        AppStateTransition: function(astType as string, firstRun as boolean, isUpgrade as boolean, startupArgs as object) as object
+            message = m.Message(mParticleConstants().MESSAGE_TYPE.APP_STATE_TRANSITION)
+            message.t = astType
+            message.ifr = firstRun
+            message.iu = isUpgrade
+            deviceInfo = CreateObject("roDeviceInfo")
+            message.dct = deviceInfo.GetConnectionType()
+            if (startupArgs <> invalid) then
+                message.lr = startupArgs.contentId
+                message.lpr = formatjson(startupArgs)
+            end if
+            
             return message
         end function,
         
@@ -450,26 +628,42 @@ function mParticleStart(apiKey as string, apiSecret as string, options={} as obj
                 dfs : mparticle()._internal.utils.unixTimeMillis(),
                 f : true
             }
+       
         end function
     }
+    
+    if (utils.isEmpty(apiKey) or utils.isEmpty(apiSecret)) then
+        logger.error("mParticleStart() called with empty API key or secret!")
+    end if
+
+    createConfiguration = function(apiKey as string, apiSecret as string, options as object) as object
+        configuration = mParticleConstants().DEFAULT_OPTIONS
+        for each key in options
+            configuration.AddReplace(key, options[key])
+        end for
+        
+        configuration.key = apiKey
+        configuration.secret = apiSecret
+
+        if configuration.environment = mParticleConstants().ENVIRONMENT.FORCE_DEVELOPMENT then
+            configuration.development = true
+        else if configuration.environment = mParticleConstants().ENVIRONMENT.FORCE_PRODUCTION then
+            configuration.development = false
+        else 
+            appInfo = CreateObject("roAppInfo")
+            configuration.development = appInfo.IsDev()
+        end if
+        return configuration
+    end function
     
     'this is called after everything is initialized
     'perform whatever we need to on every startup
     performStartupTasks = sub()
-        persistence = mparticle()._internal.persistence
-        persistence.cleanCookies()
+        storage = mparticle()._internal.storage
+        storage.cleanCookies()
+        sessionManager = mparticle()._internal.sessionManager
+        sessionManager.onSdkStart()
     end sub
-    
-    configuration = mParticleConstants().DEFAULT_OPTIONS
-    for each key in options
-        configuration.AddReplace(key, options[key])
-    end for
-        
-    if (utils.isEmpty(apiKey) or utils.isEmpty(apiSecret)) then
-        logger.error("mParticleStart() called with empty API key or secret!")
-    end if
-    configuration.key = apiKey
-    configuration.secret = apiSecret
 
     
     '
@@ -480,13 +674,15 @@ function mParticleStart(apiKey as string, apiSecret as string, options={} as obj
                                 m.logMessage(m.model.CustomEvent(eventName, eventType, customAttributes))
                             end function,
         logMessage:         function(message as object) as void
+                                logger = mparticle()._internal.logger
+                                logger.debug("Logging message: " + formatjson(message))
                                 m._internal.networking.upload([message])
                             end function,
         setUserIdentity:    function(identityType as integer, identityValue as String) as void
-                                m._internal.persistence.setUserIdentity(identityType, identityValue)
+                                m._internal.storage.setUserIdentity(identityType, identityValue)
                             end function,
         setUserAttribute:   function(attributeKey as string, attributeValue as object) as void
-                                m._internal.persistence.setUserAttribute(attributeKey, attributeValue)
+                                m._internal.storage.setUserAttribute(attributeKey, attributeValue)
                             end function,
         model:              model
     }
@@ -494,9 +690,10 @@ function mParticleStart(apiKey as string, apiSecret as string, options={} as obj
     internalApi =  {
         utils:          utils,
         logger:         logger,
-        configuration:  configuration,
+        configuration:  createConfiguration(apiKey, apiSecret, options),
         networking:     networking,
-        persistence:    createPersistence()
+        storage:        createStorage(),
+        sessionManager: createSessionManager(startupArgs)
     }
     
     publicApi.append({_internal:internalApi})
