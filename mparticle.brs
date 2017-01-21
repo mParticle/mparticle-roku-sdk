@@ -10,7 +10,7 @@ function mParticleConstants() as object
         development:    false,
         logLevel:       LOG_LEVEL.ERROR,
         enablePinning:  true,
-        certificateDir:   "pkg:/source/mparticle/mparticle.crt"
+        certificateDir: "pkg:/source/mparticle/mparticle.crt"
     }
     MESSAGE_TYPE = {
         SESSION_START:          "ss",
@@ -116,9 +116,23 @@ function mParticleStart(apiKey as string, apiSecret as string, options={} as obj
         generateMpid : function() as string
             return m.fnv1aHash(m.randomGuid())
         end function,
+        
+        readManifest : function() as object
+            result = {}
+              
+            raw = ReadASCIIFile("pkg:/manifest")
+            lines = raw.Tokenize(Chr(10))
+            for each line in lines
+                bits = line.Tokenize("=")
+                if bits.Count() > 1
+                    result.AddReplace(bits[0], bits[1])
+                end if
+            end for
+  
+            return result
+        end function,
        
-        'Roku only has APIs for signed 64-bit integers so
-        'this implementation needs to jump through some hoops
+        ' will return the string representation of a signed 64-bit int
         fnv1aHash : function(data as string) as string
             'the Roku-Eclipse plugin incorrectly highlights
             'LongInteger literals as syntax errors
@@ -134,85 +148,8 @@ function mParticleStart(apiKey as string, apiSecret as string, options={} as obj
                 hash = bitwiseOr and not bitwiseAnd
                 hash = hash * prime
             end for
-            'at this point we have the bits that we need, but
-            'can't format it as decimal using any Roku API
-            'so we get the base-16 value, and convert that to decimal
-            hexString = stri(hash >> 32, 16) + stri(hash, 16)
-            return m.convertToBase(hexString, 16, 10)
-
+            return hash.tostr()
         end function,
-        
-        'the following functions are needed since Brightscript can only format longintegers as signed integers
-        'convert an arbitrary length hex string to decimal
-        convertToBase : function(hexString as string, fromBase as integer, tobase as integer) as string 
-            hexArray = m.convertToDigits(hexString)
-            outArray = []
-            power = [1]
-            for i = 0 to hexArray.count()-1 step 1
-               if hexArray[i] > 0 then
-                    outArray = m.add(outArray, m.multiplyByNumber(hexArray[i], power, toBase), toBase)
-               end if
-               power = m.multiplyByNumber(fromBase, power, toBase)
-            end for
-            out = ""
-            for i = outArray.count() - 1 to 0 step -1
-                out += str(outArray[i]).trim()
-            end for
-            return out
-        end function,
-            
-        convertToDigits : function(hexString as string) as object
-            digits = hexString.split("")
-            arr = []
-            for i = digits.count() - 1 to 0 step -1
-                n = val(digits[i],16)
-                arr.push(n)
-            end for
-            return arr
-        end function,
-        
-        multiplyByNumber : function(num as integer, x as object, base as integer) as object
-            if (num = 0) then
-               return []
-            end if
-            result = []
-            power = x
-            while true
-                if (num and 1) then
-                    result = m.add(result, power, base)
-                end if
-                num = num >> 1
-                if (num = 0) then
-                    return result
-                end if
-                power = m.add(power, power, base)
-            end while
-            return result
-        end function,
-        
-        add : function(x as object, y as object, base as integer) as object
-            z = []
-            if (x.count() > y.count()) then
-                n = x.count()
-            else
-                n = y.count()
-            end if
-            carry = 0
-            i = 0
-            while (i < n or carry)
-                if i < x.count() then : xi = x[i] : else xi = 0 : end if
-                if i < y.count() then
-                    xy = y[i]
-                else
-                    xy = 0
-                end if
-                zi = carry + xi + xy
-                z.push(zi mod base)
-                carry = int(zi / base)
-                i = i + 1
-            end while
-            return z
-        end function
     }
     
     createPersistence = function()
@@ -344,7 +281,53 @@ function mParticleStart(apiKey as string, apiSecret as string, options={} as obj
         end function,
         
         deviceInfo : function() as object
-            return {}
+            if (m.collectedDeviceInfo = invalid) then
+                info = CreateObject("roDeviceInfo")
+                m.collectedDeviceInfo = {
+                    dp:     "Roku",
+                    dn:     info.GetModelDisplayName(),
+                    p:      info.GetModel(),
+                    udid:   info.GetDeviceUniqueId(),
+                    vr:     info.GetVersion(),
+                    ' TODO: this may not be the correct place to send the Ad ID
+                    anid:   info.GetAdvertisingId(),
+                    lat:    info.IsAdIdTrackingDisabled(),
+                    dmdl:   info.GetModel(),
+                    dc:     info.GetCountryCode(),
+                    dll:    info.GetCurrentLocale(),
+                    dlc:    -1 * CreateObject("roDateTime").GetTimeZoneOffset() / 60,
+                    tzn:    info.GetTimeZone(),
+                    dr:     info.GetConnectionType()
+                }
+              
+                modelDetails = info.GetModelDetails()
+                if (modelDetails <> invalid) then
+                    m.collectedDeviceInfo.b = modelDetails["VendorName"]
+                    m.collectedDeviceInfo.dma = modelDetails["VendorName"]
+                end if
+
+                displaySize = info.GetDisplaySize()
+                if (displaySize <> invalid) then
+                    m.collectedDeviceInfo.dsh  = displaySize["h"]
+                    m.collectedDeviceInfo.dsw  = displaySize["w"]
+                end if
+
+                manifest = mparticle()._internal.utils.readManifest()
+                buildIdArray = CreateObject("roByteArray")
+                buildIdArray.FromAsciiString(manifest.major_version + "." + manifest.minor_version)
+                digest = CreateObject("roEVPDigest")
+                digest.Setup("md5")
+                digest.update(buildIdArray)
+                m.collectedDeviceInfo.bid = digest.final()
+
+                versionString = info.GetVersion()
+                if (len(versionString) > 5) then
+                    versionString = versionString.mid(2, 4)
+                end if
+                m.collectedDeviceInfo.dosv = versionString
+                
+            end if
+            return m.collectedDeviceInfo
         end function,
         
         mpid : function() as object
@@ -361,8 +344,7 @@ function mParticleStart(apiKey as string, apiSecret as string, options={} as obj
             batch = {}
             batch.dbg = mparticle()._internal.configuration.development
             batch.dt = "h"
-            ' this is the best/only way to convert from a string to an unsigned 64-bit value 
-            batch.mpid = parsejson(m.mpid())
+            batch.mpid = m.mpid()
             batch.id = mParticle()._internal.utils.randomGuid()
             batch.ct = mParticle()._internal.utils.unixTimeMillis()
             batch.sdk = mParticleConstants().SDK_VERSION
@@ -388,7 +370,7 @@ function mParticleStart(apiKey as string, apiSecret as string, options={} as obj
             
             dateString = CreateObject("roDateTime").ToISOString()
             jsonBatch = FormatJson(batch)
-            hashString = "POST" + chr(10) + dateString + chr(10) + "/v1/" + mparticle()._internal.configuration.key + "/events" + jsonBatch
+            hashString = "POST" + Chr(10) + dateString + Chr(10) + "/v1/" + mparticle()._internal.configuration.key + "/events" + jsonBatch
             
             signature_key = CreateObject("roByteArray")
             signature_key.fromAsciiString(mparticle()._internal.configuration.secret)
