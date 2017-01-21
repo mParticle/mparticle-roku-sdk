@@ -8,7 +8,9 @@ function mParticleConstants() as object
     }
     DEFAULT_OPTIONS = {
         development:    false,
-        logLevel:       LOG_LEVEL.ERROR
+        logLevel:       LOG_LEVEL.ERROR,
+        enablePinning:  true,
+        certificateDir:   "pkg:/source/mparticle/mparticle.crt"
     }
     MESSAGE_TYPE = {
         SESSION_START:          "ss",
@@ -99,16 +101,7 @@ function mParticleStart(apiKey as string, apiSecret as string, options={} as obj
     
     utils = {
         randomGuid : function() as string
-            return m.randomHexString(8) + "-" + m.randomHexString(4) + "-" + m.randomHexString(4) + "-" + m.randomHexString(4) + "-" + m.randomHexString(12)
-        end function,
-
-        randomHexString : function (length as integer) as string
-            hexChars = "0123456789abcdef"
-            hexString = ""
-            for i = 1 to length
-                hexString = hexString + hexChars.Mid(Rnd(16) - 1, 1)
-            next
-            return hexString
+            return CreateObject("roDeviceInfo").GetRandomUUID() 
         end function,
         
         unixTimeMillis : function() as string
@@ -387,7 +380,9 @@ function mParticleStart(apiKey as string, apiSecret as string, options={} as obj
         
         uploadBatch : function (batch as object) as integer
             urlTransfer = CreateObject("roUrlTransfer")
-            urlTransfer.SetCertificatesFile("common:/certs/ca-bundle.crt")
+            if (mparticle()._internal.configuration.enablePinning) then
+                urlTransfer.SetCertificatesFile(mparticle()._internal.configuration.certificateDir)
+            end if
             urlTransfer.SetUrl("https://nativesdks.mparticle.com/v1/" + mparticle()._internal.configuration.key + "/events")
             urlTransfer.EnableEncodings(true)
             
