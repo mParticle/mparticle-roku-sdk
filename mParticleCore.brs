@@ -1,28 +1,3 @@
-function mParticleSGBridge(task as object) as object
-    return {
-        mParticleTask:      task
-        logEvent:           function(eventName as string, eventType = mParticleConstants().CUSTOM_EVENT_TYPE.OTHER, customAttributes = {}) as void
-                                m.invokeFunction("logEvent", [eventName, eventType, customAttributes])
-                             end function,
-        logMessage:         function(message as object) as void
-                                m.invokeFunction("logMessage", [message])
-                            end function,
-        setUserIdentity:    function(identityType as integer, identityValue as String) as void
-                                m.invokeFunction("setUserIdentity", [identityType, identityValue])
-                            end function,
-        setUserAttribute:   function(attributeKey as string, attributeValue as object) as void
-                                m.invokeFunction("setUserAttribute", [attributeKey, attributeValue])
-                                end function
-        invokeFunction:     function(name as string, args)
-                                invocation = {}
-                                invocation.methodName = name
-                                invocation.args = args
-                                m.mParticleTask.apiCall = invocation
-                            end function
-     }
-    
-end function
-
 function mParticleConstants() as object 
     SDK_VERSION = "1.0.0"
     LOG_LEVEL = {
@@ -49,7 +24,7 @@ function mParticleConstants() as object
         SESSION_START:          "ss",
         SESSION_END:            "se",
         CUSTOM:                 "e",
-        SCREEN:                 "s",
+        SCREEN:                 "v",
         OPT_OUT:                "o",
         ERROR:                  "x",
         BREADCRUMB:             "b",
@@ -543,6 +518,9 @@ function mParticleStart(options={} as object)
                     mparticle().logMessage(mparticle().model.AppStateTransition("app_init", isFirstRun, isUpgrade, m.startupArgs))
                 end if
             end function,
+            getCurrentSession : function()
+                return m.currentSession
+            end function,
             updateLastEventTime : function(time as longinteger)
                 logger = mparticle()._internal.logger
                 logger.debug("Updating session end time.")
@@ -607,11 +585,14 @@ function mParticleStart(options={} as object)
     
     model = {
         Message : function(messageType as string, attributes=invalid) as object
+            currentSession = mparticle()._internal.sessionManager.getCurrentSession()
             return {
                 dt : messageType,
                 id : mparticle()._internal.utils.randomGuid(),
                 ct : mparticle()._internal.utils.unixTimeMillis(),
-                attrs : attributes
+                attrs : attributes,
+                sid : currentSession.sessionId,
+                sct : currentSession.startTime
             }
         end function,
         
@@ -619,6 +600,14 @@ function mParticleStart(options={} as object)
             message = m.Message(mParticleConstants().MESSAGE_TYPE.CUSTOM, customAttributes)
             message.n = eventName
             message.et = eventType
+            message.est = message.ct
+            return message
+        end function,
+        
+        ScreenEvent: function(screenName as string, customAttributes = {}) as object
+            message = m.Message(mParticleConstants().MESSAGE_TYPE.SCREEN, customAttributes)
+            message.n = screenName
+            message.est = message.ct
             return message
         end function,
         
@@ -711,6 +700,9 @@ function mParticleStart(options={} as object)
         logEvent:           function(eventName as string, eventType = mParticleConstants().CUSTOM_EVENT_TYPE.OTHER, customAttributes = {}) as void
                                 m.logMessage(m.model.CustomEvent(eventName, eventType, customAttributes))
                             end function,
+        logScreenEvent:     function(screenName as string, customAttributes = {}) as void
+                                m.logMessage(m.model.ScreenEvent(screenName, customAttributes))
+                            end function,
         logMessage:         function(message as object) as void
                                 logger = mparticle()._internal.logger
                                 logger.debug("Logging message: " + formatjson(message))
@@ -737,4 +729,33 @@ function mParticleStart(options={} as object)
     publicApi.append({_internal:internalApi})
     getGlobalAA().mparticleInstance = publicApi
     performStartupTasks()
+end function
+
+
+function mParticleSGBridge(task as object) as object
+    return {
+        mParticleTask:      task
+        logEvent:           function(eventName as string, eventType = mParticleConstants().CUSTOM_EVENT_TYPE.OTHER, customAttributes = {}) as void
+                                m.invokeFunction("logEvent", [eventName, eventType, customAttributes])
+                            end function,
+        logScreenEvent:     function(screenName as string, customAttributes = {}) as void
+                                m.invokeFunction("logScreenEvent", [screenName, customAttributes])
+                            end function,
+        logMessage:         function(message as object) as void
+                                m.invokeFunction("logMessage", [message])
+                            end function,
+        setUserIdentity:    function(identityType as integer, identityValue as String) as void
+                                m.invokeFunction("setUserIdentity", [identityType, identityValue])
+                            end function,
+        setUserAttribute:   function(attributeKey as string, attributeValue as object) as void
+                                m.invokeFunction("setUserAttribute", [attributeKey, attributeValue])
+                                end function
+        invokeFunction:     function(name as string, args)
+                                invocation = {}
+                                invocation.methodName = name
+                                invocation.args = args
+                                m.mParticleTask.apiCall = invocation
+                            end function
+     }
+    
 end function

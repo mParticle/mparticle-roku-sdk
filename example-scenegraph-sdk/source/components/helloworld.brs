@@ -7,6 +7,7 @@ sub init()
     mp.setUserIdentity(mparticleConstants().IDENTITY_TYPE.EMAIL, "user2@example.com")
     mp.logEvent("hello world!")
     mp.setUserAttribute("example attribute key", "example attribute value")
+    mp.logScreenEvent("hello screen!")
     
     
     'Set the font size
