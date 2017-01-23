@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="HelloWorld" extends="Scene"> 
+	<children>
+      <Label id="myLabel" 
+      	text="Hello World!"
+      	width="1280" 
+      	height="720" 
+      	horizAlign="center"
+      	vertAlign="center"
+      	/>
+    </children>
+
+  <script type="text/brightscript" uri="pkg:/components/helloworld.brs"/>
+
+  <script type="text/brightscript" uri="pkg:/source/mparticle/mparticle.brs"/>
+</component>

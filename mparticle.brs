@@ -1,3 +1,29 @@
+function mParticleSGBridge(task as object) as object
+    return {
+        mParticleTask:      task
+        logEvent:           function(eventName as string, eventType = mParticleConstants().CUSTOM_EVENT_TYPE.OTHER, customAttributes = {}) as void
+                                m.invokeFunction("logEvent", [eventName, eventType, customAttributes])
+                             end function,
+        logMessage:         function(message as object) as void
+                                m.invokeFunction("logMessage", [message])
+                            end function,
+        setUserIdentity:    function(identityType as integer, identityValue as String) as void
+                                m.invokeFunction("setUserIdentity", [identityType, identityValue])
+                            end function,
+        setUserAttribute:   function(attributeKey as string, attributeValue as object) as void
+                                m.invokeFunction("setUserAttribute", [attributeKey, attributeValue])
+                                end function
+        invokeFunction:     function(name as string, args)
+                                invocation = {}
+                                invocation.methodName = name
+                                invocation.args = args
+                                m.mParticleTask.apiCall = invocation
+                            end function
+     }
+    
+end function
+
+
 function mParticleConstants() as object 
     SDK_VERSION = "1.0.0"
     LOG_LEVEL = {
@@ -12,6 +38,8 @@ function mParticleConstants() as object
         FORCE_PRODUCTION:   2
     }
     DEFAULT_OPTIONS = {
+        apiKey:                 invalid,
+        apiSecret:              invalid,
         environment:            ENVIRONMENT.AUTO_DETECT,
         logLevel:               LOG_LEVEL.ERROR,
         enablePinning:          true,
@@ -77,7 +105,7 @@ end function
 '
 ' Optionally pass in additional configuration options, see mParticleConstants().DEFAULT_OPTIONS
 '
-function mParticleStart(startupArgs as object, apiKey as string, apiSecret as string, options={} as object)
+function mParticleStart(options={} as object)
     if (getGlobalAA().mparticleInstance <> invalid) then
         logger = mparticle()._internal.logger
         logger.info("mParticleStart called twice.")
@@ -85,7 +113,7 @@ function mParticleStart(startupArgs as object, apiKey as string, apiSecret as st
     end if
     
     logger = {
-        PREFIX : "mParticle SDK: ",
+        PREFIX : "mParticle SDK",
         
         debug : function(message as String) as void
             m.printlog(mParticleConstants().LOG_LEVEL.DEBUG, message)
@@ -101,7 +129,9 @@ function mParticleStart(startupArgs as object, apiKey as string, apiSecret as st
         
         printlog : function(level as integer, message as String) as void
              if (mparticle()._internal.configuration.logLevel >= level) then
-                print m.PREFIX + message
+                print "============== "+m.PREFIX+" ====================="
+                print message
+                print "=================================================="
             end if
         end function
     }
@@ -168,7 +198,7 @@ function mParticleStart(startupArgs as object, apiKey as string, apiSecret as st
     createStorage = function()
         storage = {}
         storage.mpkeys = {
-            SECTION_NAME : "mparticle_storage",
+            SECTION_NAME : "mparticle_storage_5",
             USER_IDENTITIES : "user_identities",
             USER_ATTRIBUTES : "user_attributes",
             MPID : "mpid",
@@ -405,15 +435,15 @@ function mParticleStart(startupArgs as object, apiKey as string, apiSecret as st
             if (mparticle()._internal.configuration.enablePinning) then
                 urlTransfer.SetCertificatesFile(mparticle()._internal.configuration.certificateDir)
             end if
-            urlTransfer.SetUrl("https://nativesdks.mparticle.com/v1/" + mparticle()._internal.configuration.key + "/events")
+            urlTransfer.SetUrl("https://nativesdks.mparticle.com/v1/" + mparticle()._internal.configuration.apikey + "/events")
             urlTransfer.EnableEncodings(true)
             
             dateString = CreateObject("roDateTime").ToISOString()
             jsonBatch = FormatJson(batch)
-            hashString = "POST" + Chr(10) + dateString + Chr(10) + "/v1/" + mparticle()._internal.configuration.key + "/events" + jsonBatch
+            hashString = "POST" + Chr(10) + dateString + Chr(10) + "/v1/" + mparticle()._internal.configuration.apikey + "/events" + jsonBatch
             
             signature_key = CreateObject("roByteArray")
-            signature_key.fromAsciiString(mparticle()._internal.configuration.secret)
+            signature_key.fromAsciiString(mparticle()._internal.configuration.apisecret)
             
             hmac = CreateObject("roHMAC")
             hmac.Setup("sha256", signature_key)
@@ -431,7 +461,7 @@ function mParticleStart(startupArgs as object, apiKey as string, apiSecret as st
             urlTransfer.SetMessagePort(port)
             urlTransfer.RetainBodyOnError(true)
             logger = mparticle()._internal.logger
-            logger.debug("Uploading batch" + jsonBatch)
+            logger.debug("Uploading batch: " + jsonBatch)
         
             if (urlTransfer.AsyncPostFromString(jsonBatch)) then
                 while (true)
@@ -473,22 +503,24 @@ function mParticleStart(startupArgs as object, apiKey as string, apiSecret as st
             onSdkStart : function()
                 isFirstRun = true
                 isUpgrade = false
+                logAst = false
                 storedChannelVersion = mparticle()._internal.storage.getChannelVersion()
                 currentChannelVersion = mparticle()._internal.utils.currentChannelVersion()
-                if (storedChannelVersion <> invalid and storedChannelVersion <> currentChannelVersion) then
+                if (not mparticle()._internal.utils.isEmpty(storedChannelVersion) and storedChannelVersion <> currentChannelVersion) then
                     isUpgrade = true
                 end if
-                if (isUpgrade or storedChannelVersion = invalid) then
+                if (isUpgrade or mparticle()._internal.utils.isEmpty(storedChannelVersion)) then
                     storage = mparticle()._internal.storage
                     storage.setChannelVersion(currentChannelVersion)
                 end if
                 logger = mparticle()._internal.logger
-                if (m.currentSession = invalid) then
+                if (m.currentSession = invalid) then      
                     logger.debug("Restoring previous session.")
                     m.currentSession = mparticle()._internal.storage.getSession()
                     if (m.currentSession = invalid) then
                         logger.debug("No previous session found, creating new session.")
                         m.onSessionStart()
+                        logAst = true
                     else
                         isFirstRun = false
                         currentTime = mparticle()._internal.utils.unixTimeMillis()
@@ -498,15 +530,20 @@ function mParticleStart(startupArgs as object, apiKey as string, apiSecret as st
                             logger.debug("Previous session timed out - creating new session.")
                             m.onSessionEnd(m.currentSession)
                             m.onSessionStart(m.currentSession)
+                            logAst = true
                         else
                             logger.debug("Previous session still valid - it will be reused.")
                             m.onForeground(currentTime)
                         end if
                     end if
                 end if
-                mparticle().logMessage(mparticle().model.AppStateTransition("app_init", isFirstRun, isUpgrade, m.startupArgs))
+                if (logAst) then
+                    mparticle().logMessage(mparticle().model.AppStateTransition("app_init", isFirstRun, isUpgrade, m.startupArgs))
+                end if
             end function,
             updateLastEventTime : function(time as longinteger)
+                logger = mparticle()._internal.logger
+                logger.debug("Updating session end time.")
                 m.currentSession.lastEventTime = time
                 m.saveSession()
             end function,
@@ -559,7 +596,7 @@ function mParticleStart(startupArgs as object, apiKey as string, apiSecret as st
                 }
             end function,
             sessionLength : function(session as object) as integer
-                return (session.lastEventTime - session.startTime) / 1000
+                return (session.lastEventTime - session.startTime)
             end function, 
         }
         sessionManager.append(sessionManagerApi)
@@ -589,7 +626,9 @@ function mParticleStart(startupArgs as object, apiKey as string, apiSecret as st
             message.sid = session.sessionId
             message.dct = session.dataConnection
             message.lr = session.launchReferrer
-            message.psl = session.previousSessionLength / 60
+            if (session.previousSessionLength <> invalid) then
+                message.psl = session.previousSessionLength / 1000
+            end if
             message.pid = session.previousSessionId
             message.pss = session.previousSessionStartTime
             return message
@@ -632,18 +671,15 @@ function mParticleStart(startupArgs as object, apiKey as string, apiSecret as st
         end function
     }
     
-    if (utils.isEmpty(apiKey) or utils.isEmpty(apiSecret)) then
+    if (utils.isEmpty(options.apiKey) or utils.isEmpty(options.apiSecret)) then
         logger.error("mParticleStart() called with empty API key or secret!")
     end if
 
-    createConfiguration = function(apiKey as string, apiSecret as string, options as object) as object
+    createConfiguration = function(options as object) as object
         configuration = mParticleConstants().DEFAULT_OPTIONS
         for each key in options
             configuration.AddReplace(key, options[key])
         end for
-        
-        configuration.key = apiKey
-        configuration.secret = apiSecret
 
         if configuration.environment = mParticleConstants().ENVIRONMENT.FORCE_DEVELOPMENT then
             configuration.development = true
@@ -690,10 +726,10 @@ function mParticleStart(startupArgs as object, apiKey as string, apiSecret as st
     internalApi =  {
         utils:          utils,
         logger:         logger,
-        configuration:  createConfiguration(apiKey, apiSecret, options),
+        configuration:  createConfiguration(options),
         networking:     networking,
         storage:        createStorage(),
-        sessionManager: createSessionManager(startupArgs)
+        sessionManager: createSessionManager(options.startupArgs)
     }
     
     publicApi.append({_internal:internalApi})
