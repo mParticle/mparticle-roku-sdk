@@ -23,7 +23,6 @@ function mParticleSGBridge(task as object) as object
     
 end function
 
-
 function mParticleConstants() as object 
     SDK_VERSION = "1.0.0"
     LOG_LEVEL = {
@@ -43,7 +42,7 @@ function mParticleConstants() as object
         environment:            ENVIRONMENT.AUTO_DETECT,
         logLevel:               LOG_LEVEL.ERROR,
         enablePinning:          true,
-        certificateDir:         "pkg:/source/mparticle/mparticle.crt",
+        certificateDir:         "pkg:/source/mparticle/mParticleBundle.crt",
         sessionTimeoutMillis:   60 * 1000
     }
     MESSAGE_TYPE = {
@@ -198,7 +197,7 @@ function mParticleStart(options={} as object)
     createStorage = function()
         storage = {}
         storage.mpkeys = {
-            SECTION_NAME : "mparticle_storage_5",
+            SECTION_NAME : "mparticle_storage",
             USER_IDENTITIES : "user_identities",
             USER_ATTRIBUTES : "user_attributes",
             MPID : "mpid",
