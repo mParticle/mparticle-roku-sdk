@@ -137,8 +137,8 @@ function mParticleStart(options={} as object)
     
     utils = {
         currentChannelVersion : function() as string
-             manifest = mparticle()._internal.utils.readManifest()
-             return manifest.major_version + "." + manifest.minor_version
+             info = CreateObject("roAppInfo")
+             return info.getvalue("major_version") + "." + info.getvalue("minor_version")
         end function,
         randomGuid : function() as string
             return CreateObject("roDeviceInfo").GetRandomUUID() 
@@ -157,21 +157,6 @@ function mParticleStart(options={} as object)
         
         generateMpid : function() as string
             return m.fnv1aHash(m.randomGuid())
-        end function,
-        
-        readManifest : function() as object
-            result = {}
-              
-            raw = ReadASCIIFile("pkg:/manifest")
-            lines = raw.Tokenize(Chr(10))
-            for each line in lines
-                bits = line.Tokenize("=")
-                if bits.Count() > 1
-                    result.AddReplace(bits[0], bits[1])
-                end if
-            end for
-  
-            return result
         end function,
        
         ' will return the string representation of a signed 64-bit int
@@ -346,7 +331,20 @@ function mParticleStart(options={} as object)
     
     networking = {
         applicationInfo : function() as object
-            return {}
+           if (m.collectedApplicationInfo = invalid) then
+            info = CreateObject("roAppInfo")
+            env = 2
+            if (mparticle()._internal.configuration.development) then 
+                env = 1
+            end if
+            m.collectedApplicationInfo = {
+                    an:     info.getvalue("title"),
+                    av:     mparticle()._internal.utils.currentChannelVersion(),
+                    abn:    info.getvalue("build_version"),
+                    env:    env
+            }
+            return m.collectedApplicationInfo
+           end if
         end function,
         
         deviceInfo : function() as object
@@ -380,10 +378,10 @@ function mParticleStart(options={} as object)
                     m.collectedDeviceInfo.dsh  = displaySize["h"]
                     m.collectedDeviceInfo.dsw  = displaySize["w"]
                 end if
+                    
 
-                manifest = mparticle()._internal.utils.readManifest()
                 buildIdArray = CreateObject("roByteArray")
-                buildIdArray.FromAsciiString(manifest.major_version + "." + manifest.minor_version)
+                buildIdArray.FromAsciiString(mparticle()._internal.utils.currentChannelVersion())
                 digest = CreateObject("roEVPDigest")
                 digest.Setup("md5")
                 digest.update(buildIdArray)
