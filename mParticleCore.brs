@@ -200,7 +200,9 @@ function mParticleStart(options={} as object)
                 expiration = CreateObject("roDateTime")
                 expiration.FromISO8601String(cookies[cookieKey].e)
                 if (expiration.AsSeconds() > nowSeconds) then
-                    validCookies.append({cookieKey:cookies[cookieKey]})
+                    validCookie = {}
+                    validCookie[cookieKey] = cookies[cookieKey]
+                    validCookies.append(validCookie)
                 end if
             end for
             if (validCookies.Count() <> cookies.Count()) then
@@ -331,20 +333,22 @@ function mParticleStart(options={} as object)
     
     networking = {
         applicationInfo : function() as object
-           if (m.collectedApplicationInfo = invalid) then
-            info = CreateObject("roAppInfo")
-            env = 2
-            if (mparticle()._internal.configuration.development) then 
-                env = 1
+            if (m.collectedApplicationInfo = invalid) then
+                info = CreateObject("roAppInfo")
+                deviceInfo = CreateObject("roDeviceInfo")
+                env = 2
+                if (mparticle()._internal.configuration.development) then 
+                    env = 1
+                end if
+                m.collectedApplicationInfo = {
+                        an:     info.getvalue("title"),
+                        av:     mparticle()._internal.utils.currentChannelVersion(),
+                        abn:    info.getvalue("build_version"),
+                        env:    env,
+                        bid:    deviceInfo.GetPublisherId() 
+                }
             end if
-            m.collectedApplicationInfo = {
-                    an:     info.getvalue("title"),
-                    av:     mparticle()._internal.utils.currentChannelVersion(),
-                    abn:    info.getvalue("build_version"),
-                    env:    env
-            }
             return m.collectedApplicationInfo
-           end if
         end function,
         
         deviceInfo : function() as object
@@ -424,6 +428,7 @@ function mParticleStart(options={} as object)
             batch.msgs = messages
             batch.ai = m.applicationInfo()
             batch.di = m.deviceInfo()
+            batch.ck = mparticle()._internal.storage.getCookies()
             m.uploadBatch(batch)
         end function,
         
