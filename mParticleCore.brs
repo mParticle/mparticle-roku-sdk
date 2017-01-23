@@ -52,14 +52,92 @@ function mParticleConstants() as object
         ALIAS:                 8,
         FACEBOOK_AUDIENCE_ID:  9
     }
+    PRODUCT_ACTION_TYPE = {
+        ADD_TO_CART:          "add_to_cart",
+        REMOVE_FROM_CART:     "remove_from_cart",
+        CHECKOUT:             "checkout",
+        CLICK:                "click",
+        VIEW:                 "view",
+        VIEW_DETAIL:          "view_detail",
+        PURCHASE:             "purchase",
+        REFUND:               "refund",
+        ADD_TO_WISHLIST:      "add_to_wishlist"
+        REMOVE_FROM_WISHLIST: "remove_from_wishlist"
+    }
+    ProductActionBuilder = {
+            create : function(actionType as string, totalAmount as double, productList as object)
+                action = {}
+                action.an = actionType
+                action.tr = totalAmount
+                action.pl = productList
+                return action
+            end function,
+            setCheckoutStep : function(productAction as object, checkoutStep as integer)
+                productAction.cs = checkoutStep
+            end function,
+            setCheckoutOptions : function(productAction as object, checkoutOptions as string)
+                productAction.co = checkoutOptions
+            end function,
+            setProductActionList : function(productAction as object, productActionList as string)
+                productAction.pal = productActionList
+            end function,
+            setProductListSource : function(productAction as object, productListSource as string)
+                productAction.pls = productListSource
+            end function,
+            setTransactionId : function(productAction as object, transactionId as string)
+                productAction.ti = transactionId
+            end function,
+            setAffiliation : function(productAction as object, affiliation as string)
+                productAction.ta = affiliation
+            end function,
+            setTaxAmount : function(productAction as object, taxAmount as string)
+                productAction.tt = taxAmount
+            end function,
+            setShippingAmount : function(productAction as object, shippingAmout as string)
+                productAction.ts = shippingAmout
+            end function,
+            setCouponCode : function(productAction as object, couponCode as string)
+                productAction.cc = couponCode
+            end function
+    }
+    ProductBuilder = {
+        create : function(sku as string, name as string, price=0 as double, quantity=1 as integer, customAttributes={} as object)
+            product = {}
+            product.id = sku
+            product.nm = name
+            product.pr = price
+            product.qt = quantity
+            product.tpa = price * quantity
+            product.attrs = customAttributes
+            return product
+        end function,
+        setBrand : function(product as object, brand as string)
+            product.cs = brand
+        end function,
+        setCategory : function(product as object, category as string)
+            product.ca = category
+        end function,
+        setVariant : function(product as object, variant as string)
+            product.va = variant
+        end function,
+        setPosition : function(product as object, position as integer)
+            product.ps = position
+        end function,
+        setCouponCode : function(product as object, couponCode as string)
+            product.cc = couponCode
+        end function
+    }
     return {
-        SDK_VERSION:        SDK_VERSION,
-        LOG_LEVEL:          LOG_LEVEL,
-        DEFAULT_OPTIONS:    DEFAULT_OPTIONS,
-        MESSAGE_TYPE:       MESSAGE_TYPE,
-        CUSTOM_EVENT_TYPE:  CUSTOM_EVENT_TYPE,
-        IDENTITY_TYPE:      IDENTITY_TYPE,
-        ENVIRONMENT:        ENVIRONMENT
+        SDK_VERSION:            SDK_VERSION,
+        LOG_LEVEL:              LOG_LEVEL,
+        DEFAULT_OPTIONS:        DEFAULT_OPTIONS,
+        MESSAGE_TYPE:           MESSAGE_TYPE,
+        CUSTOM_EVENT_TYPE:      CUSTOM_EVENT_TYPE,
+        IDENTITY_TYPE:          IDENTITY_TYPE,
+        ENVIRONMENT:            ENVIRONMENT,
+        PRODUCT_ACTION_TYPE:    PRODUCT_ACTION_TYPE,
+        ProductActionBuilder:   ProductActionBuilder,
+        ProductBuilder:         ProductBuilder
     }
     
 end function
@@ -584,7 +662,7 @@ function mParticleStart(options={} as object)
     end function
     
     model = {
-        Message : function(messageType as string, attributes=invalid) as object
+        Message : function(messageType as string, attributes={}) as object
             currentSession = mparticle()._internal.sessionManager.getCurrentSession()
             return {
                 dt : messageType,
@@ -627,12 +705,19 @@ function mParticleStart(options={} as object)
         
         SessionEnd: function(session as object) as object
             message = m.Message(mParticleConstants().MESSAGE_TYPE.SESSION_END)
-            message.sid = session.sessionId
-            message.sct = session.startTime
             message.dct = session.dataConnection
             message.slx = mparticle()._internal.sessionManager.sessionLength(session)
             message.sl = message.slx
             message.attrs = session.attributes
+            return message
+        end function,
+        
+        CommerceEvent: function(productAction={} as object, promotionAction={} as object, impressions=[] as object, customAttributes={} as object, screenName=invalid as string) as object
+            message = m.Message(mParticleConstants().MESSAGE_TYPE.COMMERCE, customAttributes)
+            message.pd = productAction
+            message.pm = promotionAction
+            message.pi = impressions
+            message.sn = screenName
             return message
         end function,
         
@@ -703,6 +788,9 @@ function mParticleStart(options={} as object)
         logScreenEvent:     function(screenName as string, customAttributes = {}) as void
                                 m.logMessage(m.model.ScreenEvent(screenName, customAttributes))
                             end function,
+        logCommerceEvent:   function(productAction={} as object, promotionAction={} as object, impressions=[] as object, customAttributes={} as object, screenName=invalid as string)
+                                m.logMessage(m.model.CommerceEvent(productAction, promotionAction, impressions, customAttributes, screenName))
+                            end function,
         logMessage:         function(message as object) as void
                                 logger = mparticle()._internal.logger
                                 logger.debug("Logging message: " + formatjson(message))
@@ -740,6 +828,9 @@ function mParticleSGBridge(task as object) as object
                             end function,
         logScreenEvent:     function(screenName as string, customAttributes = {}) as void
                                 m.invokeFunction("logScreenEvent", [screenName, customAttributes])
+                            end function,
+        logCommerceEvent:   function(productAction={} as object, promotionAction={} as object, impressions=[] as object, customAttributes={} as object, screenName="" as string)
+                                m.invokeFunction("logCommerceEvent", [productAction, promotionAction, impressions, customAttributes, screenName])
                             end function,
         logMessage:         function(message as object) as void
                                 m.invokeFunction("logMessage", [message])

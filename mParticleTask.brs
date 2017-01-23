@@ -41,5 +41,9 @@ function executeApiCall(apiCall as Object)
         m.mparticle[apiCall.methodName](args[0], args[1], args[2])
     else if (length = 4) then
         m.mparticle[apiCall.methodName](args[0], args[1], args[2], args[3])
+    else if (length = 5) then
+        m.mparticle[apiCall.methodName](args[0], args[1], args[2], args[3], args[4])
+    else if (length = 6) then
+        m.mparticle[apiCall.methodName](args[0], args[1], args[2], args[3], args[4], args[5])
     end if
 end function
