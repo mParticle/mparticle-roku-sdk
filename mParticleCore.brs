@@ -354,7 +354,7 @@ function mParticleStart(options={} as object)
                     dp:     "Roku",
                     dn:     info.GetModelDisplayName(),
                     p:      info.GetModel(),
-                    udid:   info.GetDeviceUniqueId(),
+                    duid:   info.GetDeviceUniqueId(),
                     vr:     info.GetVersion(),
                     ' TODO: this may not be the correct place to send the Ad ID
                     anid:   info.GetAdvertisingId(),
