@@ -1,3 +1,8 @@
+'*************************************************************
+' mParticle Roku SDK - mParticle Task Node for Scene Graph
+' Copyright 2017 mParticle, Inc. 
+'*************************************************************
+
 sub init()
     m.port = createObject("roMessagePort")
     m.top.observeField("apiCall", m.port)

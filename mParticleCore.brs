@@ -1,3 +1,11 @@
+'*************************************************************
+' mParticle Roku SDK - Core APIs
+' Copyright 2017 mParticle, Inc. 
+'*************************************************************
+
+'
+' mParticleConstants() surface various fields for interacting with the mParticle APIs
+'
 function mParticleConstants() as object 
     SDK_VERSION = "1.0.0"
     LOG_LEVEL = {
@@ -11,6 +19,8 @@ function mParticleConstants() as object
         FORCE_DEVELOPMENT:  1,
         FORCE_PRODUCTION:   2
     }
+    'You may pass in any of these options to the mParticle SDK, via mParticleStart
+    'or via the Global mParticle options field
     DEFAULT_OPTIONS = {
         apiKey:                 invalid,
         apiSecret:              invalid,
@@ -65,6 +75,9 @@ function mParticleConstants() as object
         FACEBOOK_AUDIENCE_ID:  9
     }
     
+    '
+    ' eCommerce APIs
+    '
     PromotionAction = {
         ACTION_TYPE : {
             VIEW:   "view",
@@ -192,7 +205,8 @@ function mParticleConstants() as object
 end function
 
 '
-' Retrieve a reference to the global mParticle object
+' Retrieve a reference to the global mParticle object.
+' Note: this only applies to legacy SDK channels. For Scene Graph, you must use the mParticleSGBridge (below)
 '
 function mParticle() as object
     if (getGlobalAA().mParticleInstance = invalid) then
@@ -205,6 +219,7 @@ end function
 ' Initialize mParticle with your API key and secret for a Roku Input Configuration
 '
 ' Optionally pass in additional configuration options, see mParticleConstants().DEFAULT_OPTIONS
+' Note: this only applies to legacy SDK channels. For Scene Graph, the mParticleTask will call this
 '
 function mParticleStart(options={} as object)
     if (getGlobalAA().mparticleInstance <> invalid) then
@@ -912,7 +927,8 @@ function mParticleStart(options={} as object)
     performStartupTasks()
 end function
 
-
+' mParticle Scene Graph Bridge
+' Use an instance of this class to make calls to mParticle over Scene Graph
 function mParticleSGBridge(task as object) as object
     return {
         mParticleTask:      task
