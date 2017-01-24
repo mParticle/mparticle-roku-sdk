@@ -20,6 +20,18 @@ function mParticleConstants() as object
         certificateDir:         "pkg:/source/mparticle/mParticleBundle.crt",
         sessionTimeoutMillis:   60 * 1000
     }
+    USER_ATTRIBUTES = {
+        FIRSTNAME:      "$FirstName",
+        LASTNAME:       "$LastName",
+        ADDRESS:        "$Address",
+        STATE:          "$State",
+        CITY:           "$City",
+        ZIPCODE: "$Zip",
+        COUNTRY: "$Country",
+        AGE: "$Age",
+        GENDER: "$Gender",
+        MOBILE_NUMBER: "$Mobile"
+    }
     MESSAGE_TYPE = {
         SESSION_START:          "ss",
         SESSION_END:            "se",
@@ -52,56 +64,91 @@ function mParticleConstants() as object
         ALIAS:                 8,
         FACEBOOK_AUDIENCE_ID:  9
     }
-    PRODUCT_ACTION_TYPE = {
-        ADD_TO_CART:          "add_to_cart",
-        REMOVE_FROM_CART:     "remove_from_cart",
-        CHECKOUT:             "checkout",
-        CLICK:                "click",
-        VIEW:                 "view",
-        VIEW_DETAIL:          "view_detail",
-        PURCHASE:             "purchase",
-        REFUND:               "refund",
-        ADD_TO_WISHLIST:      "add_to_wishlist"
-        REMOVE_FROM_WISHLIST: "remove_from_wishlist"
+    
+    PromotionAction = {
+        ACTION_TYPE : {
+            VIEW:   "view",
+            CLICK:  "click"
+        },
+        build : function(actionType as string, promotionList as object)
+            return {
+                an : actionType,
+                pl : promotionList
+            }
+        end function,
     }
-    ProductActionBuilder = {
-            create : function(actionType as string, totalAmount as double, productList as object)
-                action = {}
-                action.an = actionType
-                action.tr = totalAmount
-                action.pl = productList
-                return action
-            end function,
-            setCheckoutStep : function(productAction as object, checkoutStep as integer)
-                productAction.cs = checkoutStep
-            end function,
-            setCheckoutOptions : function(productAction as object, checkoutOptions as string)
-                productAction.co = checkoutOptions
-            end function,
-            setProductActionList : function(productAction as object, productActionList as string)
-                productAction.pal = productActionList
-            end function,
-            setProductListSource : function(productAction as object, productListSource as string)
-                productAction.pls = productListSource
-            end function,
-            setTransactionId : function(productAction as object, transactionId as string)
-                productAction.ti = transactionId
-            end function,
-            setAffiliation : function(productAction as object, affiliation as string)
-                productAction.ta = affiliation
-            end function,
-            setTaxAmount : function(productAction as object, taxAmount as string)
-                productAction.tt = taxAmount
-            end function,
-            setShippingAmount : function(productAction as object, shippingAmout as string)
-                productAction.ts = shippingAmout
-            end function,
-            setCouponCode : function(productAction as object, couponCode as string)
-                productAction.cc = couponCode
-            end function
+    
+    Promotion = {
+        build : function(promotionId as string, name as string, creative as string, position as string)
+            return {
+                id: promotionId,
+                nm: name,
+                cr: creative,
+                ps: position
+            }
+        end function
     }
-    ProductBuilder = {
-        create : function(sku as string, name as string, price=0 as double, quantity=1 as integer, customAttributes={} as object)
+    
+    Impression = {
+        build : function(impressionList as string, productList as object)
+            return {
+                pil:    impressionList,
+                pl:     productList
+            }
+        end function
+    }
+   
+    ProductAction = {
+        ACTION_TYPE : {
+            ADD_TO_CART:          "add_to_cart",
+            REMOVE_FROM_CART:     "remove_from_cart",
+            CHECKOUT:             "checkout",
+            CLICK:                "click",
+            VIEW:                 "view",
+            VIEW_DETAIL:          "view_detail",
+            PURCHASE:             "purchase",
+            REFUND:               "refund",
+            ADD_TO_WISHLIST:      "add_to_wishlist",
+            REMOVE_FROM_WISHLIST: "remove_from_wishlist"
+        },
+        build : function(actionType as string, totalAmount as double, productList as object)
+            return {
+                an  : actionType,
+                tr  : totalAmount,
+                pl  : productList
+            }
+        end function,
+        setCheckoutStep : function(productAction as object, checkoutStep as integer)
+            productAction.cs = checkoutStep
+        end function,
+        setCheckoutOptions : function(productAction as object, checkoutOptions as string)
+            productAction.co = checkoutOptions
+        end function,
+        setProductActionList : function(productAction as object, productActionList as string)
+            productAction.pal = productActionList
+        end function,
+        setProductListSource : function(productAction as object, productListSource as string)
+            productAction.pls = productListSource
+        end function,
+        setTransactionId : function(productAction as object, transactionId as string)
+            productAction.ti = transactionId
+        end function,
+        setAffiliation : function(productAction as object, affiliation as string)
+            productAction.ta = affiliation
+        end function,
+        setTaxAmount : function(productAction as object, taxAmount as double)
+            productAction.tt = taxAmount
+        end function,
+        setShippingAmount : function(productAction as object, shippingAmout as double)
+            productAction.ts = shippingAmout
+        end function,
+        setCouponCode : function(productAction as object, couponCode as string)
+            productAction.cc = couponCode
+        end function
+    }
+    
+    Product = {
+        build : function(sku as string, name as string, price=0 as double, quantity=1 as integer, customAttributes={} as object)
             product = {}
             product.id = sku
             product.nm = name
@@ -135,9 +182,11 @@ function mParticleConstants() as object
         CUSTOM_EVENT_TYPE:      CUSTOM_EVENT_TYPE,
         IDENTITY_TYPE:          IDENTITY_TYPE,
         ENVIRONMENT:            ENVIRONMENT,
-        PRODUCT_ACTION_TYPE:    PRODUCT_ACTION_TYPE,
-        ProductActionBuilder:   ProductActionBuilder,
-        ProductBuilder:         ProductBuilder
+        ProductAction:          ProductAction,
+        Product:                Product,
+        PromotionAction:        PromotionAction
+        Promotion:              Promotion,
+        Impression:             Impression
     }
     
 end function
@@ -191,7 +240,7 @@ function mParticleStart(options={} as object)
     utils = {
         currentChannelVersion : function() as string
              info = CreateObject("roAppInfo")
-             return info.getvalue("major_version") + "." + info.getvalue("minor_version")
+             return info.getversion()
         end function,
         randomGuid : function() as string
             return CreateObject("roDeviceInfo").GetRandomUUID() 
@@ -234,14 +283,18 @@ function mParticleStart(options={} as object)
     
     createStorage = function()
         storage = {}
+        'channels can share registry when packaged by the same developer token
+        'token, so include the channel ID
+        appInfo = CreateObject("roAppInfo")
         storage.mpkeys = {
-            SECTION_NAME : "mparticle_storage",
+            SECTION_NAME : "mparticle_storage_"+appInfo.getid(),
             USER_IDENTITIES : "user_identities",
             USER_ATTRIBUTES : "user_attributes",
             MPID : "mpid",
             COOKIES : "cookies",
             SESSION : "saved_session",
-            CHANNEL_VERSION : "channel_version"
+            CHANNEL_VERSION : "channel_version",
+            LTV : "ltv"
         }
         storage.section = CreateObject("roRegistrySection", storage.mpkeys.SECTION_NAME)
         
@@ -381,24 +434,39 @@ function mParticleStart(options={} as object)
             m.flush()
         end function
         
+        storage.setLtv = function(ltv as double)
+            m.set(m.mpkeys.LTV, ltv.tostr())
+            m.flush()
+        end function
+        
+        storage.getLtv = function() as double
+            ltv = m.get(m.mpkeys.LTV)
+            if (not mparticle()._internal.utils.isEmpty(ltv)) then
+                return ParseJson(ltv)
+            else
+                return 0
+            end if
+        end function
+        
         return storage
     end function
     
     networking = {
         applicationInfo : function() as object
             if (m.collectedApplicationInfo = invalid) then
-                info = CreateObject("roAppInfo")
+                appInfo = CreateObject("roAppInfo")
                 deviceInfo = CreateObject("roDeviceInfo")
                 env = 2
                 if (mparticle()._internal.configuration.development) then 
                     env = 1
                 end if
                 m.collectedApplicationInfo = {
-                        an:     info.getvalue("title"),
-                        av:     mparticle()._internal.utils.currentChannelVersion(),
-                        abn:    info.getvalue("build_version"),
-                        env:    env,
-                        bid:    deviceInfo.GetPublisherId() 
+                    an:     appInfo.GetTitle(),
+                    av:     appInfo.GetVersion(),
+                    apn:    appInfo.GetID(),
+                    abn:    appInfo.GetValue("build_version"),
+                    env:    env,
+                    bid:    deviceInfo.GetPublisherId() 
                 }
             end if
             return m.collectedApplicationInfo
@@ -413,7 +481,6 @@ function mParticleStart(options={} as object)
                     p:      info.GetModel(),
                     duid:   info.GetDeviceUniqueId(),
                     vr:     info.GetVersion(),
-                    ' TODO: this may not be the correct place to send the Ad ID
                     anid:   info.GetAdvertisingId(),
                     lat:    info.IsAdIdTrackingDisabled(),
                     dmdl:   info.GetModel(),
@@ -469,6 +536,7 @@ function mParticleStart(options={} as object)
             batch.dbg = mparticle()._internal.configuration.development
             batch.dt = "h"
             batch.mpid = m.mpid()
+            batch.ltv = mparticle()._internal.storage.getLtv()
             batch.id = mParticle()._internal.utils.randomGuid()
             batch.ct = mParticle()._internal.utils.unixTimeMillis()
             batch.sdk = mParticleConstants().SDK_VERSION
@@ -544,6 +612,9 @@ function mParticleStart(options={} as object)
                 end if
                 if (responseObject.DoesExist("ci") and responseObject.ci.DoesExist("ck")) then
                     storage.setCookies(responseObject.ci.ck)
+                end if
+                if (responseObject.DoesExist("iltv")) then
+                    storage.setLtv(responseObject.iltv)
                 end if
             end if
             
@@ -664,6 +735,9 @@ function mParticleStart(options={} as object)
     model = {
         Message : function(messageType as string, attributes={}) as object
             currentSession = mparticle()._internal.sessionManager.getCurrentSession()
+             if (attributes <> invalid and attributes.count() = 0) then
+                attributes = invalid
+            end if
             return {
                 dt : messageType,
                 id : mparticle()._internal.utils.randomGuid(),
@@ -714,10 +788,18 @@ function mParticleStart(options={} as object)
         
         CommerceEvent: function(productAction={} as object, promotionAction={} as object, impressions=[] as object, customAttributes={} as object, screenName=invalid as string) as object
             message = m.Message(mParticleConstants().MESSAGE_TYPE.COMMERCE, customAttributes)
-            message.pd = productAction
-            message.pm = promotionAction
-            message.pi = impressions
-            message.sn = screenName
+            if (productAction <> invalid and productAction.count() > 0) then
+                message.pd = productAction
+            end if
+            if (promotionAction <> invalid and promotionAction.count() > 0) then
+                message.pm = promotionAction
+            end if
+            if (impressions <> invalid and impressions.count() > 0) then
+                message.pi = impressions
+            end if
+            if (not mparticle()._internal.utils.isEmpty(screenName)) then
+                message.sn = screenName
+            end if
             return message
         end function,
         
