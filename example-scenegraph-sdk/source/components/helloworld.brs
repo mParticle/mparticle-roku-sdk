@@ -1,6 +1,7 @@
 sub init()
     m.top.setFocus(true)
     
+  
     'Create the mParticle Task Node
     m.mParticleTask = createObject("roSGNode","mParticleTask")
     mp = mParticleSGBridge(m.mParticleTask)
@@ -20,7 +21,7 @@ sub init()
     promotionAction = mpConstants.PromotionAction.build(mpConstants.PromotionAction.ACTION_TYPE.VIEW, promotionList)
     
     impressions = [mpConstants.Impression.build("foo-list", [product])]
-    
+    mp.setSessionAttribute("foo attribute key", "bar attribute value")
     mp.logCommerceEvent(productAction, promotionAction, impressions, {"foo-attribute":"bar-attribute-value"})
     'Set the font size
     m.myLabel = m.top.findNode("myLabel")

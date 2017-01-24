@@ -588,13 +588,13 @@ function mParticleStart(options={} as object)
         
             if (urlTransfer.AsyncPostFromString(jsonBatch)) then
                 while (true)
-                    msg = wait(0, port)
+                    msg = wait(10000, port)
                     if (type(msg) = "roUrlEvent") then
                         code = msg.GetResponseCode()
                         logger.debug("Batch response: code" + str(code) + " body: " + msg.GetString())
                         m.parseApiResponse(msg.GetString())
                         return code 
-                    else if (event = invalid) then
+                    else if (msg = invalid) then
                         urlTransfer.AsyncCancel()
                     endif
                 end while
@@ -695,6 +695,14 @@ function mParticleStart(options={} as object)
             saveSession: function()
                 storage = mparticle()._internal.storage
                 storage.setSession(m.currentSession)
+            end function,
+            setSessionAttribute: function(attributekey as string, attributevalue as string)
+                attributes = m.currentSession.attributes
+                if (attributes = invalid) then
+                    attributes = {}
+                end if
+                attributes[attributekey] = attributevalue
+                m.saveSession()
             end function,
             createSession : function(previousSession = invalid as object)
                 deviceInfo = CreateObject("roDeviceInfo")
@@ -884,6 +892,9 @@ function mParticleStart(options={} as object)
         setUserAttribute:   function(attributeKey as string, attributeValue as object) as void
                                 m._internal.storage.setUserAttribute(attributeKey, attributeValue)
                             end function,
+        setSessionAttribute:   function(attributeKey as string, attributeValue as object) as void
+                                m._internal.sessionManager.setSessionAttribute(attributeKey, attributeValue)
+                            end function,
         model:              model
     }
         
@@ -922,7 +933,10 @@ function mParticleSGBridge(task as object) as object
                             end function,
         setUserAttribute:   function(attributeKey as string, attributeValue as object) as void
                                 m.invokeFunction("setUserAttribute", [attributeKey, attributeValue])
-                                end function
+                            end function,
+        setSessionAttribute:   function(attributeKey as string, attributeValue as object) as void
+                                m.invokeFunction("setSessionAttribute", [attributeKey, attributeValue])
+                            end function,
         invokeFunction:     function(name as string, args)
                                 invocation = {}
                                 invocation.methodName = name
