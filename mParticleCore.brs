@@ -519,8 +519,7 @@ function mParticleStart(options={} as object)
                     av:     appInfo.GetVersion(),
                     apn:    appInfo.GetID(),
                     abn:    appInfo.GetValue("build_version"),
-                    env:    env,
-                    bid:    deviceInfo.GetPublisherId() 
+                    env:    env
                 }
             end if
             return m.collectedApplicationInfo
@@ -535,8 +534,9 @@ function mParticleStart(options={} as object)
                     p:      info.GetModel(),
                     duid:   info.GetDeviceUniqueId(),
                     vr:     info.GetVersion(),
-                    anid:   info.GetAdvertisingId(),
+                    rida:   info.GetAdvertisingId(),
                     lat:    info.IsAdIdTrackingDisabled(),
+                    rpb:    info.GetPublisherId(),
                     dmdl:   info.GetModel(),
                     dc:     info.GetCountryCode(),
                     dll:    info.GetCurrentLocale(),
