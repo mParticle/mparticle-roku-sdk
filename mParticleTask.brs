@@ -11,12 +11,16 @@ sub init()
 end sub
 
 sub setupRunLoop()
-    mParticleStart(m.global.mparticleOptions)
+    options = m.global.mparticleOptions
+    options.addReplace("isSceneGraph", true)
+    mParticleStart(options)
     m.mparticle = mparticle()
     while true
         msg = wait(15*1000, m.port)
         if (msg = invalid) then
             m.mparticle._internal.sessionManager.updateLastEventTime(m.mparticle._internal.utils.unixTimeMillis())
+            m.mparticle._internal.networking.queueUpload()
+            m.mparticle._internal.networking.processUploads()
         else 
             mt = type(msg)
     
@@ -24,8 +28,6 @@ sub setupRunLoop()
                 if msg.getField()="apiCall"
                     executeApiCall(msg.getData())
                 end if
-            else if mt="roUrlEvent"
-    
             else
         	   print "Error: unrecognized event type '"; mt ; "'"
             end if

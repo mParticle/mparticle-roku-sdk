@@ -22,13 +22,14 @@ function mParticleConstants() as object
     'You may pass in any of these options to the mParticle SDK, via mParticleStart
     'or via the Global mParticle options field
     DEFAULT_OPTIONS = {
-        apiKey:                 invalid,
-        apiSecret:              invalid,
+        apiKey:                 "",
+        apiSecret:              "",
         environment:            ENVIRONMENT.AUTO_DETECT,
         logLevel:               LOG_LEVEL.ERROR,
         enablePinning:          true,
         certificateDir:         "pkg:/source/mparticle/mParticleBundle.crt",
-        sessionTimeoutMillis:   60 * 1000
+        sessionTimeoutMillis:   60 * 1000,
+        isSceneGraph:           false,
     }
     USER_ATTRIBUTES = {
         FIRSTNAME:      "$FirstName",
@@ -36,11 +37,11 @@ function mParticleConstants() as object
         ADDRESS:        "$Address",
         STATE:          "$State",
         CITY:           "$City",
-        ZIPCODE: "$Zip",
-        COUNTRY: "$Country",
-        AGE: "$Age",
-        GENDER: "$Gender",
-        MOBILE_NUMBER: "$Mobile"
+        ZIPCODE:        "$Zip",
+        COUNTRY:        "$Country",
+        AGE:            "$Age",
+        GENDER:         "$Gender",
+        MOBILE_NUMBER:  "$Mobile"
     }
     MESSAGE_TYPE = {
         SESSION_START:          "ss",
@@ -354,7 +355,7 @@ function mParticleStart(options={} as object)
             identities = m.getUserIdentities()
             identity = identities.Lookup(str(identityType))
             if (identity = invalid) then
-                identities[str(identityType)] = mparticle().model.UserIdentity(identityType, identityValue)
+                identities[str(identityType)] = mparticle()._internal.internalModel.UserIdentity(identityType, identityValue)
             else
                 identities[str(identityType)].i = identityValue
             end if
@@ -400,8 +401,13 @@ function mParticleStart(options={} as object)
             m.flush()
         end function
         
-        storage.getMpid = function() as string
-            return m.get(m.mpkeys.MPID)
+        storage.getMpid = function() as object
+            mpid = m.get(m.mpkeys.MPID)
+            if (mparticle()._internal.utils.isEmpty(mpid)) then
+                mpid = mparticle()._internal.utils.generateMpid()
+                m.setMpid(mpid)
+            end if
+            return mpid
         end function
         
         storage.setCookies = function(cookies as object)
@@ -466,8 +472,41 @@ function mParticleStart(options={} as object)
         return storage
     end function
     
-    networking = {
-        applicationInfo : function() as object
+    internalModel = {
+    
+       Batch : function(messages as object) as object
+            batch = {}
+            batch.dbg = mparticle()._internal.configuration.development
+            batch.dt = "h"
+            batch.mpid = mparticle()._internal.storage.getMpid()
+            batch.ltv = mparticle()._internal.storage.getLtv()
+            batch.id = mParticle()._internal.utils.randomGuid()
+            batch.ct = mParticle()._internal.utils.unixTimeMillis()
+            batch.sdk = mParticleConstants().SDK_VERSION
+            batch.ui = []
+            identities = mparticle()._internal.storage.getUserIdentities()
+            for each identity in identities
+                batch.ui.push(identities[identity])
+            end for
+            batch.ua = mparticle()._internal.storage.getUserAttributes()
+            batch.msgs = messages
+            batch.ai = m.ApplicationInformation()
+            batch.di = m.DeviceInformation()
+            batch.ck = mparticle()._internal.storage.getCookies()
+            return batch
+        end function,
+    
+        UserIdentity : function(identityType as integer, identityValue as String) as object
+            return {
+                n : identityType,
+                i : identityValue,
+                dfs : mparticle()._internal.utils.unixTimeMillis(),
+                f : true
+            }
+       
+        end function,
+        
+        ApplicationInformation : function() as object
             if (m.collectedApplicationInfo = invalid) then
                 appInfo = CreateObject("roAppInfo")
                 deviceInfo = CreateObject("roDeviceInfo")
@@ -487,7 +526,7 @@ function mParticleStart(options={} as object)
             return m.collectedApplicationInfo
         end function,
         
-        deviceInfo : function() as object
+        DeviceInformation : function() as object
             if (m.collectedDeviceInfo = invalid) then
                 info = CreateObject("roDeviceInfo")
                 m.collectedDeviceInfo = {
@@ -534,41 +573,99 @@ function mParticleStart(options={} as object)
                 
             end if
             return m.collectedDeviceInfo
-        end function,
-        
-        mpid : function() as object
-            storage = mparticle()._internal.storage
-            mpid = storage.getMpid()
-            if (mparticle()._internal.utils.isEmpty(mpid)) then
-                mpid = mparticle()._internal.utils.generateMpid()
-                storage.setMpid(mpid)
+        end function
+    }
+    
+    networking = {
+        backoff : {
+            nextAllowedUploadTime : 0,
+            currentBackoffDuration : 0,
+            reset : function()
+                m.currentBackoffDuration = 0
+                m.nextAllowedUploadTime = 0
+            end function,
+            increase : function()
+                maxDuration = 2*60*60*1000
+                base = 1000
+                intervalMillis = 5000
+                if (m.currentBackoffDuration = 0) then
+                    m.currentBackoffDuration = base
+                else
+                    m.currentBackoffDuration = m.currentBackoffDuration * 2
+                    if (m.currentBackoffDuration > maxDuration) then
+                        m.currentBackoffDuration = maxDuration
+                    end if
+                end if
+            
+                m.nextAllowedUploadTime = mparticle()._internal.utils.unixTimeMillis() + m.currentBackoffAttempt
+            end function,
+            canUpload : function() as boolean
+                if (m.nextAllowedUploadTime = 0)
+                    return true
+                else 
+                    currentTime = mparticle()._internal.utils.unixTimeMillis()
+                    return currentTime >= m.nextAllowedUploadTime
+                end if
+            end function
+        },
+        messageQueue : [],
+        uploadQueue : [],
+        queueMessage : function(message as object)
+            m.messageQueue.push(message)
+            if (mparticle()._internal.configuration.isSceneGraph = false) then
+                m.queueUpload()
+                m.processUploads()
             end if
-            return mpid
         end function,
-        
-        upload : function(messages as object) as void
-            batch = {}
-            batch.dbg = mparticle()._internal.configuration.development
-            batch.dt = "h"
-            batch.mpid = m.mpid()
-            batch.ltv = mparticle()._internal.storage.getLtv()
-            batch.id = mParticle()._internal.utils.randomGuid()
-            batch.ct = mParticle()._internal.utils.unixTimeMillis()
-            batch.sdk = mParticleConstants().SDK_VERSION
-            batch.ui = []
-            identities = mparticle()._internal.storage.getUserIdentities()
-            for each identity in identities
-                batch.ui.push(identities[identity])
-            end for
-            batch.ua = mparticle()._internal.storage.getUserAttributes()
-            batch.msgs = messages
-            batch.ai = m.applicationInfo()
-            batch.di = m.deviceInfo()
-            batch.ck = mparticle()._internal.storage.getCookies()
-            m.uploadBatch(batch)
+        queueUpload : function()
+            if (m.messageQueue.count() > 0) then
+                upload = mparticle()._internal.internalModel.Batch(m.messageQueue)
+                m.uploadQueue.push(upload)
+                m.messageQueue = []
+            end if
         end function,
-        
-        uploadBatch : function (batch as object) as integer
+        processUploads : function()
+            if (m.backoff.canUpload()) then
+                m.backoff.reset()
+            else
+                return -1
+            end if
+            logger = mparticle()._internal.logger
+            linkStatus = CreateObject("roDeviceInfo").GetLinkStatus()
+            if (not linkStatus) then
+                logger.error("No active network connection - deferring upload.")
+                return -1
+            end if
+            while (m.uploadQueue.count() > 0) 
+                nextUpload = m.uploadQueue.shift()
+                urlEventResponse = m.uploadBatch(nextUpload)
+                if (urlEventResponse = invalid) then
+                    m.uploadQueue.unshift(nextUpload)
+                    logger.debug("Timeout or unknown failure while attempting upload.")
+                    exit while
+                else
+                    responseCode = urlEventResponse.getResponseCode()
+                    if (responseCode = -77) then
+                        logger.error("SSL error - please make sure " + mparticle()._internal.configuration.certificateDir + " is present.")
+                    else if (responseCode = 400) then
+                        logger.error("HTTP 400 - please check that your mParticle key and secret are valid.")
+                    else if (responseCode = 429 or responseCode = 503) then
+                        m.uploadQueue.unshift(nextUpload)
+                        storage = mparticle()._internal.storage
+                        m.backoff.increase()
+                        exit while
+                    else if (responseCode = 202) then
+                        m.parseApiResponse(urlEventResponse.getString())
+                    else
+                        m.uploadQueue.unshift(nextUpload)
+                        logger.error("Unknown error while performing upload.")
+                        exit while
+                    end if
+                end if
+            end while
+        end function,
+      
+        uploadBatch : function (batch as object) as object
             urlTransfer = CreateObject("roUrlTransfer")
             if (mparticle()._internal.configuration.enablePinning) then
                 urlTransfer.SetCertificatesFile(mparticle()._internal.configuration.certificateDir)
@@ -605,16 +702,14 @@ function mParticleStart(options={} as object)
                 while (true)
                     msg = wait(10000, port)
                     if (type(msg) = "roUrlEvent") then
-                        code = msg.GetResponseCode()
-                        logger.debug("Batch response: code" + str(code) + " body: " + msg.GetString())
-                        m.parseApiResponse(msg.GetString())
-                        return code 
+                        logger.debug("Batch response: code" + str(msg.GetResponseCode()) + " body: " + msg.GetString())
+                        return msg
                     else if (msg = invalid) then
                         urlTransfer.AsyncCancel()
                     endif
                 end while
             endif
-            return -1
+            return invalid
         end function,
         
         parseApiResponse : function(apiResponse as string)
@@ -687,7 +782,6 @@ function mParticleStart(options={} as object)
             end function,
             updateLastEventTime : function(time as longinteger)
                 logger = mparticle()._internal.logger
-                logger.debug("Updating session end time.")
                 m.currentSession.lastEventTime = time
                 m.saveSession()
             end function,
@@ -755,7 +849,7 @@ function mParticleStart(options={} as object)
         return sessionManager
     end function
     
-    model = {
+    publicModels = {
         Message : function(messageType as string, attributes={}) as object
             currentSession = mparticle()._internal.sessionManager.getCurrentSession()
              if (attributes <> invalid and attributes.count() = 0) then
@@ -840,16 +934,7 @@ function mParticleStart(options={} as object)
             
             return message
         end function,
-        
-        UserIdentity : function(identityType as integer, identityValue as String) as object
-            return {
-                n : identityType,
-                i : identityValue,
-                dfs : mparticle()._internal.utils.unixTimeMillis(),
-                f : true
-            }
        
-        end function
     }
     
     if (utils.isEmpty(options.apiKey) or utils.isEmpty(options.apiSecret)) then
@@ -899,7 +984,7 @@ function mParticleStart(options={} as object)
         logMessage:         function(message as object) as void
                                 logger = mparticle()._internal.logger
                                 logger.debug("Logging message: " + formatjson(message))
-                                m._internal.networking.upload([message])
+                                m._internal.networking.queueMessage(message)
                             end function,
         setUserIdentity:    function(identityType as integer, identityValue as String) as void
                                 m._internal.storage.setUserIdentity(identityType, identityValue)
@@ -910,7 +995,7 @@ function mParticleStart(options={} as object)
         setSessionAttribute:   function(attributeKey as string, attributeValue as object) as void
                                 m._internal.sessionManager.setSessionAttribute(attributeKey, attributeValue)
                             end function,
-        model:              model
+        model:              publicModels
     }
         
     internalApi =  {
@@ -920,6 +1005,7 @@ function mParticleStart(options={} as object)
         networking:     networking,
         storage:        createStorage(),
         sessionManager: createSessionManager(options.startupArgs)
+        internalModel:  internalModel
     }
     
     publicApi.append({_internal:internalApi})
