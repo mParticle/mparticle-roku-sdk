@@ -15,11 +15,11 @@ The platform has grown to support 100+ partners in the ecosystem, including deve
 
 ## Initialize
 
-The mParticle Roku SDK is compatible with both legacy and Scene Graph Roku channels.
+The mParticle Roku SDK is compatible with both legacy and Scene Graph Roku channels - please reference the section below that applies to your environment.
 
 ### Legacy Channels
 
-Initialize the SDK within your main method, or as soon as possible during the startup of your channel:
+Initialize the SDK within your `main` method, or as soon as possible during the startup of your channel:
 
 ```brightscript
 sub main(args as dynamic)
@@ -35,7 +35,7 @@ The above will initialize the SDK, creating an mParticle install and user sessio
 
 ### Scene Graph Channels
 
-The Scene Graph SDK allows for running mParticle in a separate thread for better performance and more advanced measurement behavior. You should include the mParticle Task in every scene in your channel.
+The Scene Graph SDK allows for running mParticle in a separate thread for better performance, queueing, and more advanced measurement behavior. You should include a single mParticle Task in every scene in your channel.
 
 #### 1. Configure mParticle
 
@@ -67,22 +67,12 @@ sub main(args as dynamic)
     end while
 end sub
 ```
-#### 2. Include mParticleCore.brs in your Scene
+#### 2. Include `mParticleCore.brs` in your Scene
 
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="HelloWorld" extends="Scene"> 
-	<children>
-      <Label id="myLabel" 
-      	text="Hello World!"
-      	width="1280" 
-      	height="720" 
-      	horizAlign="center"
-      	vertAlign="center"
-      	/>
-    </children>
-
-  <script type="text/brightscript" uri="pkg:/components/helloworld.brs"/>
+  ...
   <!-- Replace with correct path if necessary -->
   <script type="text/brightscript" uri="pkg:/source/mparticle/mParticleCore.brs"/>
 </component>
@@ -90,29 +80,86 @@ end sub
 
 #### 3. Create the mParticle Task Node:
 
-Once you've added the mParticle Task to your scene, you can use the mParticleSGBridge() helper to make calls to mParticleCore.
+Once you've added the mParticle Task to your scene, you can use the `mParticleSGBridge()` helper to make calls to mParticleCore.
 
 ```brightscript
 sub init()
-    m.top.setFocus(true)
-    
     'Create the mParticle Task Node
     m.mParticleTask = createObject("roSGNode","mParticleTask")
     'Use the mParticle task node to create an instance an mParticleSGBridge
-    mpApi = mParticleSGBridge(m.mParticleTask)
+    mp = mParticleSGBridge(m.mParticleTask)
 end sub
 ```
 
 ## Using the SDK
 
-If using the legacy Roku SDK, you can reference mParticle directly via `mParticle()` anytime after you've called `mParticleStart()` as shown above. With Scene Graph, you must send messages to the mParticle Task thread. mParticleSGBridge provides an API that matches the direct mParticle API, and will generate messages for you:
+If using the legacy Roku SDK, you can reference mParticle directly via `mParticle()` anytime after you've called `mParticleStart()` as shown above. With Scene Graph, you must send messages to the mParticle Task thread over the `mParticleSGBridge`. `mParticleSGBridge` provides an API that mirrors the direct mParticle API, and will generate messages for you:
 
 ```brightscript
-'Legacy SDK channels
-mparticle().logEvent("hello world!")
-'Scene Graph channels
-mpApi = mParticleSGBridge(m.mParticleTask)
-mpApi.logEvent("hello world!")
+'For legacy SDK channels
+mp = mparticle()
+
+'For Scene Graph channels
+mp = mParticleSGBridge(m.mParticleTask)
+
+'The event APIs are the same for both Legacy and Scene Graph
+mp.logEvent("hello world!")
+```
+
+#### Development vs. Production Environment
+
+All integrations in mParticle can be configured either for development data, production data, or both. The mParticle Roku SDK will automatically detect a runtime whether a channel is a debug channel, and if so will mark data as development data. You may also override this (as well as other settings) via the options associative array referenced in the snippets above. See the `DEFAULT_OPTIONS` object within `mParticleCore.brs` for the complete list of customizable settings.
+
+### User Identities and Attributes
+
+Use the identity and attribute APIs to associate a user with a set of identities and custom attributes.
+
+```brightscript
+' See mparticleConstants().IDENTITY_TYPE for the full list of valid identity types
+mp.setUserIdentity(mparticleConstants().IDENTITY_TYPE.CUSTOMER_ID, "12345678")
+
+' Set a single-value attribute
+mp.setUserAttribute("hair color", "brown")
+' You can also set an array as a value
+mp.setUserAttribute("favorite foods", ["italian", "indian"])
+```
+
+### Custom Events
+
+Custom Events represent specific actions that a user has taken in your channel. At minimum they require a name, but can also be associated a type, and a free-form dictionary of key/value pairs:
+
+```brightscript
+' defaults to CUSTOM_EVENT_TYPE.OTHER and no custom attributes
+mp.logEvent("example") 
+
+' or you can specify the custom event type and any custom attributes
+customAttributes = {"example custom attribute" : "example custom attribute value"}
+mp.logEvent("hello world!", mparticleConstants().CUSTOM_EVENT_TYPE.NAVIGATION, customAttributes)
+```
+
+### Screen Events
+
+Screen events are a special case of event specifically designed to represent the viewing of a screen. Several mParticle integrations support special functionality (ex funnel analysis) based on screen events.
+
+```brightscript
+mp.logScreenEvent("hello screen!")
+```
+
+### eCommerce Events
+
+The `CommerceEvent` is central to mParticle's eCommerce measurement. `CommerceEvents` can contain many data points but it's important to understand that there are 3 core variations:
+
+- Product-based: Used to measure measured datapoints associated with one or more products, such as a purchase.
+- Promotion-base: Used to measure datapoints associated with internal promotions or campaigns
+- Impression-based: Used to measure interactions with impressions of products and product-listings
+
+The SDK provides a series of helpers and builders to create `CommerceEvents`. One of the simplest and most common scenarios would be to log a `PURCHASE` product action event:
+
+```brightscript
+mpConstants = mparticleConstants()
+product = mpConstants.Product.build("foo-product-sku", "foo-product-name", 123.45)
+productAction = mpConstants.ProductAction.build(actionApi.ACTION_TYPE.PURCHASE, 123.45, [product])
+mp.logCommerceEvent(productAction)
 ```
 
 ## Sample Channels
