@@ -39,7 +39,7 @@ The Scene Graph SDK allows for running mParticle in a separate thread for better
 
 #### 1. Configure mParticle
 
-When creating a new scene, include the mParticle credentials and options as the `mparticleOptions` field of the scene's the Global Node. The mParticle Task will look for this and automatically initialize mParticle for you.
+When creating a new scene, include the mParticle credentials and options as the `mparticleOptions` field of the scene's Global Node. The mParticle Task will look for this and automatically initialize mParticle for you.
 
 ```brightscript
 sub main(args as dynamic)
@@ -108,7 +108,7 @@ mp.logEvent("hello world!")
 
 #### Development vs. Production Environment
 
-All integrations in mParticle can be configured either for development data, production data, or both. The mParticle Roku SDK will automatically detect a runtime whether a channel is a debug channel, and if so will mark data as development data. You may also override this (as well as other settings) via the options associative array referenced in the snippets above. See the `DEFAULT_OPTIONS` object within `mParticleCore.brs` for the complete list of customizable settings.
+All integrations in mParticle can be configured either for development data, production data, or both. The mParticle Roku SDK will automatically detect at runtime whether a channel is a debug channel, and if so will mark data as development data. You may also override this (as well as other settings) via the options associative array referenced in the snippets above. See the `DEFAULT_OPTIONS` object within `mParticleCore.brs` for the complete list of customizable settings.
 
 ### User Identities and Attributes
 
@@ -139,7 +139,7 @@ mp.logEvent("hello world!", mparticleConstants().CUSTOM_EVENT_TYPE.NAVIGATION, c
 
 ### Screen Events
 
-Screen events are a special case of event specifically designed to represent the viewing of a screen. Several mParticle integrations support special functionality (ex funnel analysis) based on screen events.
+Screen events are a special case of event specifically designed to represent the viewing of a screen. Several mParticle integrations support special functionality (e.g. funnel analysis) based on screen events.
 
 ```brightscript
 mp.logScreenEvent("hello screen!")
@@ -150,7 +150,7 @@ mp.logScreenEvent("hello screen!")
 The `CommerceEvent` is central to mParticle's eCommerce measurement. `CommerceEvents` can contain many data points but it's important to understand that there are 3 core variations:
 
 - Product-based: Used to measure measured datapoints associated with one or more products, such as a purchase.
-- Promotion-base: Used to measure datapoints associated with internal promotions or campaigns
+- Promotion-based: Used to measure datapoints associated with internal promotions or campaigns
 - Impression-based: Used to measure interactions with impressions of products and product-listings
 
 The SDK provides a series of helpers and builders to create `CommerceEvents`. One of the simplest and most common scenarios would be to log a `PURCHASE` product action event:
