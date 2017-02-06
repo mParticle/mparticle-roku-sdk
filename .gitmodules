@@ -1,0 +1,3 @@
+[submodule "testing/unit-testing-framework"]
+	path = testing/unit-testing-framework
+	url = git@github.com:rokudev/unit-testing-framework.git

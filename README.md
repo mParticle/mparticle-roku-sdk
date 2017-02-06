@@ -19,23 +19,47 @@ The mParticle Roku SDK is compatible with both legacy and Scene Graph Roku chann
 
 ### Legacy Channels
 
-Initialize the SDK within your `main` method, or as soon as possible during the startup of your channel:
+Initialize the SDK within your `main` method, or as soon as possible during the startup of your channel. In addition to your mParticle credentials, you must pass a reference to the message port of your main run loop, such that mParticle can make asynchronous network requests.
+
+Within your main run loop, inspect the source identity and pass `roUrlEvent` objects to mParticle per the example below.
 
 ```brightscript
 sub main(args as dynamic)
+    screen = CreateObject("roPosterScreen") 
+    port = CreateObject("roMessagePort")
+    screen.SetMessagePort(port)
+
+    screen.ShowMessage("Hello mParticle!")
+    screen.Show()
+    
     options = {}
+    options.logLevel = mparticleConstants().LOG_LEVEL.DEBUG
     options.apiKey = "REPLACE WITH API KEY"
     options.apiSecret = "REPLACE WITH API SECRET"
-    'for deeplinking analytics, pass in your startup args
     options.startupArgs = args
-    mParticleStart(options)
+    mParticleStart(options, port)
+
+    while true
+        msg = Wait(0, port)
+        if type(msg) = "roUrlEvent"
+            if mparticle().isMparticleEvent(msg.getSourceIdentity())
+                mparticle().onUrlEvent(msg)
+            end if
+        else if type(msg) = "roPosterScreenEvent"
+            if msg.isScreenClosed()
+                exit while
+            end if
+        end if
+    end while
+
+    screen.Close()
 end sub
 ```
 The above will initialize the SDK, creating an mParticle install and user session.
 
 ### Scene Graph Channels
 
-The Scene Graph SDK allows for running mParticle in a separate thread for better performance, queueing, and more advanced measurement behavior. You should include a single mParticle Task in every scene in your channel.
+The Scene Graph SDK allows for running mParticle entirely in a separate thread for better performance, upload batching, and more accurate session management. You should include a single mParticle Task in every scene in your channel.
 
 #### 1. Configure mParticle
 

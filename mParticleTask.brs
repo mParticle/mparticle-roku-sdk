@@ -12,8 +12,8 @@ end sub
 
 sub setupRunLoop()
     options = m.global.mparticleOptions
-    options.addReplace("isSceneGraph", true)
-    mParticleStart(options)
+    options.addReplace("batchUploads", true)
+    mParticleStart(options, m.port)
     m.mparticle = mparticle()
     while true
         msg = wait(15*1000, m.port)
@@ -27,6 +27,10 @@ sub setupRunLoop()
             if mt = "roSGNodeEvent"
                 if msg.getField()="apiCall"
                     executeApiCall(msg.getData())
+                end if
+            else if (mt = "roUrlEvent")
+                 if m.mparticle.isMparticleEvent(msg.getSourceIdentity())
+                    m.mparticle.onUrlEvent(msg)
                 end if
             else
         	   print "Error: unrecognized event type '"; mt ; "'"
