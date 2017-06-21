@@ -188,8 +188,8 @@ mp.logCommerceEvent(productAction)
 
 ## Sample Channels
 
-- [Hello World Legacy](https://github.com/mParticle/mparticle-roku-sdk-private/tree/master/example-legacy-sdk)
-- [Hello World Scene Graph](https://github.com/mParticle/mparticle-roku-sdk-private/tree/master/example-legacy-sdk)
+- [Hello World Legacy](https://github.com/mParticle/mparticle-roku-sdk/tree/master/example-legacy-sdk)
+- [Hello World Scene Graph](https://github.com/mParticle/mparticle-roku-sdk/tree/master/example-legacy-sdk)
 
 ## License
 
