@@ -30,7 +30,13 @@ sub setupRunLoop()
                 end if
             else if (mt = "roUrlEvent")
                  if m.mparticle.isMparticleEvent(msg.getSourceIdentity())
-                    m.mparticle.onUrlEvent(msg)
+                    identityResult = m.mparticle.onUrlEvent(msg)
+                    if (identityResult <> invalid) then
+                        m.top.identityResult = identityResult
+                        if (identityResult.httpcode = 200) then
+                            m.top.currentUser = identityResult.body.mpid
+                        end if
+                    end if
                 end if
             else
         	   print "Error: unrecognized event type '"; mt ; "'"
@@ -42,19 +48,27 @@ end sub
 function executeApiCall(apiCall as Object)
     args = apiCall.args
     length = args.count()
+    if (apiCall.methodName.Instr("identity/") = 0) then
+        target = m.mparticle.identity
+        methodName = apiCall.methodName.Replace("identity/", "")
+    else 
+        target = m.mparticle
+        methodName = apiCall.methodName
+    end if
+    
     if (length = 0) then
-        m.mparticle[apiCall.methodName]()
+        target[methodName]()
     else if (length = 1) then
-        m.mparticle[apiCall.methodName](args[0])
+        target[methodName](args[0])
     else if (length = 2) then
-        m.mparticle[apiCall.methodName](args[0], args[1])
+        target[methodName](args[0], args[1])
     else if (length = 3) then
-        m.mparticle[apiCall.methodName](args[0], args[1], args[2])
+        target[methodName](args[0], args[1], args[2])
     else if (length = 4) then
-        m.mparticle[apiCall.methodName](args[0], args[1], args[2], args[3])
+        target[methodName](args[0], args[1], args[2], args[3])
     else if (length = 5) then
-        m.mparticle[apiCall.methodName](args[0], args[1], args[2], args[3], args[4])
+        target[methodName](args[0], args[1], args[2], args[3], args[4])
     else if (length = 6) then
-        m.mparticle[apiCall.methodName](args[0], args[1], args[2], args[3], args[4], args[5])
+        target[methodName](args[0], args[1], args[2], args[3], args[4], args[5])
     end if
 end function

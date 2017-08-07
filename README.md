@@ -8,7 +8,7 @@ The platform has grown to support 100+ partners in the ecosystem, including deve
 
 ## Download
 
-1. Navigate to the [releases section](https://github.com/mParticle/mparticle-roku-sdk/releases) and download the lastest tagged source, or clone this repository.
+1. Navigate to the [releases section](https://github.com/mParticle/mparticle-roku-sdk/releases) and download the latest tagged source, or clone this repository.
 2. Create an `mparticle/` directory inside the `pkg:/source/` directory.
 3. Copy `mParticleBundle.crt` and `mParticleCore.brs` into the newly created `pkg:/source/mparticle` directory.
 4. For Scene Graph support, copy `mParticleTask.brs` and `mParticleTask.xml` into your `pkg:/components/` directory.

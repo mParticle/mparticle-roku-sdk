@@ -950,6 +950,129 @@ function mParticleStart(options as object, messagePort as object)
        
     }
     
+    mpInternalIdentityApi = {
+        pendingApiRequest: invalid,
+        messagePort: messagePort,
+        identify: function(identityApiRequest as object) as void
+            mplogger = mparticle()._internal.logger
+            mplogger.debug("Starting Identity API request: identify")
+            m.performIdentityHttpRequest("identify", identityApiRequest)
+        end function,
+        login: function(identityApiRequest as object) as void
+            mplogger = mparticle()._internal.logger
+            mplogger.debug("Starting Identity API request: login")
+            m.performIdentityHttpRequest("login", identityApiRequest)
+        end function,
+        logout: function(identityApiRequest as object) as void
+            mplogger = mparticle()._internal.logger
+            mplogger.debug("Starting Identity API request: logout")
+            m.performIdentityHttpRequest("logout", identityApiRequest)
+        end function,
+        modify: function(identityApiRequest as object) as void
+            mplogger = mparticle()._internal.logger
+            mplogger.debug("Starting Identity API request: modify")
+            modifyPath = mparticle()._internal.storage.getMpid() + "/modify"
+            m.performIdentityHttpRequest(modifyPath, identityApiRequest)
+        end function,
+        performIdentityHttpRequest: function(path as String, identityApiRequest as object) as object
+            mplogger = mparticle()._internal.logger
+            mplogger.debug("Identity API request:"+Chr(10)+"Path:"+path+Chr(10)+"Body:"+formatjson(identityApiRequest))
+            urlTransfer = CreateObject("roUrlTransfer")
+            if (mparticle()._internal.configuration.enablePinning) then
+                urlTransfer.SetCertificatesFile(mparticle()._internal.configuration.certificateDir)
+            end if
+            urlTransfer.SetUrl("https://identity.mparticle.com/v1/" + path)
+            urlTransfer.EnableEncodings(false)
+            requestId = urlTransfer.GetIdentity().ToStr()
+            m.pendingApiRequest = {"transfer": urlTransfer, "request":identityApiRequest}
+            dateString = CreateObject("roDateTime").ToISOString()
+            jsonRequest = FormatJson(identityApiRequest)
+            hashString = "POST" + Chr(10) + dateString + Chr(10) + "/v1/" + path + jsonRequest
+            
+            signature_key = CreateObject("roByteArray")
+            signature_key.fromAsciiString(mparticle()._internal.configuration.apisecret)
+            
+            hmac = CreateObject("roHMAC")
+            hmac.Setup("sha256", signature_key)
+            message = CreateObject("roByteArray")
+            message.FromAsciiString(hashString)
+            result = hmac.process(message)
+            hashResult = LCase(result.ToHexString())
+            
+            urlTransfer.AddHeader("Date", dateString)
+            urlTransfer.AddHeader("x-mp-key", mparticle()._internal.configuration.apikey)
+            urlTransfer.AddHeader("x-mp-signature", hashResult)
+            urlTransfer.AddHeader("Content-Type","application/json")
+            urlTransfer.AddHeader("User-Agent","mParticle Roku SDK/2.0.0")
+            urlTransfer.RetainBodyOnError(true)
+            urlTransfer.setPort(m.messagePort)
+            urlTransfer.AsyncPostFromString(jsonRequest)
+        end function,
+        handleurlevent: function(urlEvent as object) as object
+            mplogger = mparticle()._internal.logger
+            transfer = m.pendingApiRequest.transfer
+            if (transfer = invalid)
+                mplogger.debug("Unknown URL event passed to mParticle, ignoring...")
+            else
+                m.pendingApiRequest = invalid
+                responseCode = urlEvent.GetResponseCode()
+                responseBody = urlEvent.GetString()
+                mplogger.debug("Identity response: code" + str(responseCode) + " body: " + responseBody)
+                responseObject = {}
+                if (responseBody <> invalid) then
+                    responseObject = parsejson(responseBody)
+                end if
+                
+                if (responseCode = -77) then
+                    mplogger.error("SSL error - please make sure " + mparticle()._internal.configuration.certificateDir + " is present.")
+                else if (responseCode = 400) then
+                    mplogger.error("HTTP 400 - bad request.")
+                else if (responseCode = 401) then
+                    mplogger.error("HTTP 401 - please check that your mParticle key and secret are valid.")
+                else if (responseCode = 429 or responseCode = 503) then
+                    mplogger.error("Identity request is being throttled - please try again later.")
+                else if (responseCode = 200) then
+
+                else
+                    mplogger.error("Unknown error while performing identity request.")
+                end if
+                return {
+                    httpCode: responseCode,
+                    body: responseObject
+                }
+            end if
+        end function,
+        isIdentityRequest: function(requestId as string) as boolean
+            return m.pendingApiRequest <> invalid and requestId = m.pendingApiRequest.transfer.GetIdentity().ToStr()
+        end function
+    }
+    
+    mpIdentityApi = {
+        identify: function(identityApiRequest as object) as void
+            identity = mparticle()._internal.identity
+            identity.identify(identityApiRequest)
+        end function,
+        login: function(identityApiRequest as object) as void
+            identity = mparticle()._internal.identity
+            identity.login(identityApiRequest)
+        end function,
+        logout: function(identityApiRequest as object) as void
+            identity = mparticle()._internal.identity
+            identity.logout(identityApiRequest)
+        end function,
+        modify: function(identityApiRequest as object) as void
+            identity = mparticle()._internal.identity
+            identity.modify(identityApiRequest)
+        end function,
+        IdentityApiRequest: function(userIdentities as object, copyUserAttributes as boolean) as object
+            return {
+                "userIdentities":userIdentities,
+                "copyUserAttributes": copyUserAttributes
+            }
+            
+        end function,
+    }
+    
     if (mpUtils.isEmpty(options.apiKey) or mpUtils.isEmpty(options.apiSecret)) then
         print "mParticleStart() called with empty API key or secret!"
     end if
@@ -1011,12 +1134,19 @@ function mParticleStart(options as object, messagePort as object)
         setOptOut:          function(optOut as boolean) as void
                                m.logMessage(m.model.OptOut(optOut))
                             end function,
-        onUrlEvent:         function(urlEvent as object) as void
-                                m._internal.networking.handleUrlEvent(urlEvent)
+        onUrlEvent:         function(urlEvent as object)
+                                if (m._internal.identity.isIdentityRequest(urlEvent.getSourceIdentity().tostr())) then
+                                    return m._internal.identity.handleUrlEvent(urlEvent)
+                                else 
+                                    m._internal.networking.handleUrlEvent(urlEvent)
+                                end if
                             end function,     
         isMparticleEvent:   function(sourceIdentity as integer) as boolean
-                                return m._internal.networking.pendingTransfers.DoesExist(sourceIdentity.tostr())
-                            end function,               
+                                isBatchUpload = m._internal.networking.pendingTransfers.DoesExist(sourceIdentity.tostr())
+                                isIdentityRequest = m._internal.identity.isIdentityRequest(sourceIdentity.tostr())
+                                return isBatchUpload or isIdentityRequest
+                            end function,
+        identity:           mpIdentityApi,            
         model:              mpPublicModels
     }
         
@@ -1027,7 +1157,8 @@ function mParticleStart(options as object, messagePort as object)
         networking:     mpNetworking,
         storage:        mpCreateStorage(),
         sessionManager: mpCreateSessionManager(options.startupArgs)
-        internalModel:  mpInternalModel
+        internalModel:  mpInternalModel,
+        identity:       mpInternalIdentityApi
     }
     
     mpPublicApi.append({_internal:internalApi})
@@ -1038,6 +1169,29 @@ end function
 ' mParticle Scene Graph Bridge
 ' Use an instance of this class to make calls to mParticle over Scene Graph
 function mParticleSGBridge(task as object) as object
+    mpCreateSGBridgeIdentityApi = function(task as object) as object
+        return {
+            mParticleTask:  task
+            identify:       function(identityApiRequest) as void
+                                m.invokeFunction("identity/identify", [identityApiRequest])
+                            end function,
+            login:          function(identityApiRequest) as void
+                                m.invokeFunction("identity/login", [identityApiRequest])
+                            end function,
+            logout:         function(identityApiRequest) as void
+                                m.invokeFunction("identity/logout", [identityApiRequest])
+                            end function,
+            modify:         function(identityApiRequest) as void
+                                m.invokeFunction("identity/modify", [identityApiRequest])
+                            end function,
+            invokeFunction: function(name as string, args)
+                                invocation = {}
+                                invocation.methodName = name
+                                invocation.args = args
+                                m.mParticleTask.apiCall = invocation
+                            end function
+        }
+    end function
     return {
         mParticleTask:      task
         logEvent:           function(eventName as string, eventType = mParticleConstants().CUSTOM_EVENT_TYPE.OTHER, customAttributes = {}) as void
@@ -1061,6 +1215,7 @@ function mParticleSGBridge(task as object) as object
         setSessionAttribute:   function(attributeKey as string, attributeValue as object) as void
                                 m.invokeFunction("setSessionAttribute", [attributeKey, attributeValue])
                             end function,
+        identity:           mpCreateSGBridgeIdentityApi(task),
         invokeFunction:     function(name as string, args)
                                 invocation = {}
                                 invocation.methodName = name

@@ -1,11 +1,12 @@
 sub init()
     m.top.setFocus(true)
-    
-  
+   
     'Create the mParticle Task Node
     m.mParticleTask = createObject("roSGNode","mParticleTask")
+    m.mParticleTask.ObserveField("identityResult", "onIdentityResult")
+    m.mParticleTask.ObserveField("currentUser", "onCurrentUserChanged")
     mp = mParticleSGBridge(m.mParticleTask)
-    mp.setUserIdentity(mparticleConstants().IDENTITY_TYPE.EMAIL, "user@example.com")
+    mp.identity.login({"email":"user@example.com"})
     mp.logEvent("hello world!")
     mp.setUserAttribute("example attribute key", "example attribute value")
     mp.logScreenEvent("hello screen!")
@@ -30,3 +31,11 @@ sub init()
     'Set the color to light blue
     m.myLabel.color="0x72D7EEFF"
 end sub
+
+function onIdentityResult() as void
+    print "IdentityResult: " + formatjson(m.mParticleTask.identityResult)
+end function
+
+function onCurrentUserChanged() as void
+    print "Current user: " + formatjson(m.mParticleTask.currentUser)
+end function
