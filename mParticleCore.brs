@@ -72,7 +72,28 @@ function mParticleConstants() as object
         MICROSOFT:             5,
         YAHOO:                 6,
         EMAIL:                 7,
-        FACEBOOK_AUDIENCE_ID:  9
+        FACEBOOK_AUDIENCE_ID:  9,
+        parseString:           function(identityTypeString as string) as integer
+                                  IDENTITY_TYPE = mparticleconstants().IDENTITY_TYPE
+                                  if (identityTypeString = IDENTITY_TYPE.CUSTOMER_ID) then
+                                    return m.CUSTOMER_ID
+                                  else if (identityTypeString = IDENTITY_TYPE.FACEBOOK) then
+                                    return m.FACEBOOK
+                                  else if (identityTypeString = IDENTITY_TYPE.TWITTER) then
+                                    return m.TWITTER
+                                  else if (identityTypeString = IDENTITY_TYPE.GOOGLE) then
+                                    return m.GOOGLE
+                                  else if (identityTypeString = IDENTITY_TYPE.MICROSOFT) then
+                                    return m.MICROSOFT
+                                  else if (identityTypeString = IDENTITY_TYPE.YAHOO) then
+                                    return m.YAHOO
+                                  else if (identityTypeString = IDENTITY_TYPE.EMAIL) then
+                                    return m.EMAIL
+                                  else if (identityTypeString = IDENTITY_TYPE.FACEBOOK_AUDIENCE_ID) then
+                                    return m.FACEBOOK_AUDIENCE_ID
+                                  end if
+                                  return 0
+                               end function
     }
     
     IDENTITY_TYPE = {
@@ -341,32 +362,29 @@ function mParticleStart(options as object, messagePort as object)
              m.flush()
         end function
         
-        storage.setUserIdentity = sub(identityType as integer, identityValue as string)
-            identities = m.getUserIdentities()
-            identity = identities.Lookup(str(identityType))
+        storage.setUserIdentity = function(mpid as string, identityType as string, identityValue as string) as void
+            identities = m.getUserIdentities(mpid)
+            identity = identities.Lookup(identityType)
             if (identity = invalid) then
-                identities[str(identityType)] = mparticle()._internal.internalModel.UserIdentity(identityType, identityValue)
+                identities[identityType] = mparticle()._internal.internalModel.UserIdentity(identityType, identityValue)
             else
-                identities[str(identityType)].i = identityValue
+                identities[identityType].i = identityValue
+                identities[identityType].f = false
             end if
-            m.set(m.mpkeys.USER_IDENTITIES, FormatJson(identities))
+            m.set(m.mpkeys.USER_IDENTITIES + mpid, FormatJson(identities))
             m.flush()
-        end sub
-        
-        storage.getUserIdentities = function() as object
-            if (m.userIdentities = invalid) then
-                identityJson = m.get(m.mpkeys.USER_IDENTITIES)
-                if (not mparticle()._internal.utils.isEmpty(identityJson)) then
-                   m.userIdentities = ParseJson(identityJson)
-                end if   
-                if (m.userIdentities = invalid) then
-                   m.userIdentities = {}
-                end if
-            end if
-            return m.userIdentities
         end function
         
-        storage.setUserAttribute = sub(attributeKey as string, attributeValue as object)
+        storage.getUserIdentities = function(mpid as string) as object
+            identityJson = m.get(m.mpkeys.USER_IDENTITIES + mpid)
+            userIdentities = {}
+            if (not mparticle()._internal.utils.isEmpty(identityJson)) then
+               userIdentities = ParseJson(identityJson)
+            end if   
+            return userIdentities
+        end function
+        
+        storage.setUserAttribute = sub(attributeKey as string, attributeValue as object) as void
             attributes = m.getUserAttributes()
             attributes[attributeKey] = attributeValue
             m.set(m.mpkeys.USER_ATTRIBUTES, FormatJson(attributes))
@@ -386,7 +404,7 @@ function mParticleStart(options as object, messagePort as object)
             return m.userAttributes
         end function
         
-        storage.setCurrentMpid = function(mpid as string) 
+        storage.setCurrentMpid = function(mpid as string) as void
             m.set(m.mpkeys.CURRENT_MPID, mpid)
             m.flush()
         end function
@@ -488,6 +506,7 @@ function mParticleStart(options as object, messagePort as object)
     mpInternalModel = {
     
        Batch : function(messages as object) as object
+            currentMpid = mparticle()._internal.storage.getCurrentMpid()
             batch = {}
             batch.dbg = mparticle()._internal.configuration.development
             batch.dt = "h"
@@ -497,7 +516,7 @@ function mParticleStart(options as object, messagePort as object)
             batch.ct = mParticle()._internal.utils.unixTimeMillis()
             batch.sdk = mParticleConstants().SDK_VERSION
             batch.ui = []
-            identities = mparticle()._internal.storage.getUserIdentities()
+            identities = mparticle()._internal.storage.getUserIdentities(currentMpid)
             for each identity in identities
                 batch.ui.push(identities[identity])
             end for
@@ -510,14 +529,13 @@ function mParticleStart(options as object, messagePort as object)
             return batch
         end function,
     
-        UserIdentity : function(identityType as integer, identityValue as String) as object
+        UserIdentity : function(identityType as string, identityValue as String) as object
             return {
-                n : identityType,
+                n : mParticleConstants().IDENTITY_TYPE_INT.parseString(identityType),
                 i : identityValue,
                 dfs : mparticle()._internal.utils.unixTimeMillis(),
                 f : true
             }
-       
         end function,
         
         ApplicationInformation : function() as object
@@ -872,7 +890,7 @@ function mParticleStart(options as object, messagePort as object)
             }
         end function,
         
-        CustomEvent: function(eventName as string, eventType, customAttributes = {}) as object
+        CustomEvent: function(eventName as string, eventType as string, customAttributes = {}) as object
             message = m.Message(mParticleConstants().MESSAGE_TYPE.CUSTOM, customAttributes)
             message.n = eventName
             message.et = eventType
@@ -957,7 +975,7 @@ function mParticleStart(options as object, messagePort as object)
             LOGOUT:     "logout",
             MODIFY:     "modify"
         },
-        pendingApiRequest: invalid,
+        pendingApiRequests: {},
         messagePort: messagePort,
         identify: function(identityApiRequest as object) as void
             m.performIdentityHttpRequest(m.IDENTITY_API_PATHS.IDENTIFY, identityApiRequest)
@@ -1037,9 +1055,9 @@ function mParticleStart(options as object, messagePort as object)
                 urlTransfer.SetCertificatesFile(mparticle()._internal.configuration.certificateDir)
             end if
             urlTransfer.SetUrl("https://identity.mparticle.com/v1/" + path)
-            urlTransfer.EnableEncodings(false)
+            urlTransfer.EnableEncodings(true)
             requestId = urlTransfer.GetIdentity().ToStr()
-            m.pendingApiRequest = {"transfer": urlTransfer, "request":identityApiRequest, "path":path}
+            m.pendingApiRequests[requestId] = {"transfer": urlTransfer, "request":identityApiRequest, "path":path}
             dateString = CreateObject("roDateTime").ToISOString()
             jsonRequest = FormatJson(identityHttpBody)
             hashString = "POST" + Chr(10) + dateString + Chr(10) + "/v1/" + path + jsonRequest
@@ -1065,12 +1083,12 @@ function mParticleStart(options as object, messagePort as object)
         end function,
         handleurlevent: function(urlEvent as object) as object
             mplogger = mparticle()._internal.logger
-            transfer = m.pendingApiRequest.transfer
-            if (transfer = invalid)
+            requestId = urlEvent.GetSourceIdentity().ToStr()
+            requestWrapper = m.pendingApiRequests[requestId]
+            if (requestWrapper = invalid)
                 mplogger.debug("Unknown URL event passed to mParticle, ignoring...")
             else
-                previousRequest = m.pendingApiRequest
-                m.pendingApiRequest = invalid
+                m.pendingApiRequests.delete(requestId)
                 responseCode = urlEvent.GetResponseCode()
                 responseBody = urlEvent.GetString()
                 mplogger.debug("Identity response: code" + str(responseCode) + " body: " + responseBody)
@@ -1088,14 +1106,17 @@ function mParticleStart(options as object, messagePort as object)
                 else if (responseCode = 429 or responseCode = 503) then
                     mplogger.error("Identity request is being throttled - please try again later.")
                 else if (responseCode = 200) then
-                    if (previousRequest.path.Instr(m.IDENTITY_API_PATHS.MODIFY) = -1) then
+                    storage = mparticle()._internal.storage
+                    updateMpid = storage.getCurrentMpid()
+                    if (requestWrapper.path.Instr(m.IDENTITY_API_PATHS.MODIFY) = -1) then
                         if (responseObject <> invalid and responseObject.DoesExist("mpid")) then
                             m.onMpidChanged(responseObject.mpid)
+                            updateMpid = responseObject.mpid
                         else
                             mplogger.error("Identity API returned 200, but there's MPID present in response.")
                         end if
                     end if
-                    m.onIdentitySuccess(previousRequest)
+                    m.onIdentitySuccess(updateMpid, requestWrapper.request)
                 else
                     mplogger.error("Unknown error while performing identity request.")
                 end if
@@ -1106,11 +1127,19 @@ function mParticleStart(options as object, messagePort as object)
             end if
         end function,
         isIdentityRequest: function(requestId as string) as boolean
-            return m.pendingApiRequest <> invalid and requestId = m.pendingApiRequest.transfer.GetIdentity().ToStr()
+            return m.pendingApiRequests.DoesExist(requestId)
         end function,
-        onIdentitySuccess: function(requestObject as object)
+        onIdentitySuccess: function(mpid as string, requestObject as object)
+            storage = mparticle()._internal.storage
+            if (requestObject <> invalid and requestObject.userIdentities <> invalid) then
+                for each identityType in requestObject.userIdentities.keys()
+                    storage.setUserIdentity(mpid, identityType, requestObject.userIdentities[identityType])
+                end for
+            end if
         end function,
         onMpidChanged: function(mpid as String) as void
+            networking = mparticle()._internal.networking
+            networking.queueUpload()
             storage = mparticle()._internal.storage
             storage.setCurrentMpid(mpid)
         end function
@@ -1193,9 +1222,6 @@ function mParticleStart(options as object, messagePort as object)
                                 mplogger.debug("Logging message: " + formatjson(message))
                                 m._internal.networking.queueMessage(message)
                             end function,
-        setUserIdentity:    function(identityType as integer, identityValue as String) as void
-                                m._internal.storage.setUserIdentity(identityType, identityValue)
-                            end function,
         setUserAttribute:   function(attributeKey as string, attributeValue as object) as void
                                 m._internal.storage.setUserAttribute(attributeKey, attributeValue)
                             end function,
@@ -1276,9 +1302,6 @@ function mParticleSGBridge(task as object) as object
                             end function,
         logMessage:         function(message as object) as void
                                 m.invokeFunction("logMessage", [message])
-                            end function,
-        setUserIdentity:    function(identityType as integer, identityValue as String) as void
-                                m.invokeFunction("setUserIdentity", [identityType, identityValue])
                             end function,
         setUserAttribute:   function(attributeKey as string, attributeValue as object) as void
                                 m.invokeFunction("setUserAttribute", [attributeKey, attributeValue])

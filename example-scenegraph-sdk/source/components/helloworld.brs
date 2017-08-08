@@ -5,15 +5,15 @@ sub init()
     m.mParticleTask = createObject("roSGNode","mParticleTask")
     m.mParticleTask.ObserveField("identityResult", "onIdentityResult")
     m.mParticleTask.ObserveField("currentUser", "onCurrentUserChanged")
-    mp = mParticleSGBridge(m.mParticleTask)
+    m.mparticle = mParticleSGBridge(m.mParticleTask)
     mpConstants = mparticleconstants()
     identityApiRequest = {}
     identityApiRequest.userIdentities = {}
-    identityApiRequest.userIdentities[mpConstants.IDENTITY_TYPE.EMAIL] = "user@example.com"
-    mp.identity.login(identityApiRequest)
-    mp.logEvent("hello world!")
-    mp.setUserAttribute("example attribute key", "example attribute value")
-    mp.logScreenEvent("hello screen!")
+    identityApiRequest.userIdentities[mpConstants.IDENTITY_TYPE.EMAIL] = "user-2@example.com"
+    m.mparticle.identity.login(identityApiRequest)
+    m.mparticle.logEvent("hello world!")
+    m.mparticle.setUserAttribute("example attribute key", "example attribute value")
+    m.mparticle.logScreenEvent("hello screen!")
     
     product = mpConstants.Product.build("foo-sku", "foo-name", 123.45)
     actionApi = mpConstants.ProductAction
@@ -26,8 +26,8 @@ sub init()
     promotionAction = mpConstants.PromotionAction.build(mpConstants.PromotionAction.ACTION_TYPE.VIEW, promotionList)
     
     impressions = [mpConstants.Impression.build("foo-list", [product])]
-    mp.setSessionAttribute("foo attribute key", "bar attribute value")
-    mp.logCommerceEvent(productAction, promotionAction, impressions, {"foo-attribute":"bar-attribute-value"})
+    m.mparticle.setSessionAttribute("foo attribute key", "bar attribute value")
+    m.mparticle.logCommerceEvent(productAction, promotionAction, impressions, {"foo-attribute":"bar-attribute-value"})
     'Set the font size
     m.myLabel = m.top.findNode("myLabel")
     m.myLabel.font.size=92
@@ -42,4 +42,5 @@ end function
 
 function onCurrentUserChanged() as void
     print "Current user: " + formatjson(m.mParticleTask.currentUser)
+    m.mparticle.logEvent("User Changed", mparticleconstants().CUSTOM_EVENT_TYPE.USER_CONTENT, m.mParticleTask.currentUser)
 end function
