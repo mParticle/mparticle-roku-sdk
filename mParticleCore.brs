@@ -283,29 +283,6 @@ function mParticleStart(options as object, messagePort as object)
         isEmpty : function(input as dynamic) as boolean
             return input = invalid OR len(input) = 0
         end function,
-        
-        generateMpid : function() as string
-            return m.fnv1aHash(m.randomGuid())
-        end function,
-       
-        ' will return the string representation of a signed 64-bit int
-        fnv1aHash : function(data as string) as string
-            'the Roku-Eclipse plugin incorrectly highlights
-            'LongInteger literals as syntax errors
-            offset = &hcbf29ce484222325&
-            prime = &h100000001b3&
-
-            hash = CreateObject("roLongInteger")
-            hash.SetLongInt(offset)
-            
-            for i = 0 to len(data)-1 step 1
-                bitwiseAnd = hash and asc(data.mid(i, 1))
-                bitwiseOr = hash or asc(data.mid(i, 1))
-                hash = bitwiseOr and not bitwiseAnd
-                hash = hash * prime
-            end for
-            return hash.tostr()
-        end function,
     }
     
     mpCreateStorage = function()
@@ -317,7 +294,7 @@ function mParticleStart(options as object, messagePort as object)
             SECTION_NAME : "mparticle_storage_"+appInfo.getid(),
             USER_IDENTITIES : "user_identities",
             USER_ATTRIBUTES : "user_attributes",
-            MPID : "mpid",
+            CURRENT_MPID : "current_mpid",
             COOKIES : "cookies",
             SESSION : "saved_session",
             CHANNEL_VERSION : "channel_version",
@@ -409,21 +386,20 @@ function mParticleStart(options as object, messagePort as object)
             return m.userAttributes
         end function
         
-        storage.setMpid = function(mpid as string) 
-            m.set(m.mpkeys.MPID, mpid)
+        storage.setCurrentMpid = function(mpid as string) 
+            m.set(m.mpkeys.CURRENT_MPID, mpid)
             m.flush()
         end function
         
-        storage.getMpid = function() as object
-            mpid = m.get(m.mpkeys.MPID)
+        storage.getCurrentMpid = function() as string
+            mpid = m.get(m.mpkeys.CURRENT_MPID)
             if (mparticle()._internal.utils.isEmpty(mpid)) then
-                mpid = mparticle()._internal.utils.generateMpid()
-                m.setMpid(mpid)
+                return "0"
             end if
             return mpid
         end function
         
-        storage.getDas = function() as object
+        storage.getDas = function() as string
             das = m.get(m.mpkeys.DAS)
             if (mparticle()._internal.utils.isEmpty(das)) then
                 das = mparticle()._internal.utils.randomGuid()
@@ -515,7 +491,7 @@ function mParticleStart(options as object, messagePort as object)
             batch = {}
             batch.dbg = mparticle()._internal.configuration.development
             batch.dt = "h"
-            batch.mpid = mparticle()._internal.storage.getMpid()
+            batch.mpid = mparticle()._internal.storage.getCurrentMpid()
             batch.ltv = mparticle()._internal.storage.getLtv()
             batch.id = mParticle()._internal.utils.randomGuid()
             batch.ct = mParticle()._internal.utils.unixTimeMillis()
@@ -664,7 +640,7 @@ function mParticleStart(options as object, messagePort as object)
             end if
         end function,
         queueUpload : function()
-            if (m.messageQueue.count() > 0) then
+            if (m.messageQueue.count() > 0 and mparticle()._internal.storage.getCurrentMpid() <> "0") then
                 upload = mparticle()._internal.internalModel.Batch(m.messageQueue)
                 m.uploadQueue.push(upload)
                 m.messageQueue = []
@@ -746,9 +722,6 @@ function mParticleStart(options as object, messagePort as object)
                         responseObject = parsejson(responseBody)
                         if (responseObject <> invalid) then
                             storage = mparticle()._internal.storage
-                            if (responseObject.DoesExist("ci") and responseObject.ci.DoesExist("mpid")) then
-                                storage.setMpid(responseObject.ci.mpid.tostr())
-                            end if
                             if (responseObject.DoesExist("ci") and responseObject.ci.DoesExist("ck")) then
                                 storage.setCookies(responseObject.ci.ck)
                             end if
@@ -978,27 +951,25 @@ function mParticleStart(options as object, messagePort as object)
     }
     
     mpInternalIdentityApi = {
+        IDENTITY_API_PATHS: {
+            IDENTIFY:   "identify",
+            LOGIN:      "login",
+            LOGOUT:     "logout",
+            MODIFY:     "modify"
+        },
         pendingApiRequest: invalid,
         messagePort: messagePort,
         identify: function(identityApiRequest as object) as void
-            mplogger = mparticle()._internal.logger
-            mplogger.debug("Starting Identity API request: identify")
-            m.performIdentityHttpRequest("identify", identityApiRequest)
+            m.performIdentityHttpRequest(m.IDENTITY_API_PATHS.IDENTIFY, identityApiRequest)
         end function,
         login: function(identityApiRequest as object) as void
-            mplogger = mparticle()._internal.logger
-            mplogger.debug("Starting Identity API request: login")
-            m.performIdentityHttpRequest("login", identityApiRequest)
+            m.performIdentityHttpRequest(m.IDENTITY_API_PATHS.LOGIN, identityApiRequest)
         end function,
         logout: function(identityApiRequest as object) as void
-            mplogger = mparticle()._internal.logger
-            mplogger.debug("Starting Identity API request: logout")
-            m.performIdentityHttpRequest("logout", identityApiRequest)
+            m.performIdentityHttpRequest(m.IDENTITY_API_PATHS.LOGOUT, identityApiRequest)
         end function,
         modify: function(identityApiRequest as object) as void
-            mplogger = mparticle()._internal.logger
-            mplogger.debug("Starting Identity API request: modify")
-            modifyPath = mparticle()._internal.storage.getMpid() + "/modify"
+            modifyPath = mparticle()._internal.storage.getCurrentMpid() + "/" + m.IDENTITY_API_PATHS.MODIFY
             m.performIdentityHttpRequest(modifyPath, identityApiRequest)
         end function,
         generateIdentityHttpBody: function(path as String, identityApiRequest as object) as object
@@ -1051,13 +1022,15 @@ function mParticleStart(options as object, messagePort as object)
             return identityHttpRequest
         end function,
         performIdentityHttpRequest: function(path as String, identityApiRequest as object) as object
+            mplogger = mparticle()._internal.logger
+            mplogger.debug("Starting Identity API request: " + path)
             identityHttpBody = m.generateIdentityHttpBody(path, identityApiRequest)
             if (identityHttpBody = invalid) then
                 return {
                     httpCode: -1
                 }
             end if
-            mplogger = mparticle()._internal.logger
+           
             mplogger.debug("Identity API request:"+Chr(10)+"Path:"+path+Chr(10)+"Body:"+formatjson(identityHttpBody))
             urlTransfer = CreateObject("roUrlTransfer")
             if (mparticle()._internal.configuration.enablePinning) then
@@ -1066,7 +1039,7 @@ function mParticleStart(options as object, messagePort as object)
             urlTransfer.SetUrl("https://identity.mparticle.com/v1/" + path)
             urlTransfer.EnableEncodings(false)
             requestId = urlTransfer.GetIdentity().ToStr()
-            m.pendingApiRequest = {"transfer": urlTransfer, "request":identityApiRequest}
+            m.pendingApiRequest = {"transfer": urlTransfer, "request":identityApiRequest, "path":path}
             dateString = CreateObject("roDateTime").ToISOString()
             jsonRequest = FormatJson(identityHttpBody)
             hashString = "POST" + Chr(10) + dateString + Chr(10) + "/v1/" + path + jsonRequest
@@ -1096,6 +1069,7 @@ function mParticleStart(options as object, messagePort as object)
             if (transfer = invalid)
                 mplogger.debug("Unknown URL event passed to mParticle, ignoring...")
             else
+                previousRequest = m.pendingApiRequest
                 m.pendingApiRequest = invalid
                 responseCode = urlEvent.GetResponseCode()
                 responseBody = urlEvent.GetString()
@@ -1114,7 +1088,14 @@ function mParticleStart(options as object, messagePort as object)
                 else if (responseCode = 429 or responseCode = 503) then
                     mplogger.error("Identity request is being throttled - please try again later.")
                 else if (responseCode = 200) then
-
+                    if (previousRequest.path.Instr(m.IDENTITY_API_PATHS.MODIFY) = -1) then
+                        if (responseObject <> invalid and responseObject.DoesExist("mpid")) then
+                            m.onMpidChanged(responseObject.mpid)
+                        else
+                            mplogger.error("Identity API returned 200, but there's MPID present in response.")
+                        end if
+                    end if
+                    m.onIdentitySuccess(previousRequest)
                 else
                     mplogger.error("Unknown error while performing identity request.")
                 end if
@@ -1126,6 +1107,12 @@ function mParticleStart(options as object, messagePort as object)
         end function,
         isIdentityRequest: function(requestId as string) as boolean
             return m.pendingApiRequest <> invalid and requestId = m.pendingApiRequest.transfer.GetIdentity().ToStr()
+        end function,
+        onIdentitySuccess: function(requestObject as object)
+        end function,
+        onMpidChanged: function(mpid as String) as void
+            storage = mparticle()._internal.storage
+            storage.setCurrentMpid(mpid)
         end function
     }
     

@@ -19,8 +19,9 @@ sub Main(args as dynamic)
     options.logLevel = mparticleConstants().LOG_LEVEL.DEBUG
     options.apiKey = "REPLACE WITH API KEY"
     options.apiSecret = "REPLACE WITH API SECRET"
+    
     identityApiRequest = {userIdentities:{}}
-    identityApiRequest.userIdentities[mpConstants.IDENTITY_TYPE.EMAIL] = "user@example.com"
+    identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.EMAIL] = "user@example.com"
     options.identifyRequest = identityApiRequest
     options.startupArgs = args
   
