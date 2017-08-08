@@ -1096,12 +1096,14 @@ function mParticleStart(options as object, messagePort as object)
     
     'this is called after everything is initialized
     'perform whatever we need to on every startup
-    mpPerformStartupTasks = sub()
+    mpPerformStartupTasks = function(identifyRequest as object)
         storage = mparticle()._internal.storage
         storage.cleanCookies()
         sessionManager = mparticle()._internal.sessionManager
         sessionManager.onSdkStart()
-    end sub
+        identityApi = mparticle().identity
+        identityApi.identify(identifyRequest)
+    end function
 
     
     '
@@ -1163,7 +1165,7 @@ function mParticleStart(options as object, messagePort as object)
     
     mpPublicApi.append({_internal:internalApi})
     getGlobalAA().mparticleInstance = mpPublicApi
-    mpPerformStartupTasks()
+    mpPerformStartupTasks(options.identifyRequest)
 end function
 
 ' mParticle Scene Graph Bridge
