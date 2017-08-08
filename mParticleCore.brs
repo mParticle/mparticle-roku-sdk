@@ -311,7 +311,8 @@ function mParticleStart(options as object, messagePort as object)
             SESSION : "saved_session",
             CHANNEL_VERSION : "channel_version",
             LTV : "ltv",
-            OPT_OUT : "opt_out"
+            OPT_OUT : "opt_out",
+            DAS : "das"
         }
         storage.section = CreateObject("roRegistrySection", storage.mpkeys.SECTION_NAME)
         
@@ -411,6 +412,20 @@ function mParticleStart(options as object, messagePort as object)
             return mpid
         end function
         
+        storage.getDas = function() as object
+            das = m.get(m.mpkeys.DAS)
+            if (mparticle()._internal.utils.isEmpty(das)) then
+                das = mparticle()._internal.utils.randomGuid()
+                m.setDas(das)
+            end if
+            return das
+        end function
+        
+        storage.setDas = function(das as string) 
+            m.set(m.mpkeys.DAS, das)
+            m.flush()
+        end function
+        
         storage.setCookies = function(cookies as object)
             currentCookies = m.getCookies()
             currentCookies.append(cookies)
@@ -504,6 +519,7 @@ function mParticleStart(options as object, messagePort as object)
             batch.ai = m.ApplicationInformation()
             batch.di = m.DeviceInformation()
             batch.ck = mparticle()._internal.storage.getCookies()
+            batch.das = mparticle()._internal.storage.getDas()
             return batch
         end function,
     
