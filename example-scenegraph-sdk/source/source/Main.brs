@@ -19,7 +19,9 @@ sub Main(args as dynamic)
     options.logLevel = mparticleConstants().LOG_LEVEL.DEBUG
     options.apiKey = "REPLACE WITH API KEY"
     options.apiSecret = "REPLACE WITH API SECRET"
-    options.identifyRequest = {"email":"user@example.com"}
+    identityApiRequest = {userIdentities:{}}
+    identityApiRequest.userIdentities[mpConstants.IDENTITY_TYPE.EMAIL] = "user@example.com"
+    options.identifyRequest = identityApiRequest
     options.startupArgs = args
   
     'REQUIRED: mParticle will look for mParticleOptions in the global node

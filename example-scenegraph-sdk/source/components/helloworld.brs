@@ -6,11 +6,15 @@ sub init()
     m.mParticleTask.ObserveField("identityResult", "onIdentityResult")
     m.mParticleTask.ObserveField("currentUser", "onCurrentUserChanged")
     mp = mParticleSGBridge(m.mParticleTask)
-    mp.identity.login({"email":"user@example.com"})
+    mpConstants = mparticleconstants()
+    identityApiRequest = {}
+    identityApiRequest.userIdentities = {}
+    identityApiRequest.userIdentities[mpConstants.IDENTITY_TYPE.EMAIL] = "user@example.com"
+    mp.identity.login(identityApiRequest)
     mp.logEvent("hello world!")
     mp.setUserAttribute("example attribute key", "example attribute value")
     mp.logScreenEvent("hello screen!")
-    mpConstants = mparticleconstants()
+    
     product = mpConstants.Product.build("foo-sku", "foo-name", 123.45)
     actionApi = mpConstants.ProductAction
     productAction = actionApi.build(actionApi.ACTION_TYPE.PURCHASE, 123.45, [product])

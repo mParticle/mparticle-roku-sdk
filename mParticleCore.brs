@@ -64,7 +64,7 @@ function mParticleConstants() as object
         SOCIAL:             "social",
         OTHER:              "other"
     }
-    IDENTITY_TYPE = {
+    IDENTITY_TYPE_INT = {
         CUSTOMER_ID:           1,
         FACEBOOK:              2,
         TWITTER:               3,
@@ -72,8 +72,18 @@ function mParticleConstants() as object
         MICROSOFT:             5,
         YAHOO:                 6,
         EMAIL:                 7,
-        ALIAS:                 8,
         FACEBOOK_AUDIENCE_ID:  9
+    }
+    
+    IDENTITY_TYPE = {
+        CUSTOMER_ID:           "customerid",
+        FACEBOOK:              "facebook",
+        TWITTER:               "twitter",
+        GOOGLE:                "google",
+        MICROSOFT:             "microsoft",
+        YAHOO:                 "yahoo",
+        EMAIL:                 "email",
+        FACEBOOK_AUDIENCE_ID:  "facebookcustomaudienceid"
     }
     
     '
@@ -195,6 +205,7 @@ function mParticleConstants() as object
         MESSAGE_TYPE:           MESSAGE_TYPE,
         CUSTOM_EVENT_TYPE:      CUSTOM_EVENT_TYPE,
         IDENTITY_TYPE:          IDENTITY_TYPE,
+        IDENTITY_TYPE_INT:      IDENTITY_TYPE_INT,
         ENVIRONMENT:            ENVIRONMENT,
         ProductAction:          ProductAction,
         Product:                Product,
@@ -990,9 +1001,64 @@ function mParticleStart(options as object, messagePort as object)
             modifyPath = mparticle()._internal.storage.getMpid() + "/modify"
             m.performIdentityHttpRequest(modifyPath, identityApiRequest)
         end function,
+        generateIdentityHttpBody: function(path as String, identityApiRequest as object) as object
+            environmentString = "production"
+            if (mparticle()._internal.configuration.development) then
+                environmentString = "development"
+            end if
+            identityHttpRequest = {
+                client_sdk: {
+                    platform: "roku",
+                    sdk_vendor: "mparticle",
+                    sdk_version: mParticleConstants().SDK_VERSION
+                },
+                environment: environmentString
+                known_identities:{},
+                requestId: mparticle()._internal.utils.randomGuid(),
+                request_timestamp_ms:  mparticle()._internal.utils.unixTimeMillis()
+            }
+            if (identityApiRequest <> invalid) then
+                if (identityApiRequest.userIdentities <> invalid) then
+                    userIdentities = {}
+                    if (identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.EMAIL] <> invalid) then
+                        userIdentities[mparticleConstants().IDENTITY_TYPE.EMAIL] = identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.EMAIL]
+                    end if
+                    if (identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.CUSTOMER_ID] <> invalid) then
+                        userIdentities[mparticleConstants().IDENTITY_TYPE.CUSTOMER_ID] = identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.CUSTOMER_ID]
+                    end if
+                    if (identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.FACEBOOK] <> invalid) then
+                        userIdentities[mparticleConstants().IDENTITY_TYPE.FACEBOOK] = identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.FACEBOOK]
+                    end if
+                    if (identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.TWITTER] <> invalid) then
+                        userIdentities[mparticleConstants().IDENTITY_TYPE.TWITTER] = identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.TWITTER]
+                    end if
+                    if (identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.MICROSOFT] <> invalid) then
+                        userIdentities[mparticleConstants().IDENTITY_TYPE.MICROSOFT] = identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.MICROSOFT]
+                    end if
+                    if (identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.YAHOO] <> invalid) then
+                        userIdentities[mparticleConstants().IDENTITY_TYPE.YAHOO] = identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.YAHOO]
+                    end if
+                    if (identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.GOOGLE] <> invalid) then
+                        userIdentities[mparticleConstants().IDENTITY_TYPE.GOOGLE] = identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.GOOGLE]
+                    end if
+                    if (identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.FACEBOOK_AUDIENCE_ID] <> invalid) then
+                        userIdentities[mparticleConstants().IDENTITY_TYPE.FACEBOOK_AUDIENCE_ID] = identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.FACEBOOK_AUDIENCE_ID]
+                    end if
+                    identityHttpRequest.known_identities = userIdentities
+                end if
+                identityHttpRequest.known_identities.device_application_stamp = mparticle()._internal.storage.getDas()
+            end if
+            return identityHttpRequest
+        end function,
         performIdentityHttpRequest: function(path as String, identityApiRequest as object) as object
+            identityHttpBody = m.generateIdentityHttpBody(path, identityApiRequest)
+            if (identityHttpBody = invalid) then
+                return {
+                    httpCode: -1
+                }
+            end if
             mplogger = mparticle()._internal.logger
-            mplogger.debug("Identity API request:"+Chr(10)+"Path:"+path+Chr(10)+"Body:"+formatjson(identityApiRequest))
+            mplogger.debug("Identity API request:"+Chr(10)+"Path:"+path+Chr(10)+"Body:"+formatjson(identityHttpBody))
             urlTransfer = CreateObject("roUrlTransfer")
             if (mparticle()._internal.configuration.enablePinning) then
                 urlTransfer.SetCertificatesFile(mparticle()._internal.configuration.certificateDir)
@@ -1002,7 +1068,7 @@ function mParticleStart(options as object, messagePort as object)
             requestId = urlTransfer.GetIdentity().ToStr()
             m.pendingApiRequest = {"transfer": urlTransfer, "request":identityApiRequest}
             dateString = CreateObject("roDateTime").ToISOString()
-            jsonRequest = FormatJson(identityApiRequest)
+            jsonRequest = FormatJson(identityHttpBody)
             hashString = "POST" + Chr(10) + dateString + Chr(10) + "/v1/" + path + jsonRequest
             
             signature_key = CreateObject("roByteArray")
@@ -1019,7 +1085,7 @@ function mParticleStart(options as object, messagePort as object)
             urlTransfer.AddHeader("x-mp-key", mparticle()._internal.configuration.apikey)
             urlTransfer.AddHeader("x-mp-signature", hashResult)
             urlTransfer.AddHeader("Content-Type","application/json")
-            urlTransfer.AddHeader("User-Agent","mParticle Roku SDK/2.0.0")
+            urlTransfer.AddHeader("User-Agent","mParticle Roku SDK/" + mParticleConstants().SDK_VERSION)
             urlTransfer.RetainBodyOnError(true)
             urlTransfer.setPort(m.messagePort)
             urlTransfer.AsyncPostFromString(jsonRequest)

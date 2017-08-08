@@ -34,7 +34,7 @@ sub setupRunLoop()
                     if (identityResult <> invalid) then
                         m.top.identityResult = identityResult
                         if (identityResult.httpcode = 200) then
-                            m.top.currentUser = identityResult.body.mpid
+                            m.top.currentUser = {mpid: identityResult.body.mpid}
                         end if
                     end if
                 end if
