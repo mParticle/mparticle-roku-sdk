@@ -691,13 +691,13 @@ function mParticleStart(options as object, messagePort as object)
             if (mparticle()._internal.configuration.enablePinning) then
                 urlTransfer.SetCertificatesFile(mparticle()._internal.configuration.certificateDir)
             end if
-            urlTransfer.SetUrl("https://nativesdks.mparticle.com/v1/" + mparticle()._internal.configuration.apikey + "/events")
+            urlTransfer.SetUrl("https://nativesdks.mparticle.com/v2/" + mparticle()._internal.configuration.apikey + "/events")
             urlTransfer.EnableEncodings(true)
             requestId = urlTransfer.GetIdentity().ToStr()
             m.pendingTransfers[requestId] = {"transfer": urlTransfer, "batch":batch}
             dateString = CreateObject("roDateTime").ToISOString()
             jsonBatch = FormatJson(batch)
-            hashString = "POST" + Chr(10) + dateString + Chr(10) + "/v1/" + mparticle()._internal.configuration.apikey + "/events" + jsonBatch
+            hashString = "POST" + Chr(10) + dateString + Chr(10) + "/v2/" + mparticle()._internal.configuration.apikey + "/events" + jsonBatch
             
             signature_key = CreateObject("roByteArray")
             signature_key.fromAsciiString(mparticle()._internal.configuration.apisecret)
