@@ -12,7 +12,7 @@ sub init()
     identityApiRequest.userIdentities[mpConstants.IDENTITY_TYPE.EMAIL] = "user-2@example.com"
     m.mparticle.identity.login(identityApiRequest)
     m.mparticle.logEvent("hello world!")
-    m.mparticle.setUserAttribute("example attribute key", "example attribute value")
+    m.mparticle.identity.setUserAttribute("example attribute key", "example attribute value")
     m.mparticle.logScreenEvent("hello screen!")
     
     product = mpConstants.Product.build("foo-sku", "foo-name", 123.45)

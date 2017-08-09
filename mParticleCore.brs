@@ -304,6 +304,14 @@ function mParticleStart(options as object, messagePort as object)
         isEmpty : function(input as dynamic) as boolean
             return input = invalid OR len(input) = 0
         end function,
+        
+        isString : function(input as object) as boolean
+            return input <> invalid and (LCase(type(input)) = "rostring" or LCase(type(item)) = "string")
+        end function,
+        
+        isArray : function(input as object) as boolean
+            return input <> invalid and (LCase(type(input)) = "roarray" or LCase(type(item)) = "array")
+        end function
     }
     
     mpCreateStorage = function()
@@ -384,24 +392,20 @@ function mParticleStart(options as object, messagePort as object)
             return userIdentities
         end function
         
-        storage.setUserAttribute = sub(attributeKey as string, attributeValue as object) as void
-            attributes = m.getUserAttributes()
+        storage.setUserAttribute = function(mpid as string, attributeKey as string, attributeValue as object) as void
+            attributes = m.getUserAttributes(mpid)
             attributes[attributeKey] = attributeValue
-            m.set(m.mpkeys.USER_ATTRIBUTES, FormatJson(attributes))
+            m.set(m.mpkeys.USER_ATTRIBUTES + mpid, FormatJson(attributes))
             m.flush()
-        end sub
+        end function
         
-        storage.getUserAttributes = function() as object
-            if (m.userAttributes = invalid) then
-                attributeJson = m.get(m.mpkeys.USER_ATTRIBUTES)
-                if (not mparticle()._internal.utils.isEmpty(attributeJson)) then
-                   m.userAttributes = ParseJson(attributeJson)
-                end if   
-                if (m.userAttributes = invalid) then
-                   m.userAttributes = {}
-                end if
+        storage.getUserAttributes = function(mpid as string) as object
+            attributeJson = m.get(m.mpkeys.USER_ATTRIBUTES + mpid)
+            userAttributes = {}
+            if (not mparticle()._internal.utils.isEmpty(attributeJson)) then
+               userAttributes = ParseJson(attributeJson)
             end if
-            return m.userAttributes
+            return userAttributes
         end function
         
         storage.setCurrentMpid = function(mpid as string) as void
@@ -520,7 +524,7 @@ function mParticleStart(options as object, messagePort as object)
             for each identity in identities
                 batch.ui.push(identities[identity])
             end for
-            batch.ua = mparticle()._internal.storage.getUserAttributes()
+            batch.ua = mparticle()._internal.storage.getUserAttributes(currentMpid)
             batch.msgs = messages
             batch.ai = m.ApplicationInformation()
             batch.di = m.DeviceInformation()
@@ -1162,13 +1166,36 @@ function mParticleStart(options as object, messagePort as object)
             identity = mparticle()._internal.identity
             identity.modify(identityApiRequest)
         end function,
+        setUserAttribute: function(attributeKey as string, attributeValue as object) as void
+            mputils = mparticle()._internal.utils
+            mplogger = mparticle()._internal.logger
+            mpGenericMessage = "User attribute values must be strings or arrays of strings. Discarding value passed to setUserAttribute(): "
+            if (attributeValue = invalid) then
+                mplogger.error(mpGenericMessage + "<invalid>")
+                return
+            end if
+            if (not mputils.isString(attributeValue)) then
+                if (not mputils.isArray(attributeValue)) then
+                    mplogger.error(mpGenericMessage + type(attributeValue))
+                    return
+                end if
+                for each value in attributeValue
+                    if (not mputils.isString(value)) then
+                        mplogger.error(mpGenericMessage + type(value))
+                        return
+                    end if
+                end for
+            end if
+            storage = mparticle()._internal.storage
+            storage.setUserAttribute(storage.getCurrentMpid(), attributeKey, attributeValue)
+        end function,
         IdentityApiRequest: function(userIdentities as object, copyUserAttributes as boolean) as object
             return {
                 "userIdentities":userIdentities,
                 "copyUserAttributes": copyUserAttributes
             }
             
-        end function,
+        end function
     }
     
     if (mpUtils.isEmpty(options.apiKey) or mpUtils.isEmpty(options.apiSecret)) then
@@ -1222,10 +1249,7 @@ function mParticleStart(options as object, messagePort as object)
                                 mplogger.debug("Logging message: " + formatjson(message))
                                 m._internal.networking.queueMessage(message)
                             end function,
-        setUserAttribute:   function(attributeKey as string, attributeValue as object) as void
-                                m._internal.storage.setUserAttribute(attributeKey, attributeValue)
-                            end function,
-        setSessionAttribute:function(attributeKey as string, attributeValue as object) as void
+        setSessionAttribute:function(attributeKey as string, attributeValue as string) as void
                                 m._internal.sessionManager.setSessionAttribute(attributeKey, attributeValue)
                             end function,
         setOptOut:          function(optOut as boolean) as void
@@ -1268,25 +1292,28 @@ end function
 function mParticleSGBridge(task as object) as object
     mpCreateSGBridgeIdentityApi = function(task as object) as object
         return {
-            mParticleTask:  task
-            identify:       function(identityApiRequest) as void
-                                m.invokeFunction("identity/identify", [identityApiRequest])
-                            end function,
-            login:          function(identityApiRequest) as void
-                                m.invokeFunction("identity/login", [identityApiRequest])
-                            end function,
-            logout:         function(identityApiRequest) as void
-                                m.invokeFunction("identity/logout", [identityApiRequest])
-                            end function,
-            modify:         function(identityApiRequest) as void
-                                m.invokeFunction("identity/modify", [identityApiRequest])
-                            end function,
-            invokeFunction: function(name as string, args)
-                                invocation = {}
-                                invocation.methodName = name
-                                invocation.args = args
-                                m.mParticleTask.apiCall = invocation
-                            end function
+            mParticleTask:      task
+            identify:           function(identityApiRequest) as void
+                                    m.invokeFunction("identity/identify", [identityApiRequest])
+                                end function,
+            login:              function(identityApiRequest) as void
+                                    m.invokeFunction("identity/login", [identityApiRequest])
+                                end function,
+            logout:             function(identityApiRequest) as void
+                                    m.invokeFunction("identity/logout", [identityApiRequest])
+                                end function,
+            modify:             function(identityApiRequest) as void
+                                    m.invokeFunction("identity/modify", [identityApiRequest])
+                                end function,
+            setUserAttribute:   function(attributeKey as string, attributeValue as object) as void
+                                    m.invokeFunction("identity/setUserAttribute", [attributeKey, attributeValue])
+                                end function
+            invokeFunction:     function(name as string, args)
+                                    invocation = {}
+                                    invocation.methodName = name
+                                    invocation.args = args
+                                    m.mParticleTask.apiCall = invocation
+                                end function
         }
     end function
     return {
