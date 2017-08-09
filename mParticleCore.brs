@@ -810,13 +810,11 @@ function mParticleStart(options as object, messagePort as object)
                 return m.currentSession
             end function,
             updateLastEventTime : function(time as longinteger)
-                mplogger = mparticle()._internal.logger
                 m.currentSession.lastEventTime = time
                 m.saveSession()
             end function,
             onForeground : function(time as longinteger)
                 m.updateLastEventTime(time)
-                
             end function,
             setSessionAttribute: function(attributeKey as string, attributeValue as object)
                 m.currentSession.attributes[attributeKey] = attributeValue
@@ -840,6 +838,10 @@ function mParticleStart(options as object, messagePort as object)
                     attributes = {}
                 end if
                 attributes[attributekey] = attributevalue
+                m.saveSession()
+            end function,
+            addSessionMpid: function(mpid as string) as void
+                m.currentSession.sessionMpids.push(mpid)
                 m.saveSession()
             end function,
             createSession : function(previousSession = invalid as object)
@@ -867,7 +869,8 @@ function mParticleStart(options as object, messagePort as object)
                     previousSessionLength : previousSessionLength,
                     previousSessionId: previousSessionId,
                     previousSessionStartTime: previousSessionStartTime,
-                    attributes : {}
+                    attributes : {},
+                    sessionMpids: [mparticle()._internal.storage.getCurrentMpid()]
                 }
             end function,
             sessionLength : function(session as object) as integer
@@ -929,6 +932,7 @@ function mParticleStart(options as object, messagePort as object)
             message.slx = mparticle()._internal.sessionManager.sessionLength(session)
             message.sl = message.slx
             message.attrs = session.attributes
+            message.smpids = session.sessionMpids
             return message
         end function,
         
@@ -1142,10 +1146,14 @@ function mParticleStart(options as object, messagePort as object)
             end if
         end function,
         onMpidChanged: function(mpid as String) as void
-            networking = mparticle()._internal.networking
-            networking.queueUpload()
             storage = mparticle()._internal.storage
-            storage.setCurrentMpid(mpid)
+            if (mpid <> storage.getCurrentMpid()) then
+                networking = mparticle()._internal.networking
+                networking.queueUpload()
+                storage.setCurrentMpid(mpid)
+                sessionManager = mparticle()._internal.sessionManager
+                sessionManager.addSessionMpid(mpid)
+            end if
         end function
     }
     
