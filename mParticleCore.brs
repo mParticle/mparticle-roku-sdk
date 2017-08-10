@@ -65,6 +65,7 @@ function mParticleConstants() as object
         OTHER:              "other"
     }
     IDENTITY_TYPE_INT = {
+        OTHER:                 0,
         CUSTOMER_ID:           1,
         FACEBOOK:              2,
         TWITTER:               3,
@@ -75,7 +76,9 @@ function mParticleConstants() as object
         FACEBOOK_AUDIENCE_ID:  9,
         parseString:           function(identityTypeString as string) as integer
                                   IDENTITY_TYPE = mparticleconstants().IDENTITY_TYPE
-                                  if (identityTypeString = IDENTITY_TYPE.CUSTOMER_ID) then
+                                  if (identityTypeString = IDENTITY_TYPE.OTHER) then
+                                    return m.OTHER
+                                  else if (identityTypeString = IDENTITY_TYPE.CUSTOMER_ID) then
                                     return m.CUSTOMER_ID
                                   else if (identityTypeString = IDENTITY_TYPE.FACEBOOK) then
                                     return m.FACEBOOK
@@ -97,6 +100,7 @@ function mParticleConstants() as object
     }
     
     IDENTITY_TYPE = {
+        OTHER:                 "other",
         CUSTOMER_ID:           "customerid",
         FACEBOOK:              "facebook",
         TWITTER:               "twitter",
@@ -107,8 +111,9 @@ function mParticleConstants() as object
         FACEBOOK_AUDIENCE_ID:  "facebookcustomaudienceid",
         isValidIdentityType:    function(identityType as string) as boolean
                                     allTypes = m.Keys()
+                                    mputils = mparticle()._internal.utils
                                     for each idType in allTypes
-                                        if (m[idType] = identityType) then
+                                        if (mputils.isString(m[idType]) and m[idType] = identityType) then
                                             return true
                                         end if
                                     end for
@@ -1035,8 +1040,7 @@ function mParticleStart(options as object, messagePort as object)
                     sdk_vendor: "mparticle",
                     sdk_version: mParticleConstants().SDK_VERSION
                 },
-                environment: environmentString
-                known_identities:{},
+                environment: environmentString,
                 requestId: mparticle()._internal.utils.randomGuid(),
                 request_timestamp_ms:  mparticle()._internal.utils.unixTimeMillis(),
                 context: m.context
@@ -1044,20 +1048,35 @@ function mParticleStart(options as object, messagePort as object)
             mplogger = mparticle()._internal.logger
             if (identityApiRequest <> invalid) then
                 if (identityApiRequest.userIdentities <> invalid) then
-                    identityHttpRequest.known_identities = {}
                     identityKeys = identityApiRequest.userIdentities.Keys()
-                    for each identityType in identityKeys
-                        if (mparticleConstants().IDENTITY_TYPE.isValidIdentityType(identityType)) then
-                            identityHttpRequest.known_identities[identityType] = identityApiRequest.userIdentities[identityType]
-                        else
-                            mplogger.error("Invalid identity passed to identity API: " + path)
-                        end if
-                    end for
+                    if (path.Instr(m.IDENTITY_API_PATHS.MODIFY) = -1) then
+                        identityHttpRequest.known_identities = {}
+                        for each identityType in identityKeys
+                            if (mparticleConstants().IDENTITY_TYPE.isValidIdentityType(identityType)) then
+                                identityHttpRequest.known_identities[identityType] = identityApiRequest.userIdentities[identityType]
+                            else
+                                mplogger.error("Invalid identity passed to identity API: " + path)
+                            end if
+                        end for
+                        identityHttpRequest.known_identities.device_application_stamp = mparticle()._internal.storage.getDas()
+                        deviceInfo = CreateObject("roDeviceInfo")
+                        identityHttpRequest.known_identities.roku_aid = deviceInfo.GetAdvertisingId()
+                        identityHttpRequest.known_identities.roku_publisher_id = deviceInfo.GetPublisherId()
+                    else
+                        identityHttpRequest.identity_changes = []
+                        currentUserIdentities = m.getCurrentUser().userIdentities
+                        for each identityType in identityKeys
+                            if (mparticleConstants().IDENTITY_TYPE.isValidIdentityType(identityType))
+                                identityChange = {identity_type:identityType}
+                                identityChange.new_value = identityApiRequest.userIdentities[identityType]
+                                if (currentUserIdentities.DoesExist(identityType))
+                                    identityChange.old_value = currentUserIdentities[identityType]
+                                end if
+                                identityHttpRequest.identity_changes.Push(identityChange)
+                            end if
+                        end for
+                    end if
                 end if
-                identityHttpRequest.known_identities.device_application_stamp = mparticle()._internal.storage.getDas()
-                deviceInfo = CreateObject("roDeviceInfo")
-                identityHttpRequest.known_identities.roku_aid = deviceInfo.GetAdvertisingId()
-                identityHttpRequest.known_identities.roku_publisher_id = deviceInfo.GetPublisherId()
             end if
             return identityHttpRequest
         end function,
@@ -1065,12 +1084,6 @@ function mParticleStart(options as object, messagePort as object)
             mplogger = mparticle()._internal.logger
             mplogger.debug("Starting Identity API request: " + path)
             identityHttpBody = m.generateIdentityHttpBody(path, identityApiRequest)
-            if (identityHttpBody = invalid) then
-                return {
-                    httpCode: -1
-                }
-            end if
-           
             mplogger.debug("Identity API request:"+Chr(10)+"Path:"+path+Chr(10)+"Body:"+formatjson(identityHttpBody))
             urlTransfer = CreateObject("roUrlTransfer")
             if (mparticle()._internal.configuration.enablePinning) then
@@ -1115,7 +1128,7 @@ function mParticleStart(options as object, messagePort as object)
                 responseBody = urlEvent.GetString()
                 mplogger.debug("Identity response: code" + str(responseCode) + " body: " + responseBody)
                 responseObject = {}
-                if (responseBody <> invalid) then
+                if (responseBody <> invalid and responseBody.Len() > 0) then
                     responseObject = parsejson(responseBody)
                 end if
                 
@@ -1140,7 +1153,7 @@ function mParticleStart(options as object, messagePort as object)
                             end if
                             updateMpid = responseObject.mpid
                         else
-                            mplogger.error("Identity API returned 200, but there's MPID present in response.")
+                            mplogger.error("Identity API returned 200, but there was no MPID present in response.")
                         end if
                     end if
                     m.onIdentitySuccess(updateMpid, requestWrapper.originalPublicRequest)
@@ -1173,6 +1186,23 @@ function mParticleStart(options as object, messagePort as object)
                 sessionManager = mparticle()._internal.sessionManager
                 sessionManager.addSessionMpid(mpid)
             end if
+        end function,
+        getCurrentUser: function() as object
+            storage = mparticle()._internal.storage
+            currentMpid = storage.getCurrentMpid()
+            internalIdentities = storage.getUserIdentities(currentMpid)
+            publicIdentities = {}
+            if (internalIdentities <> invalid) then
+                keys = internalIdentities.Keys()
+                for each identity in keys
+                    publicIdentities[identity] = internalIdentities[identity].i
+                end for
+            end if
+            return {
+                mpid: currentMpid,
+                userIdentities: publicIdentities,
+                userAttributes: storage.getUserAttributes(currentMpid)
+            }
         end function
     }
     
@@ -1224,21 +1254,8 @@ function mParticleStart(options as object, messagePort as object)
             
         end function,
         getCurrentUser: function() as object
-            storage = mparticle()._internal.storage
-            currentMpid = storage.getCurrentMpid()
-            internalIdentities = storage.getUserIdentities(currentMpid)
-            publicIdentities = {}
-            if (internalIdentities <> invalid) then
-                keys = internalIdentities.Keys()
-                for each identity in keys
-                    publicIdentities[identity] = internalIdentities[identity].i
-                end for
-            end if
-            return {
-                mpid: currentMpid,
-                userIdentities: publicIdentities,
-                userAttributes: storage.getUserAttributes(currentMpid)
-            }
+            identity = mparticle()._internal.identity
+            return identity.getCurrentUser()
         end function
     }
     
