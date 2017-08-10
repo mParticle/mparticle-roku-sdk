@@ -1,15 +1,65 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="HelloWorld" extends="Scene"> 
-	<children>
-      <Label id="myLabel" 
-      	text="Hello World!"
-      	width="1280" 
-      	height="720" 
-      	horizAlign="center"
-      	vertAlign="center"
-      	/>
-    </children>
+<children>
+<Group id = "exampleLayoutGroup" >
+<LayoutGroup 
+  		translation = "[ 0, 0 ]"
+  		itemSpacings = "[50]"
+ 		layoutDirection = "vert" >
+    <LayoutGroup
 
+  		translation = "[ 0, 0 ]"
+  		itemSpacings = "[20]"
+ 		layoutDirection = "horiz" >
+ 		 
+	      <TextEditBox id="emailTextEdit" 
+	      	hintText = "Email"
+	      	active="true"
+	      	font = "font:SmallestSystemFont"
+	      	horizAlign="center"
+	      	/>
+
+	      <TextEditBox id="customerIdTextEdit" 
+	      	hintText = "Customer Id"
+	      	font = "font:SmallestSystemFont"
+	      	horizAlign="center"
+	      	/>
+	 
+	      <TextEditBox id="otherIdTextEdit" 
+	     	 hintText = "Other ID"
+	      	font = "font:SmallestSystemFont"
+	      	horizAlign="center"
+	      	/>
+	    
+    </LayoutGroup>
+	<LayoutGroup
+ 
+  		translation = "[ 0, 0 ]"
+  		itemSpacings = "[20]"
+ 		layoutDirection = "vert" >
+ 		 
+	      <Label id="mpidLabel" 
+	      	text = "MPID"
+	      	font = "font:SmallestSystemFont"
+	      	horizAlign="center"
+	      	/>
+
+	      <Label id="userAttributesLabel" 
+	      	text = "User Attributes"
+	      	font = "font:SmallestSystemFont"
+	      	horizAlign="center"
+	      	/>
+	 
+	      <Label id="userIdentitiesLabel" 
+	     	 text = "User Identities"
+	      	font = "font:SmallestSystemFont"
+	      	horizAlign="center"
+	      	/>
+	    
+    </LayoutGroup>
+    </LayoutGroup>
+    </Group>
+</children>
   <script type="text/brightscript" uri="pkg:/components/helloworld.brs"/>
   <!-- Replace with correct path if necessary -->
   <script type="text/brightscript" uri="pkg:/source/mparticle/mParticleCore.brs"/>

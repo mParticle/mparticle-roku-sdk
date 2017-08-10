@@ -20,9 +20,13 @@ sub Main(args as dynamic)
     options.apiKey = "REPLACE WITH API KEY"
     options.apiSecret = "REPLACE WITH API SECRET"
     
+    'If you know the users credentials, supply them here
+    'otherwise the SDK will use the last known identities
     identityApiRequest = {userIdentities:{}}
     identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.EMAIL] = "user@example.com"
     options.identifyRequest = identityApiRequest
+    
+    options.environment = mparticleConstants().ENVIRONMENT.FORCE_PRODUCTION
     options.startupArgs = args
   
     'REQUIRED: mParticle will look for mParticleOptions in the global node
