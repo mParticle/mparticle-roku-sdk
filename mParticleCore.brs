@@ -104,7 +104,17 @@ function mParticleConstants() as object
         MICROSOFT:             "microsoft",
         YAHOO:                 "yahoo",
         EMAIL:                 "email",
-        FACEBOOK_AUDIENCE_ID:  "facebookcustomaudienceid"
+        FACEBOOK_AUDIENCE_ID:  "facebookcustomaudienceid",
+        isValidIdentityType:    function(identityType as string) as boolean
+                                    allTypes = m.Keys()
+                                    for each idType in allTypes
+                                        if (m[idType] = identityType) then
+                                            return true
+                                        end if
+                                    end for
+                                    return false
+                                end function
+        
     }
     
     '
@@ -371,6 +381,9 @@ function mParticleStart(options as object, messagePort as object)
         end function
         
         storage.setUserIdentity = function(mpid as string, identityType as string, identityValue as string) as void
+            if (not mparticleConstants().IDENTITY_TYPE.isValidIdentityType(identityType)) then
+                return
+            end if
             identities = m.getUserIdentities(mpid)
             identity = identities.Lookup(identityType)
             if (identity = invalid) then
@@ -1070,7 +1083,7 @@ function mParticleStart(options as object, messagePort as object)
             urlTransfer.SetUrl("https://identity.mparticle.com/v1/" + path)
             urlTransfer.EnableEncodings(true)
             requestId = urlTransfer.GetIdentity().ToStr()
-            m.pendingApiRequests[requestId] = {"transfer": urlTransfer, "request":identityApiRequest, "path":path}
+            m.pendingApiRequests[requestId] = {"transfer": urlTransfer, "originalPublicRequest":identityApiRequest, "path":path}
             dateString = CreateObject("roDateTime").ToISOString()
             jsonRequest = FormatJson(identityHttpBody)
             hashString = "POST" + Chr(10) + dateString + Chr(10) + "/v1/" + path + jsonRequest
@@ -1134,7 +1147,7 @@ function mParticleStart(options as object, messagePort as object)
                             mplogger.error("Identity API returned 200, but there's MPID present in response.")
                         end if
                     end if
-                    m.onIdentitySuccess(updateMpid, requestWrapper.request)
+                    m.onIdentitySuccess(updateMpid, requestWrapper.originalPublicRequest)
                 else
                     mplogger.error("Unknown error while performing identity request.")
                 end if
@@ -1147,11 +1160,11 @@ function mParticleStart(options as object, messagePort as object)
         isIdentityRequest: function(requestId as string) as boolean
             return m.pendingApiRequests.DoesExist(requestId)
         end function,
-        onIdentitySuccess: function(mpid as string, requestObject as object)
+        onIdentitySuccess: function(mpid as string, originalRequest as object)
             storage = mparticle()._internal.storage
-            if (requestObject <> invalid and requestObject.userIdentities <> invalid) then
-                for each identityType in requestObject.userIdentities.keys()
-                    storage.setUserIdentity(mpid, identityType, requestObject.userIdentities[identityType])
+            if (originalRequest <> invalid and originalRequest.userIdentities <> invalid) then
+                for each identityType in originalRequest.userIdentities.keys()
+                    storage.setUserIdentity(mpid, identityType, originalRequest.userIdentities[identityType])
                 end for
             end if
         end function,
@@ -1239,11 +1252,22 @@ function mParticleStart(options as object, messagePort as object)
     
     'this is called after everything is initialized
     'perform whatever we need to on every startup
-    mpPerformStartupTasks = function(identifyRequest as object)
+    mpPerformStartupTasks = function(options as object)
         storage = mparticle()._internal.storage
         storage.cleanCookies()
         sessionManager = mparticle()._internal.sessionManager
         sessionManager.onSdkStart()
+        identifyRequest = options.identifyRequest
+        if (identifyRequest = invalid) then
+            identifyRequest = {userIdentities:{}}
+            identities = storage.getUserIdentities(storage.getCurrentMpid())
+            if (identities <> invalid) then
+                keys = identities.Keys()
+                for each identity in keys
+                    identifyRequest.userIdentities[identity] = identities[identity].i
+                end for
+            end if
+        end if
         identityApi = mparticle().identity
         identityApi.identify(identifyRequest)
     end function
@@ -1302,7 +1326,7 @@ function mParticleStart(options as object, messagePort as object)
     
     mpPublicApi.append({_internal:internalApi})
     getGlobalAA().mparticleInstance = mpPublicApi
-    mpPerformStartupTasks(options.identifyRequest)
+    mpPerformStartupTasks(options)
 end function
 
 ' mParticle Scene Graph Bridge
