@@ -977,6 +977,7 @@ function mParticleStart(options as object, messagePort as object)
     }
     
     mpInternalIdentityApi = {
+        context: "",
         IDENTITY_API_PATHS: {
             IDENTIFY:   "identify",
             LOGIN:      "login",
@@ -1012,7 +1013,8 @@ function mParticleStart(options as object, messagePort as object)
                 environment: environmentString
                 known_identities:{},
                 requestId: mparticle()._internal.utils.randomGuid(),
-                request_timestamp_ms:  mparticle()._internal.utils.unixTimeMillis()
+                request_timestamp_ms:  mparticle()._internal.utils.unixTimeMillis(),
+                context: m.context
             }
             if (identityApiRequest <> invalid) then
                 if (identityApiRequest.userIdentities <> invalid) then
@@ -1044,6 +1046,9 @@ function mParticleStart(options as object, messagePort as object)
                     identityHttpRequest.known_identities = userIdentities
                 end if
                 identityHttpRequest.known_identities.device_application_stamp = mparticle()._internal.storage.getDas()
+                deviceInfo = CreateObject("roDeviceInfo")
+                identityHttpRequest.known_identities.roku_aid = deviceInfo.GetAdvertisingId()
+                identityHttpRequest.known_identities.roku_publisher_id = deviceInfo.GetPublisherId()
             end if
             return identityHttpRequest
         end function,
@@ -1118,7 +1123,12 @@ function mParticleStart(options as object, messagePort as object)
                     updateMpid = storage.getCurrentMpid()
                     if (requestWrapper.path.Instr(m.IDENTITY_API_PATHS.MODIFY) = -1) then
                         if (responseObject <> invalid and responseObject.DoesExist("mpid")) then
-                            m.onMpidChanged(responseObject.mpid)
+                            if (responseObject.DoesExist("context")) then
+                                m.context = responseObject.context
+                            end if
+                            if (responseObject.DoesExist("mpid")) then
+                                m.onMpidChanged(responseObject.mpid)
+                            end if
                             updateMpid = responseObject.mpid
                         else
                             mplogger.error("Identity API returned 200, but there's MPID present in response.")
