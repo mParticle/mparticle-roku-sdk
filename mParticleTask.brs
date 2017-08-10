@@ -15,6 +15,7 @@ sub setupRunLoop()
     options.addReplace("batchUploads", true)
     mParticleStart(options, m.port)
     m.mparticle = mparticle()
+    m.top.currentUser = m.mparticle.identity.getCurrentUser()
     while true
         msg = wait(15*1000, m.port)
         if (msg = invalid) then
@@ -34,7 +35,7 @@ sub setupRunLoop()
                     if (identityResult <> invalid) then
                         m.top.identityResult = identityResult
                         if (identityResult.httpcode = 200) then
-                            m.top.currentUser = {mpid: identityResult.body.mpid}
+                            m.top.currentUser = m.mparticle.identity.getCurrentUser()
                         end if
                     end if
                 end if

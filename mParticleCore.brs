@@ -897,8 +897,20 @@ function mParticleStart(options as object, messagePort as object)
     mpPublicModels = {
         Message : function(messageType as string, attributes={}) as object
             currentSession = mparticle()._internal.sessionManager.getCurrentSession()
-             if (attributes <> invalid and attributes.count() = 0) then
-                attributes = invalid
+            if (attributes <> invalid)
+                if (attributes.count() = 0) then
+                    attributes = invalid
+                else
+                    mputils = mparticle()._internal.utils
+                    attributeKeys = attributes.Keys()
+                    validAttributes = {}
+                    for each attributeKey in attributeKeys
+                        if (mputils.isString(attributes[attributeKey])) then 
+                            validAttributes[attributeKey] = attributes[attributeKey]
+                        end if
+                    end for
+                    attributes = validAttributes
+                end if
             end if
             return {
                 dt : messageType,
@@ -1029,34 +1041,18 @@ function mParticleStart(options as object, messagePort as object)
                 request_timestamp_ms:  mparticle()._internal.utils.unixTimeMillis(),
                 context: m.context
             }
+            mplogger = mparticle()._internal.logger
             if (identityApiRequest <> invalid) then
                 if (identityApiRequest.userIdentities <> invalid) then
-                    userIdentities = {}
-                    if (identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.EMAIL] <> invalid) then
-                        userIdentities[mparticleConstants().IDENTITY_TYPE.EMAIL] = identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.EMAIL]
-                    end if
-                    if (identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.CUSTOMER_ID] <> invalid) then
-                        userIdentities[mparticleConstants().IDENTITY_TYPE.CUSTOMER_ID] = identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.CUSTOMER_ID]
-                    end if
-                    if (identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.FACEBOOK] <> invalid) then
-                        userIdentities[mparticleConstants().IDENTITY_TYPE.FACEBOOK] = identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.FACEBOOK]
-                    end if
-                    if (identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.TWITTER] <> invalid) then
-                        userIdentities[mparticleConstants().IDENTITY_TYPE.TWITTER] = identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.TWITTER]
-                    end if
-                    if (identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.MICROSOFT] <> invalid) then
-                        userIdentities[mparticleConstants().IDENTITY_TYPE.MICROSOFT] = identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.MICROSOFT]
-                    end if
-                    if (identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.YAHOO] <> invalid) then
-                        userIdentities[mparticleConstants().IDENTITY_TYPE.YAHOO] = identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.YAHOO]
-                    end if
-                    if (identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.GOOGLE] <> invalid) then
-                        userIdentities[mparticleConstants().IDENTITY_TYPE.GOOGLE] = identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.GOOGLE]
-                    end if
-                    if (identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.FACEBOOK_AUDIENCE_ID] <> invalid) then
-                        userIdentities[mparticleConstants().IDENTITY_TYPE.FACEBOOK_AUDIENCE_ID] = identityApiRequest.userIdentities[mparticleConstants().IDENTITY_TYPE.FACEBOOK_AUDIENCE_ID]
-                    end if
-                    identityHttpRequest.known_identities = userIdentities
+                    identityHttpRequest.known_identities = {}
+                    identityKeys = identityApiRequest.userIdentities.Keys()
+                    for each identityType in identityKeys
+                        if (mparticleConstants().IDENTITY_TYPE.isValidIdentityType(identityType)) then
+                            identityHttpRequest.known_identities[identityType] = identityApiRequest.userIdentities[identityType]
+                        else
+                            mplogger.error("Invalid identity passed to identity API: " + path)
+                        end if
+                    end for
                 end if
                 identityHttpRequest.known_identities.device_application_stamp = mparticle()._internal.storage.getDas()
                 deviceInfo = CreateObject("roDeviceInfo")
@@ -1226,6 +1222,23 @@ function mParticleStart(options as object, messagePort as object)
                 "copyUserAttributes": copyUserAttributes
             }
             
+        end function,
+        getCurrentUser: function() as object
+            storage = mparticle()._internal.storage
+            currentMpid = storage.getCurrentMpid()
+            internalIdentities = storage.getUserIdentities(currentMpid)
+            publicIdentities = {}
+            if (internalIdentities <> invalid) then
+                keys = internalIdentities.Keys()
+                for each identity in keys
+                    publicIdentities[identity] = internalIdentities[identity].i
+                end for
+            end if
+            return {
+                mpid: currentMpid,
+                userIdentities: publicIdentities,
+                userAttributes: storage.getUserAttributes(currentMpid)
+            }
         end function
     }
     
@@ -1257,18 +1270,13 @@ function mParticleStart(options as object, messagePort as object)
         storage.cleanCookies()
         sessionManager = mparticle()._internal.sessionManager
         sessionManager.onSdkStart()
+        
+        identityApi = mparticle().identity
         identifyRequest = options.identifyRequest
         if (identifyRequest = invalid) then
-            identifyRequest = {userIdentities:{}}
-            identities = storage.getUserIdentities(storage.getCurrentMpid())
-            if (identities <> invalid) then
-                keys = identities.Keys()
-                for each identity in keys
-                    identifyRequest.userIdentities[identity] = identities[identity].i
-                end for
-            end if
+            identifyRequest = {userIdentities:identityApi.getCurrentUser().userIdentities}
         end if
-        identityApi = mparticle().identity
+        
         identityApi.identify(identifyRequest)
     end function
 
