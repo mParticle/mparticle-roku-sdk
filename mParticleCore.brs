@@ -397,11 +397,15 @@ function mParticleStart(options as object, messagePort as object)
             end if
             identities = m.getUserIdentities(mpid)
             identity = identities.Lookup(identityType)
-            if (identity = invalid) then
+            if (identity = invalid and identityValue.len() > 0) then
                 identities[identityType] = mparticle()._internal.internalModel.UserIdentity(identityType, identityValue)
             else
-                identities[identityType].i = identityValue
-                identities[identityType].f = false
+                if (identityValue.len() = 0) then
+                    identities.Delete(identityType)
+                else 
+                    identities[identityType].i = identityValue
+                    identities[identityType].f = false
+                end if
             end if
             m.set(m.mpkeys.USER_IDENTITIES + mpid, FormatJson(identities))
             m.flush()
@@ -1076,7 +1080,9 @@ function mParticleStart(options as object, messagePort as object)
                     for each identityType in identityKeys
                         if (mparticleConstants().IDENTITY_TYPE.isValidIdentityType(identityType))
                             identityChange = {identity_type:identityType}
-                            identityChange.new_value = identityApiRequest.userIdentities[identityType]
+                            if (identityApiRequest.userIdentities[identityType].len() > 0) then
+                                identityChange.new_value = identityApiRequest.userIdentities[identityType]
+                            end if
                             if (currentUserIdentities.DoesExist(identityType))
                                 identityChange.old_value = currentUserIdentities[identityType]
                             end if
