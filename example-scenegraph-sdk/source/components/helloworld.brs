@@ -3,8 +3,8 @@ sub init()
    
     'Create the mParticle Task Node
     m.mParticleTask = createObject("roSGNode","mParticleTask")
-    m.mParticleTask.ObserveField("identityResult", "onIdentityResult")
-    m.mParticleTask.ObserveField("currentUser", "onCurrentUserChanged")
+    m.mParticleTask.ObserveField(mParticleConstants().SCENEGRAPH_NODES.IDENTITY_RESULT_NODE, "onIdentityResult")
+    m.mParticleTask.ObserveField(mParticleConstants().SCENEGRAPH_NODES.CURRENT_USER_NODE, "onCurrentUserChanged")
     m.mparticle = mParticleSGBridge(m.mParticleTask)
     mpConstants = mparticleconstants()
     m.mpidLabel = m.top.findNode("mpidLabel")
@@ -14,7 +14,7 @@ sub init()
     m.emailTextEdit.setFocus(true)
     identityApiRequest = {}
     identityApiRequest.userIdentities = {}
-    identityApiRequest.userIdentities[mpConstants.IDENTITY_TYPE.OTHER] = "other2"
+    identityApiRequest.userIdentities[mpConstants.IDENTITY_TYPE.OTHER] = "foo"
     m.mparticle.identity.modify(identityApiRequest)
     m.mparticle.logEvent("hello world!")
     m.mparticle.identity.setUserAttribute("example attribute key", "example attribute value")
@@ -38,14 +38,15 @@ sub init()
 end sub
 
 function onIdentityResult() as void
-    print "IdentityResult: " + formatjson(m.mParticleTask.identityResult)
+    print "IdentityResult: " + formatjson(m.mParticleTask[mParticleConstants().SCENEGRAPH_NODES.IDENTITY_RESULT_NODE])
 end function
 
 function onCurrentUserChanged() as void
-    print "Current user: " + formatjson(m.mParticleTask.currentUser)
-    m.mpidLabel.text = "MPID: " + m.mParticleTask.currentUser.mpid
-    m.userAttributesLabel.text = "User attributes: " + formatjson(m.mParticleTask.currentUser.userAttributes)
-    m.userIdentitiesLabel.text = "User identities: " + formatjson(m.mParticleTask.currentUser.userIdentities)
+    currentUser = m.mParticleTask[mParticleConstants().SCENEGRAPH_NODES.CURRENT_USER_NODE]
+    print "Current user: " + formatjson(currentUser)
+    m.mpidLabel.text = "MPID: " + currentUser.mpid
+    m.userAttributesLabel.text = "User attributes: " + formatjson(currentUser.userAttributes)
+    m.userIdentitiesLabel.text = "User identities: " + formatjson(currentUser.userIdentities)
     
-    m.mparticle.logEvent("User Changed", mparticleconstants().CUSTOM_EVENT_TYPE.USER_CONTENT, m.mParticleTask.currentUser)
+    m.mparticle.logEvent("User Changed", mparticleconstants().CUSTOM_EVENT_TYPE.USER_CONTENT, currentUser)
 end function

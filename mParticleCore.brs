@@ -31,6 +31,11 @@ function mParticleConstants() as object
         sessionTimeoutMillis:   60 * 1000,
         batchUploads:           false,
     }
+    SCENEGRAPH_NODES = {
+        API_CALL_NODE: "mParticleApiCall",
+        CURRENT_USER_NODE: "mParticleCurrentUser",
+        IDENTITY_RESULT_NODE: "mParticleIdentityResult"
+    }
     USER_ATTRIBUTES = {
         FIRSTNAME:      "$FirstName",
         LASTNAME:       "$LastName",
@@ -238,6 +243,7 @@ function mParticleConstants() as object
         SDK_VERSION:            SDK_VERSION,
         LOG_LEVEL:              LOG_LEVEL,
         DEFAULT_OPTIONS:        DEFAULT_OPTIONS,
+        SCENEGRAPH_NODES:       SCENEGRAPH_NODES,
         MESSAGE_TYPE:           MESSAGE_TYPE,
         CUSTOM_EVENT_TYPE:      CUSTOM_EVENT_TYPE,
         IDENTITY_TYPE:          IDENTITY_TYPE,
@@ -1354,6 +1360,7 @@ function mParticleStart(options as object, messagePort as object)
     mpPerformStartupTasks(options)
 end function
 
+
 ' mParticle Scene Graph Bridge
 ' Use an instance of this class to make calls to mParticle over Scene Graph
 function mParticleSGBridge(task as object) as object
@@ -1379,7 +1386,7 @@ function mParticleSGBridge(task as object) as object
                                     invocation = {}
                                     invocation.methodName = name
                                     invocation.args = args
-                                    m.mParticleTask.apiCall = invocation
+                                    m.mParticleTask[mParticleConstants().SCENEGRAPH_NODES.API_CALL_NODE] = invocation
                                 end function
         }
     end function
@@ -1408,7 +1415,7 @@ function mParticleSGBridge(task as object) as object
                                 invocation = {}
                                 invocation.methodName = name
                                 invocation.args = args
-                                m.mParticleTask.apiCall = invocation
+                                m.mParticleTask[mParticleConstants().SCENEGRAPH_NODES.API_CALL_NODE] = invocation
                             end function
      }
     

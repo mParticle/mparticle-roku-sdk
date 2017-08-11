@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="mParticleTask" extends="Task">
   <interface>
-  	<field id="apiCall" type="assocarray"/>
-  	<field id="identityResult" type="assocarray"/>
-  	<field id="currentUser" type="assocarray"/>
+  	<field id="mParticleApiCall" type="assocarray"/>
+  	<field id="mParticleIdentityResult" type="assocarray"/>
+  	<field id="mParticleCurrentUser" type="assocarray"/>
   </interface>
   <!-- Replace with correct path if necessary -->
   <script type="text/brightscript" uri="pkg:/components/mParticleTask.brs"/>
