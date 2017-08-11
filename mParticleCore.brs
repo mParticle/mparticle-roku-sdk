@@ -1053,35 +1053,36 @@ function mParticleStart(options as object, messagePort as object)
             }
             mplogger = mparticle()._internal.logger
             if (identityApiRequest <> invalid) then
-                if (identityApiRequest.userIdentities <> invalid) then
-                    identityKeys = identityApiRequest.userIdentities.Keys()
-                    if (path.Instr(m.IDENTITY_API_PATHS.MODIFY) = -1) then
-                        identityHttpRequest.known_identities = {}
-                        for each identityType in identityKeys
-                            if (mparticleConstants().IDENTITY_TYPE.isValidIdentityType(identityType)) then
-                                identityHttpRequest.known_identities[identityType] = identityApiRequest.userIdentities[identityType]
-                            else
-                                mplogger.error("Invalid identity passed to identity API: " + path)
+                if (not identityApiRequest.DoesExist("userIdentities")) then
+                    identityApiRequest.userIdentities = {}
+                end if
+                identityKeys = identityApiRequest.userIdentities.Keys()
+                if (path.Instr(m.IDENTITY_API_PATHS.MODIFY) = -1) then
+                    identityHttpRequest.known_identities = {}
+                    for each identityType in identityKeys
+                        if (mparticleConstants().IDENTITY_TYPE.isValidIdentityType(identityType)) then
+                            identityHttpRequest.known_identities[identityType] = identityApiRequest.userIdentities[identityType]
+                        else
+                            mplogger.error("Invalid identity passed to identity API: " + path)
+                        end if
+                    end for
+                    identityHttpRequest.known_identities.device_application_stamp = mparticle()._internal.storage.getDas()
+                    deviceInfo = CreateObject("roDeviceInfo")
+                    identityHttpRequest.known_identities.roku_aid = deviceInfo.GetAdvertisingId()
+                    identityHttpRequest.known_identities.roku_publisher_id = deviceInfo.GetPublisherId()
+                else
+                    identityHttpRequest.identity_changes = []
+                    currentUserIdentities = m.getCurrentUser().userIdentities
+                    for each identityType in identityKeys
+                        if (mparticleConstants().IDENTITY_TYPE.isValidIdentityType(identityType))
+                            identityChange = {identity_type:identityType}
+                            identityChange.new_value = identityApiRequest.userIdentities[identityType]
+                            if (currentUserIdentities.DoesExist(identityType))
+                                identityChange.old_value = currentUserIdentities[identityType]
                             end if
-                        end for
-                        identityHttpRequest.known_identities.device_application_stamp = mparticle()._internal.storage.getDas()
-                        deviceInfo = CreateObject("roDeviceInfo")
-                        identityHttpRequest.known_identities.roku_aid = deviceInfo.GetAdvertisingId()
-                        identityHttpRequest.known_identities.roku_publisher_id = deviceInfo.GetPublisherId()
-                    else
-                        identityHttpRequest.identity_changes = []
-                        currentUserIdentities = m.getCurrentUser().userIdentities
-                        for each identityType in identityKeys
-                            if (mparticleConstants().IDENTITY_TYPE.isValidIdentityType(identityType))
-                                identityChange = {identity_type:identityType}
-                                identityChange.new_value = identityApiRequest.userIdentities[identityType]
-                                if (currentUserIdentities.DoesExist(identityType))
-                                    identityChange.old_value = currentUserIdentities[identityType]
-                                end if
-                                identityHttpRequest.identity_changes.Push(identityChange)
-                            end if
-                        end for
-                    end if
+                            identityHttpRequest.identity_changes.Push(identityChange)
+                        end if
+                    end for
                 end if
             end if
             return identityHttpRequest
