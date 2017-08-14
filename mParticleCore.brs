@@ -539,26 +539,26 @@ function mParticleStart(options as object, messagePort as object)
     
        Batch : function(messages as object) as object
             currentMpid = mparticle()._internal.storage.getCurrentMpid()
-            batch = {}
-            batch.dbg = mparticle()._internal.configuration.development
-            batch.dt = "h"
-            batch.mpid = mparticle()._internal.storage.getCurrentMpid()
-            batch.ltv = mparticle()._internal.storage.getLtv()
-            batch.id = mParticle()._internal.utils.randomGuid()
-            batch.ct = mParticle()._internal.utils.unixTimeMillis()
-            batch.sdk = mParticleConstants().SDK_VERSION
-            batch.ui = []
+            mpBatch = {}
+            mpBatch.dbg = mparticle()._internal.configuration.development
+            mpBatch.dt = "h"
+            mpBatch.mpid = mparticle()._internal.storage.getCurrentMpid()
+            mpBatch.ltv = mparticle()._internal.storage.getLtv()
+            mpBatch.id = mParticle()._internal.utils.randomGuid()
+            mpBatch.ct = mParticle()._internal.utils.unixTimeMillis()
+            mpBatch.sdk = mParticleConstants().SDK_VERSION
+            mpBatch.ui = []
             identities = mparticle()._internal.storage.getUserIdentities(currentMpid)
             for each identity in identities
-                batch.ui.push(identities[identity])
+                mpBatch.ui.push(identities[identity])
             end for
-            batch.ua = mparticle()._internal.storage.getUserAttributes(currentMpid)
-            batch.msgs = messages
-            batch.ai = m.ApplicationInformation()
-            batch.di = m.DeviceInformation()
-            batch.ck = mparticle()._internal.storage.getCookies()
-            batch.das = mparticle()._internal.storage.getDas()
-            return batch
+            mpBatch.ua = mparticle()._internal.storage.getUserAttributes(currentMpid)
+            mpBatch.msgs = messages
+            mpBatch.ai = m.ApplicationInformation()
+            mpBatch.di = m.DeviceInformation()
+            mpBatch.ck = mparticle()._internal.storage.getCookies()
+            mpBatch.das = mparticle()._internal.storage.getDas()
+            return mpBatch
         end function,
     
         UserIdentity : function(identityType as string, identityValue as String) as object
@@ -642,7 +642,7 @@ function mParticleStart(options as object, messagePort as object)
     
     mpNetworking = {
         messagePort : messagePort,
-        backoff : {
+        mpBackoff : {
             nextAllowedUploadTime : 0,
             currentBackoffDuration : 0,
             reset : function()
@@ -697,8 +697,8 @@ function mParticleStart(options as object, messagePort as object)
             end if
         end function,
         processUploads : function()
-            if (m.backoff.canUpload()) then
-                m.backoff.reset()
+            if (m.mpBackoff.canUpload()) then
+                m.mpBackoff.reset()
             else
                 return -1
             end if
@@ -710,11 +710,11 @@ function mParticleStart(options as object, messagePort as object)
             end if
             while (m.uploadQueue.count() > 0) 
                 nextUpload = m.uploadQueue.shift()
-                m.uploadBatch(nextUpload)
+                m.mpUploadBatch(nextUpload)
             end while
         end function,
       
-        uploadBatch : function (batch as object)
+        mpUploadBatch : function (mpBatch as object)
             urlTransfer = CreateObject("roUrlTransfer")
             if (mparticle()._internal.configuration.enablePinning) then
                 urlTransfer.SetCertificatesFile(mparticle()._internal.configuration.certificateDir)
@@ -722,9 +722,9 @@ function mParticleStart(options as object, messagePort as object)
             urlTransfer.SetUrl("https://nativesdks.mparticle.com/v2/" + mparticle()._internal.configuration.apikey + "/events")
             urlTransfer.EnableEncodings(true)
             requestId = urlTransfer.GetIdentity().ToStr()
-            m.pendingTransfers[requestId] = {"transfer": urlTransfer, "batch":batch}
+            m.pendingTransfers[requestId] = {"transfer": urlTransfer, "batch":mpBatch}
             dateString = CreateObject("roDateTime").ToISOString()
-            jsonBatch = FormatJson(batch)
+            jsonBatch = FormatJson(mpBatch)
             hashString = "POST" + Chr(10) + dateString + Chr(10) + "/v2/" + mparticle()._internal.configuration.apikey + "/events" + jsonBatch
             
             signature_key = CreateObject("roByteArray")
@@ -740,7 +740,7 @@ function mParticleStart(options as object, messagePort as object)
             urlTransfer.AddHeader("Date", dateString)
             urlTransfer.AddHeader("x-mp-signature", hashResult)
             urlTransfer.AddHeader("Content-Type","application/json")
-            urlTransfer.AddHeader("User-Agent","mParticle Roku SDK/" + batch.sdk)
+            urlTransfer.AddHeader("User-Agent","mParticle Roku SDK/" + mpBatch.sdk)
             urlTransfer.RetainBodyOnError(true)
             mplogger = mparticle()._internal.logger
             mplogger.debug("Uploading batch: " + jsonBatch)
@@ -748,7 +748,7 @@ function mParticleStart(options as object, messagePort as object)
             urlTransfer.AsyncPostFromString(jsonBatch)
         end function,
         
-        handleUrlEvent : function(urlEvent as object)
+        mpHandleUrlEvent : function(urlEvent as object)
             if (urlEvent <> invalid)
                 requestId = urlEvent.GetSourceIdentity().ToStr()
                 transfer = m.pendingTransfers[requestId]
@@ -767,7 +767,7 @@ function mParticleStart(options as object, messagePort as object)
                         mplogger.error("HTTP 400 - please check that your mParticle key and secret are valid.")
                     else if (responseCode = 429 or responseCode = 503) then
                         m.uploadQueue.unshift(transfer.batch)
-                        m.backoff.increase()
+                        m.mpBackoff.increase()
                     else if (responseCode = 202 and responseBody <> invalid) then
                         responseObject = parsejson(responseBody)
                         if (responseObject <> invalid) then
@@ -1129,7 +1129,7 @@ function mParticleStart(options as object, messagePort as object)
             urlTransfer.setPort(m.messagePort)
             urlTransfer.AsyncPostFromString(jsonRequest)
         end function,
-        handleurlevent: function(urlEvent as object) as object
+        mpHandleUrlEvent: function(urlEvent as object) as object
             mplogger = mparticle()._internal.logger
             requestId = urlEvent.GetSourceIdentity().ToStr()
             requestWrapper = m.pendingApiRequests[requestId]
@@ -1337,9 +1337,9 @@ function mParticleStart(options as object, messagePort as object)
                             end function,
         onUrlEvent:         function(urlEvent as object)
                                 if (m._internal.identity.isIdentityRequest(urlEvent.getSourceIdentity().tostr())) then
-                                    return m._internal.identity.handleUrlEvent(urlEvent)
+                                    return m._internal.identity.mpHandleUrlEvent(urlEvent)
                                 else 
-                                    m._internal.networking.handleUrlEvent(urlEvent)
+                                    m._internal.networking.mpHandleUrlEvent(urlEvent)
                                 end if
                             end function,     
         isMparticleEvent:   function(sourceIdentity as integer) as boolean
