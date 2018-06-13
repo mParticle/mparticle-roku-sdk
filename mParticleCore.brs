@@ -1348,8 +1348,8 @@ function mParticleStart(options as object, messagePort as object)
                                 return isBatchUpload or isIdentityRequest
                             end function,
         upload:             function() as void
-                                m.mparticle._internal.networking.queueUpload()
-                                m.mparticle._internal.networking.processUploads()
+                                m._internal.networking.queueUpload()
+                                m._internal.networking.processUploads()
                             end function,
         identity:           mpIdentityApi,            
         model:              mpPublicModels
