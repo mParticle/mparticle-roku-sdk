@@ -1347,6 +1347,10 @@ function mParticleStart(options as object, messagePort as object)
                                 isIdentityRequest = m._internal.identity.isIdentityRequest(sourceIdentity.tostr())
                                 return isBatchUpload or isIdentityRequest
                             end function,
+        upload:             function() as void
+                                m.mparticle._internal.networking.queueUpload()
+                                m.mparticle._internal.networking.processUploads()
+                            end function,
         identity:           mpIdentityApi,            
         model:              mpPublicModels
     }
@@ -1416,6 +1420,9 @@ function mParticleSGBridge(task as object) as object
                             end function,
         setSessionAttribute:   function(attributeKey as string, attributeValue as object) as void
                                 m.invokeFunction("setSessionAttribute", [attributeKey, attributeValue])
+                            end function,
+        upload:             function() as void
+                                m.invokeFunction("upload", [])
                             end function,
         identity:           mpCreateSGBridgeIdentityApi(task),
         invokeFunction:     function(name as string, args)
