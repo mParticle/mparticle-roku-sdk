@@ -79,6 +79,9 @@ function mParticleConstants() as object
         YAHOO:                 6,
         EMAIL:                 7,
         FACEBOOK_AUDIENCE_ID:  9,
+        OTHER2:                10,
+        OTHER3:                11,
+        OTHER4:                12,
         parseString:           function(identityTypeString as string) as integer
                                   IDENTITY_TYPE = mparticleconstants().IDENTITY_TYPE
                                   if (identityTypeString = IDENTITY_TYPE.OTHER) then
@@ -99,6 +102,12 @@ function mParticleConstants() as object
                                     return m.EMAIL
                                   else if (identityTypeString = IDENTITY_TYPE.FACEBOOK_AUDIENCE_ID) then
                                     return m.FACEBOOK_AUDIENCE_ID
+                                  else if (identityTypeString = IDENTITY_TYPE.OTHER2) then
+                                    return m.OTHER2
+                                  else if (identityTypeString = IDENTITY_TYPE.OTHER3) then
+                                    return m.OTHER3
+                                  else if (identityTypeString = IDENTITY_TYPE.OTHER4) then
+                                    return m.OTHER4
                                   end if
                                   return 0
                                end function
@@ -114,6 +123,9 @@ function mParticleConstants() as object
         YAHOO:                 "yahoo",
         EMAIL:                 "email",
         FACEBOOK_AUDIENCE_ID:  "facebookcustomaudienceid",
+        OTHER2:                "other2",
+        OTHER3:                "other3",
+        OTHER4:                "other4",
         isValidIdentityType:    function(identityType as string) as boolean
                                     allTypes = m.Keys()
                                     mputils = mparticle()._internal.utils
