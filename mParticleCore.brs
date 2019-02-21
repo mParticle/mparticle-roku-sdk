@@ -608,11 +608,11 @@ function mParticleStart(options as object, messagePort as object)
                     dp:     "Roku",
                     dn:     info.GetModelDisplayName(),
                     p:      info.GetModel(),
-                    duid:   info.GetDeviceUniqueId(),
+                    duid:   info.GetChannelClientId(),
                     vr:     info.GetVersion(),
-                    rida:   info.GetAdvertisingId(),
-                    lat:    info.IsAdIdTrackingDisabled(),
-                    rpb:    info.GetPublisherId(),
+                    rida:   info.GetRIDA(),
+                    lat:    info.IsRIDADisabled(),
+                    rpb:    info.GetChannelClientId(),
                     dmdl:   info.GetModel(),
                     dc:     info.GetCountryCode(),
                     dll:    info.GetCurrentLocale(),
@@ -1084,8 +1084,10 @@ function mParticleStart(options as object, messagePort as object)
                     end for
                     identityHttpRequest.known_identities.device_application_stamp = mparticle()._internal.storage.getDas()
                     deviceInfo = CreateObject("roDeviceInfo")
-                    identityHttpRequest.known_identities.roku_aid = deviceInfo.GetAdvertisingId()
-                    identityHttpRequest.known_identities.roku_publisher_id = deviceInfo.GetPublisherId()
+                    if (not deviceInfo.IsRIDADisabled()) then
+                        identityHttpRequest.known_identities.roku_aid = deviceInfo.GetRIDA()
+                    end if
+                    identityHttpRequest.known_identities.roku_publisher_id = deviceInfo.GetChannelClientId()
                 else
                     identityHttpRequest.identity_changes = []
                     currentUserIdentities = m.getCurrentUser().userIdentities
