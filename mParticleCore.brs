@@ -1,13 +1,13 @@
 '*************************************************************
 ' mParticle Roku SDK - Core APIs
-' Copyright 2017 mParticle, Inc. 
+' Copyright 2019 mParticle, Inc. 
 '*************************************************************
 
 '
 ' mParticleConstants() surface various fields for interacting with the mParticle APIs
 '
 function mParticleConstants() as object 
-    SDK_VERSION = "2.0.1"
+    SDK_VERSION = "2.1.0"
     LOG_LEVEL = {
         NONE:   0,
         ERROR:  1,

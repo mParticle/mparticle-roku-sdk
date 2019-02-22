@@ -1,6 +1,6 @@
 '*************************************************************
 ' mParticle Roku SDK - mParticle Task Node for Scene Graph
-' Copyright 2017 mParticle, Inc. 
+' Copyright 2019 mParticle, Inc. 
 '*************************************************************
 
 sub init()
