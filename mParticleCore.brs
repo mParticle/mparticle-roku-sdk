@@ -604,6 +604,14 @@ function mParticleStart(options as object, messagePort as object)
         DeviceInformation : function() as object
             if (m.collectedDeviceInfo = invalid) then
                 info = CreateObject("roDeviceInfo")
+                
+                tempDatetime = CreateObject ("roDateTime")
+                utcSeconds = tempDatetime.AsSeconds ()
+                tempDatetime.ToLocalTime ()
+                localSeconds = tempDatetime.AsSeconds ()
+                utcSecondsOffset = localSeconds - utcSeconds
+                utcHoursOffset = utcSecondsOffset / 3600
+
                 m.collectedDeviceInfo = {
                     dp:     "Roku",
                     dn:     info.GetModelDisplayName(),
@@ -616,9 +624,10 @@ function mParticleStart(options as object, messagePort as object)
                     dmdl:   info.GetModel(),
                     dc:     info.GetCountryCode(),
                     dll:    info.GetCurrentLocale(),
-                    dlc:    -1 * CreateObject("roDateTime").GetTimeZoneOffset() / 60,
+                    dlc:    info.GetUserCountryCode(),
                     tzn:    info.GetTimeZone(),
-                    dr:     info.GetConnectionType()
+                    dr:     info.GetConnectionType(),
+                    tz:     utcHoursOffset
                 }
               
                 modelDetails = info.GetModelDetails()
