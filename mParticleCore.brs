@@ -339,11 +339,11 @@ function mParticleStart(options as object, messagePort as object)
         end function,
         
         isString : function(input as object) as boolean
-            return input <> invalid and (LCase(type(input)) = "rostring" or LCase(type(item)) = "string")
+            return input <> invalid and (LCase(type(input)) = "rostring" or LCase(type(input)) = "string")
         end function,
         
         isArray : function(input as object) as boolean
-            return input <> invalid and (LCase(type(input)) = "roarray" or LCase(type(item)) = "array")
+            return input <> invalid and (LCase(type(input)) = "roarray" or LCase(type(input)) = "array")
         end function
     }
     
