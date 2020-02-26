@@ -22,6 +22,27 @@ sub init()
 
     m.mparticle.logScreenEvent("hello screen!")
     
+    gdprConsentStateApi = mpConstants.GDPRConsentState
+    gdprConsentState = gdprConsentStateApi.build()
+    
+    gdprConsentStateApi.setDocument(gdprConsentState, "document_agreement.v2")
+
+    time = CreateObject("roDateTime")
+    
+    gdprConsentStateApi.setConsented(gdprConsentState, "True")
+    gdprConsentStateApi.setTimestamp(gdprConsentState, time.asSeconds())
+    gdprConsentStateApi.setLocation(gdprConsentState, "dtmgbank.com/signup")
+    gdprConsentStateApi.setHardwareId(gdprConsentState, "IDFA:a5d934n0-232f-4afc-2e9a-3832d95zc702")
+'    
+    consentStateAPI = mpConstants.ConsentState
+    consentState = consentStateAPI.build()
+    consentStateAPI.addGDPRConsentState(consentState, "location_collection", gdprConsentState)
+    consentStateAPI.addGDPRConsentState(consentState, "for_deletion", gdprConsentState)
+
+    consentStateAPI.removeGDPRConsentState(consentState, "for_deletion")
+    
+    m.mparticle.identity.setConsentState(consentState)
+    
     product = mpConstants.Product.build("foo-sku", "foo-name", 123.45)
     actionApi = mpConstants.ProductAction
     productAction = actionApi.build(actionApi.ACTION_TYPE.PURCHASE, 123.45, [product])

@@ -149,21 +149,29 @@ function mParticleConstants() as object
             return consentState
         end function,
         addGDPRConsentState : function (consentState as object, purpose as string, gdprConsent as object)
-            gdpr = {}
-            gdpr[purpose] = gdprConsent
-            consentState.gdpr = gdpr
+            ' TODO: This might be "set" actually
+            consentState.gdpr.AddReplace(purpose, gdprConsent)
+        end function,
+        addCCPAConsentState : function (consentState as object, ccpaConsent as object)
+            consentState.ccpa.AddReplace("data_sale_opt_out", ccpaConsent)
         end function,
         setGDPRConsentState : function ()
         end function,
         setCCPAConsentState : function ()
         end function,
-        getCCPAConsentState : function ()
-        end function
-        getGDPRConsentState : function ()
+        getCCPAConsentState : function (consentState as object)
+            return consentState.ccpa.Lookup("data_sale_opt_out")
         end function,
-        removeGDPRConsentState : function ()
+        getGDPRConsentState : function (consentState as object, purpose as string)
+            return consentState.gdpr.Lookup(purpose)
+        end function,
+        removeGDPRConsentState : function (consentState as object, purpose as string)
+            if (consentState.gdpr.DoesExist(purpose)) then
+                consentState.gdpr.Delete(purpose)
+            end if
         end function,
         removeCCPAConsentState : function ()
+            consentState.ccpa.Delete("data_sale_opt_out")
         end function
     }
     CCPAConsentState = {}
@@ -180,7 +188,7 @@ function mParticleConstants() as object
         setLocation : function (gdprConsentState as object, location as string)
             gdprConsentState.l = location
         end function,
-        setTimestamp : function (gdprConsentState as object, timestamp as string)
+        setTimestamp : function (gdprConsentState as object, timestamp as LongInteger)
             gdprConsentState.ts = timestamp
         end function,
         setHardwareId : function (gdprConsentState as object, hardwareId as string)
