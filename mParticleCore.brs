@@ -138,6 +138,56 @@ function mParticleConstants() as object
                                 end function
         
     }
+    '
+    ' Consent Management
+    '
+    ConsentState = {
+        build : function ()
+            consentState = {}
+            consentState.gdpr = {}
+            consentState.ccpa = {}
+            return consentState
+        end function,
+        addGDPRConsentState : function (consentState as object, purpose as string, gdprConsent as object)
+            gdpr = {}
+            gdpr[purpose] = gdprConsent
+            consentState.gdpr = gdpr
+        end function,
+        setGDPRConsentState : function ()
+        end function,
+        setCCPAConsentState : function ()
+        end function,
+        getCCPAConsentState : function ()
+        end function
+        getGDPRConsentState : function ()
+        end function,
+        removeGDPRConsentState : function ()
+        end function,
+        removeCCPAConsentState : function ()
+        end function
+    }
+    CCPAConsentState = {}
+    GDPRConsentState = {
+        build : function ()
+            return {}
+        end function,
+        setDocument : function (gdprConsentState as object, document as string)
+            gdprConsentState.d = document
+        end function,
+        setConsented : function (gdprConsentState as object, consented as string)
+            gdprConsentState.c = consented
+        end function,
+        setLocation : function (gdprConsentState as object, location as string)
+            gdprConsentState.l = location
+        end function,
+        setTimestamp : function (gdprConsentState as object, timestamp as string)
+            gdprConsentState.ts = timestamp
+        end function,
+        setHardwareId : function (gdprConsentState as object, hardwareId as string)
+            gdprConsentState.h = hardwareId
+        end function,
+    }
+
     
     '
     ' eCommerce APIs
@@ -265,7 +315,10 @@ function mParticleConstants() as object
         Product:                Product,
         PromotionAction:        PromotionAction
         Promotion:              Promotion,
-        Impression:             Impression
+        Impression:             Impression,
+        ConsentState:           ConsentState,
+        CCPAConsentState:       CCPAConsentState,
+        GDPRConsentState:       GDPRConsentState,
     }
     
 end function
@@ -356,6 +409,7 @@ function mParticleStart(options as object, messagePort as object)
             SECTION_NAME : "mparticle_storage_"+appInfo.getid(),
             USER_IDENTITIES : "user_identities",
             USER_ATTRIBUTES : "user_attributes",
+            CONSENT_STATE: "consent_state",
             CURRENT_MPID : "current_mpid",
             COOKIES : "cookies",
             SESSION : "saved_session",
@@ -448,6 +502,20 @@ function mParticleStart(options as object, messagePort as object)
             return userAttributes
         end function
         
+        storage.setConsentState = function(mpid as string, consentState as object) as void
+            m.set(m.mpkeys.CONSENT_STATE + mpid, FormatJson(consentState))
+            m.flush()
+        end function
+
+        storage.getConsentState = function(mpid as string) as object
+            attributeJson = m.get(m.mpkeys.CONSENT_STATE + mpid)
+            consentState = {}
+            if (not mparticle()._internal.utils.isEmpty(attributeJson)) then
+               consentState = ParseJson(attributeJson)
+            end if
+            return consentState
+        end function
+
         storage.setCurrentMpid = function(mpid as string) as void
             m.set(m.mpkeys.CURRENT_MPID, mpid)
             m.flush()
@@ -570,6 +638,7 @@ function mParticleStart(options as object, messagePort as object)
             mpBatch.di = m.DeviceInformation()
             mpBatch.ck = mparticle()._internal.storage.getCookies()
             mpBatch.das = mparticle()._internal.storage.getDas()
+            mpBatch.con = mparticle()._internal.storage.getConsentState(currentMpid)
             return mpBatch
         end function,
     
@@ -1282,6 +1351,10 @@ function mParticleStart(options as object, messagePort as object)
             storage = mparticle()._internal.storage
             storage.setUserAttribute(storage.getCurrentMpid(), attributeKey, attributeValue)
         end function,
+        setConsentState: function(consentState as object) as void
+            storage = mparticle()._internal.storage
+            storage.setConsentState(storage.getCurrentMpid(), consentState)
+        end function,
         IdentityApiRequest: function(userIdentities as object, copyUserAttributes as boolean) as object
             return {
                 "userIdentities":userIdentities,
@@ -1340,6 +1413,10 @@ function mParticleStart(options as object, messagePort as object)
     mpPublicApi = {
         logEvent:           function(eventName as string, eventType = mParticleConstants().CUSTOM_EVENT_TYPE.OTHER, customAttributes = {}) as void
                                 m.logMessage(m.model.CustomEvent(eventName, eventType, customAttributes))
+                            end function,
+        sendUserAttributeChangeEvent: function(attributeKey as string, newUserAttributeValue as string, previousUserAttribute as string, isNewAttribute as boolean, deleted as boolean) as void
+                                'm.logMessage(m.model.UserAttributeChange(attributeKey, newUserAttributeValue, previousUserAttribute, isNewAttribute))
+                                print "Sending uac"
                             end function,
         logScreenEvent:     function(screenName as string, customAttributes = {}) as void
                                 m.logMessage(m.model.ScreenEvent(screenName, customAttributes))
@@ -1415,6 +1492,9 @@ function mParticleSGBridge(task as object) as object
                                 end function,
             setUserAttribute:   function(attributeKey as string, attributeValue as object) as void
                                     m.invokeFunction("identity/setUserAttribute", [attributeKey, attributeValue])
+                                end function,
+            setConsentState:    function(consentState as object) as void
+                                    m.invokeFunction("identity/setConsentState", [consentState])
                                 end function
             invokeFunction:     function(name as string, args)
                                     invocation = {}
@@ -1440,6 +1520,9 @@ function mParticleSGBridge(task as object) as object
                             end function,
         setUserAttribute:   function(attributeKey as string, attributeValue as object) as void
                                 m.invokeFunction("setUserAttribute", [attributeKey, attributeValue])
+                            end function,
+        setConsentState:    function(consentState as object) as void
+                                m.invokeFunction("setConsentState", [consentState])
                             end function,
         setSessionAttribute:   function(attributeKey as string, attributeValue as object) as void
                                 m.invokeFunction("setSessionAttribute", [attributeKey, attributeValue])
