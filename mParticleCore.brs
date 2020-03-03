@@ -148,16 +148,10 @@ function mParticleConstants() as object
             consentState.ccpa = {}
             return consentState
         end function,
+
+        ' GDPR
         addGDPRConsentState : function (consentState as object, purpose as string, gdprConsent as object)
-            ' TODO: This might be "set" actually
             consentState.gdpr.AddReplace(purpose, gdprConsent)
-        end function,
-        addCCPAConsentState : function (consentState as object, ccpaConsent as object)
-            consentState.ccpa.AddReplace("data_sale_opt_out", ccpaConsent)
-        end function,
-        setGDPRConsentState : function ()
-        end function,
-        setCCPAConsentState : function ()
         end function,
         getCCPAConsentState : function (consentState as object)
             return consentState.ccpa.Lookup("data_sale_opt_out")
@@ -170,19 +164,55 @@ function mParticleConstants() as object
                 consentState.gdpr.Delete(purpose)
             end if
         end function,
-        removeCCPAConsentState : function ()
+
+        ' CCPA
+        setCCPAConsentState : function (consentState as object, ccpaConsent as object)
+            consentState.ccpa.AddReplace("data_sale_opt_out", ccpaConsent)
+        end function,
+        removeCCPAConsentState : function (consentState as object)
             consentState.ccpa.Delete("data_sale_opt_out")
         end function
     }
-    CCPAConsentState = {}
+    CCPAConsentState = {
+        build : function (document="" as string, consented=false as boolean, location="" as string, timestamp=0 as longInteger, hardwareId="" as string)
+            ccpaConsentState = {}
+            ccpaConsentState.d = document
+            ccpaConsentState.c = consented
+            ccpaConsentState.l = location
+            ccpaConsentState.ts = timestamp
+            ccpaConsentState.h = hardwareId
+            return ccpaConsentState
+        end function
+        setDocument : function (ccpaConsentState as object, document as string)
+            ccpaConsentState.d = document
+        end function,
+        setConsented : function (ccpaConsentState as object, consented as boolean)
+            ccpaConsentState.c = consented
+        end function,
+        setLocation : function (ccpaConsentState as object, location as string)
+            ccpaConsentState.l = location
+        end function,
+        setTimestamp : function (ccpaConsentState as object, timestamp as LongInteger)
+            ccpaConsentState.ts = timestamp
+        end function,
+        setHardwareId : function (ccpaConsentState as object, hardwareId as string)
+            ccpaConsentState.h = hardwareId
+        end function,
+    }
     GDPRConsentState = {
-        build : function ()
-            return {}
+        build : function (document="" as string, consented=false as boolean, location="" as string, timestamp=0 as longInteger, hardwareId="" as string)
+            gdprConsentState = {}
+            gdprConsentState.d = document
+            gdprConsentState.c = consented
+            gdprConsentState.l = location
+            gdprConsentState.ts = timestamp
+            gdprConsentState.h = hardwareId
+            return gdprConsentState
         end function,
         setDocument : function (gdprConsentState as object, document as string)
             gdprConsentState.d = document
         end function,
-        setConsented : function (gdprConsentState as object, consented as string)
+        setConsented : function (gdprConsentState as object, consented as boolean)
             gdprConsentState.c = consented
         end function,
         setLocation : function (gdprConsentState as object, location as string)
