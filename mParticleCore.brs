@@ -153,11 +153,11 @@ function mParticleConstants() as object
         addGDPRConsentState : function (consentState as object, purpose as string, gdprConsent as object)
             consentState.gdpr.AddReplace(purpose, gdprConsent)
         end function,
-        getCCPAConsentState : function (consentState as object)
-            return consentState.ccpa.Lookup("data_sale_opt_out")
+        getCCPAConsentState : function(consentState as object)
+            return consentState.ccpa
         end function,
-        getGDPRConsentState : function (consentState as object, purpose as string)
-            return consentState.gdpr.Lookup(purpose)
+        getGDPRConsentState : function(consentState as object)
+            return consentState.gdpr
         end function,
         removeGDPRConsentState : function (consentState as object, purpose as string)
             if (consentState.gdpr.DoesExist(purpose)) then
