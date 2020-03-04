@@ -37,17 +37,17 @@ sub init()
     gdprConsentStateApi.setTimestamp(gdprConsentState, time.asSeconds())
     gdprConsentStateApi.setHardwareId(gdprConsentState, "IDFA:a5d934n0-232f-4afc-2e9a-3832d95zc702")
 
-    consentStateAPI.addGDPRConsentState(consentState, "location_collection", gdprConsentState)
+    consentStateAPI.addGDPRConsentState(consentState, "functional", gdprConsentState)
 
     ' For testing delete
     gdprToDelete = gdprConsentStateApi.build("deletion_agreement", False, "mparticle.test", time.asSeconds(), "TEST_HARDWARE_ID")
-    consentStateAPI.addGDPRConsentState(consentState, "for_deletion", gdprToDelete)
+    consentStateAPI.addGDPRConsentState(consentState, "performance", gdprToDelete)
 
     print " --- Consent State with GDPR --- "
     print formatjson(consentState)
 
     print " --- Test Removing a GDPR Consent State --- "
-    consentStateAPI.removeGDPRConsentState(consentState, "for_deletion")
+    consentStateAPI.removeGDPRConsentState(consentState, "performance")
     print formatjson(consentState)
 
     ' CCPA
