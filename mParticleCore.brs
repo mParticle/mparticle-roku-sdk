@@ -1452,10 +1452,6 @@ function mParticleStart(options as object, messagePort as object)
         logEvent:           function(eventName as string, eventType = mParticleConstants().CUSTOM_EVENT_TYPE.OTHER, customAttributes = {}) as void
                                 m.logMessage(m.model.CustomEvent(eventName, eventType, customAttributes))
                             end function,
-        sendUserAttributeChangeEvent: function(attributeKey as string, newUserAttributeValue as string, previousUserAttribute as string, isNewAttribute as boolean, deleted as boolean) as void
-                                'm.logMessage(m.model.UserAttributeChange(attributeKey, newUserAttributeValue, previousUserAttribute, isNewAttribute))
-                                print "Sending uac"
-                            end function,
         logScreenEvent:     function(screenName as string, customAttributes = {}) as void
                                 m.logMessage(m.model.ScreenEvent(screenName, customAttributes))
                             end function,
