@@ -546,7 +546,7 @@ function mParticleStart(options as object, messagePort as object)
         end function
 
         storage.getConsentState = function(mpid as string) as object
-            attributeJson = m.get(m.mpkeys.CONSENT_STATE + mpid)
+            consentJson = m.get(m.mpkeys.CONSENT_STATE + mpid)
             consentState = {}
             if (not mparticle()._internal.utils.isEmpty(attributeJson)) then
                consentState = ParseJson(attributeJson)
