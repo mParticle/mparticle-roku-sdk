@@ -174,13 +174,10 @@ function mParticleConstants() as object
         end function
     }
     CCPAConsentState = {
-        build : function (document="" as string, consented=false as boolean, location="" as string, timestamp=0 as longInteger, hardwareId="" as string)
+        build : function (consented as boolean, timestamp as longInteger)
             ccpaConsentState = {}
-            ccpaConsentState.d = document
             ccpaConsentState.c = consented
-            ccpaConsentState.l = location
             ccpaConsentState.ts = timestamp
-            ccpaConsentState.h = hardwareId
             return ccpaConsentState
         end function
         setDocument : function (ccpaConsentState as object, document as string)
@@ -200,13 +197,10 @@ function mParticleConstants() as object
         end function,
     }
     GDPRConsentState = {
-        build : function (document="" as string, consented=false as boolean, location="" as string, timestamp=0 as longInteger, hardwareId="" as string)
+        build : function (consented as boolean, timestamp as longInteger)
             gdprConsentState = {}
-            gdprConsentState.d = document
             gdprConsentState.c = consented
-            gdprConsentState.l = location
             gdprConsentState.ts = timestamp
-            gdprConsentState.h = hardwareId
             return gdprConsentState
         end function,
         setDocument : function (gdprConsentState as object, document as string)
@@ -548,8 +542,8 @@ function mParticleStart(options as object, messagePort as object)
         storage.getConsentState = function(mpid as string) as object
             consentJson = m.get(m.mpkeys.CONSENT_STATE + mpid)
             consentState = {}
-            if (not mparticle()._internal.utils.isEmpty(attributeJson)) then
-               consentState = ParseJson(attributeJson)
+            if (not mparticle()._internal.utils.isEmpty(consentJson)) then
+               consentState = ParseJson(consentJson)
             end if
             return consentState
         end function

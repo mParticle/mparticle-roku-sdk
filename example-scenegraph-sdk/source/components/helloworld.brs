@@ -29,18 +29,20 @@ sub init()
     
     ' GDPR
     gdprConsentStateApi = mpConstants.GDPRConsentState
-    gdprConsentState = gdprConsentStateApi.build()
+    gdprConsentState = gdprConsentStateApi.build(False, time.asSeconds())
     
     gdprConsentStateApi.setDocument(gdprConsentState, "document_agreement.v2")
-    gdprConsentStateApi.setConsented(gdprConsentState, True)
     gdprConsentStateApi.setLocation(gdprConsentState, "dtmgbank.com/signup")
-    gdprConsentStateApi.setTimestamp(gdprConsentState, time.asSeconds())
     gdprConsentStateApi.setHardwareId(gdprConsentState, "IDFA:a5d934n0-232f-4afc-2e9a-3832d95zc702")
 
     consentStateAPI.addGDPRConsentState(consentState, "functional", gdprConsentState)
 
     ' For testing delete
-    gdprToDelete = gdprConsentStateApi.build("deletion_agreement", False, "mparticle.test", time.asSeconds(), "TEST_HARDWARE_ID")
+    gdprToDelete = gdprConsentStateApi.build(False, time.asSeconds())
+    gdprConsentStateApi.setDocument(gdprToDelete, "deletion_agreement")
+    gdprConsentStateApi.setLocation(gdprToDelete, "mparticle.test")
+    gdprConsentStateApi.setHardwareId(gdprToDelete, "TEST_HARDWARE_ID")
+
     consentStateAPI.addGDPRConsentState(consentState, "performance", gdprToDelete)
 
     print " --- Consent State with GDPR --- "
@@ -52,7 +54,11 @@ sub init()
 
     ' CCPA
     ccpaConsentStateApi = mpConstants.CCPAConsentState
-    ccpaToDelete = ccpaConsentStateApi.build("deletion_agreement", False, "mparticle.test", time.asSeconds(), "TEST_HARDWARE_ID")
+    ccpaToDelete = ccpaConsentStateApi.build(False, time.asSeconds())
+    ccpaConsentStateApi.setDocument(ccpaToDelete, "deletion_agreement")
+    ccpaConsentStateApi.setLocation(ccpaToDelete, "mparticle.test")
+    ccpaConsentStateApi.setHardwareId(ccpaToDelete, "TEST_HARDWARE_ID")
+
     print ccpaToDelete
 
     consentStateAPI.setCCPAConsentState(consentState, ccpaToDelete)
@@ -64,13 +70,11 @@ sub init()
     consentStateAPI.removeCCPAConsentState(consentState)
     print formatjson(consentState)
 
-    ccpaConsentState = ccpaConsentStateApi.build()
+    ccpaConsentState = ccpaConsentStateApi.build(True, time.asSeconds())
     print formatjson(ccpaConsentState)
 
     ccpaConsentStateApi.setDocument(ccpaConsentState, "document_agreement.v4")
-    ccpaConsentStateApi.setConsented(ccpaConsentState, True)
     ccpaConsentStateApi.setLocation(ccpaConsentState, "mpbank.com/signup")
-    ccpaConsentStateApi.setTimestamp(ccpaConsentState, time.asSeconds())
     ccpaConsentStateApi.setHardwareId(ccpaConsentState, "IDFA:a5d934n0-232f-4afc-2e9a-3832d95zc702")
 
     consentStateAPI.setCCPAConsentState(consentState, ccpaConsentState)
