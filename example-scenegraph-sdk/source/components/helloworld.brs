@@ -21,6 +21,71 @@ sub init()
     m.mparticle.identity.setUserAttribute("example attribute array", ["foo", "bar"])
 
     m.mparticle.logScreenEvent("hello screen!")
+
+    time = CreateObject("roDateTime")
+
+    consentStateAPI = mpConstants.ConsentState
+    consentState = consentStateAPI.build()
+    
+    ' GDPR
+    gdprConsentStateApi = mpConstants.GDPRConsentState
+    gdprConsentState = gdprConsentStateApi.build(False, time.asSeconds())
+    
+    gdprConsentStateApi.setDocument(gdprConsentState, "document_agreement.v2")
+    gdprConsentStateApi.setLocation(gdprConsentState, "dtmgbank.com/signup")
+    gdprConsentStateApi.setHardwareId(gdprConsentState, "IDFA:a5d934n0-232f-4afc-2e9a-3832d95zc702")
+
+    consentStateAPI.addGDPRConsentState(consentState, "functional", gdprConsentState)
+
+    ' For testing delete
+    gdprToDelete = gdprConsentStateApi.build(False, time.asSeconds())
+    gdprConsentStateApi.setDocument(gdprToDelete, "deletion_agreement")
+    gdprConsentStateApi.setLocation(gdprToDelete, "mparticle.test")
+    gdprConsentStateApi.setHardwareId(gdprToDelete, "TEST_HARDWARE_ID")
+
+    consentStateAPI.addGDPRConsentState(consentState, "performance", gdprToDelete)
+
+    print " --- Consent State with GDPR --- "
+    print formatjson(consentState)
+
+    print " --- Test Removing a GDPR Consent State --- "
+    consentStateAPI.removeGDPRConsentState(consentState, "performance")
+    print formatjson(consentState)
+
+    ' CCPA
+    ccpaConsentStateApi = mpConstants.CCPAConsentState
+    ccpaToDelete = ccpaConsentStateApi.build(False, time.asSeconds())
+    ccpaConsentStateApi.setDocument(ccpaToDelete, "deletion_agreement")
+    ccpaConsentStateApi.setLocation(ccpaToDelete, "mparticle.test")
+    ccpaConsentStateApi.setHardwareId(ccpaToDelete, "TEST_HARDWARE_ID")
+
+    print ccpaToDelete
+
+    consentStateAPI.setCCPAConsentState(consentState, ccpaToDelete)
+
+    print " --- Consent State with CCPA --- "
+    print formatjson(consentState)
+
+    print " --- Test Removing CCPA Consent State --- "
+    consentStateAPI.removeCCPAConsentState(consentState)
+    print formatjson(consentState)
+
+    ccpaConsentState = ccpaConsentStateApi.build(True, time.asSeconds())
+    print formatjson(ccpaConsentState)
+
+    ccpaConsentStateApi.setDocument(ccpaConsentState, "document_agreement.v4")
+    ccpaConsentStateApi.setLocation(ccpaConsentState, "mpbank.com/signup")
+    ccpaConsentStateApi.setHardwareId(ccpaConsentState, "IDFA:a5d934n0-232f-4afc-2e9a-3832d95zc702")
+
+    consentStateAPI.setCCPAConsentState(consentState, ccpaConsentState)
+
+    print " --- Add new CCPA Consent State --- "
+    print formatjson(consentState)
+
+    m.mparticle.identity.setConsentState(consentState)
+    print "--- Consent Test End ---"
+
+    ' Commerce
     
     product = mpConstants.Product.build("foo-sku", "foo-name", 123.45)
     actionApi = mpConstants.ProductAction
