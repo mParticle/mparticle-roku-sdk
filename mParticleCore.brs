@@ -82,13 +82,22 @@ function mParticleConstants() as object
         OTHER2:                10,
         OTHER3:                11,
         OTHER4:                12,
+        OTHER5:                13,
+        OTHER6:                14,
+        OTHER7:                15,
+        OTHER8:                16,
+        OTHER9:                17,
+        OTHER10:               18,
+        MOBILE_NUMBER:         19,
+        PHONE_NUMBER2:         20,
+        PHONE_NUMBER3:         21,
         parseString:           function(identityTypeString as string) as integer
                                   IDENTITY_TYPE = mparticleconstants().IDENTITY_TYPE
                                   if (identityTypeString = IDENTITY_TYPE.OTHER) then
                                     return m.OTHER
-                                  else if (identityTypeString = IDENTITY_TYPE.CUSTOMER_ID) then
+                                  else if (identityTypeString = IDENTITY_TYPE.CUSTOMER_I) then
                                     return m.CUSTOMER_ID
-                                  else if (identityTypeString = IDENTITY_TYPE.FACEBOOK) then
+                                  else if (identityTypeString = IDENTITY_TYPE.FACEBOOK) thenD
                                     return m.FACEBOOK
                                   else if (identityTypeString = IDENTITY_TYPE.TWITTER) then
                                     return m.TWITTER
@@ -108,6 +117,24 @@ function mParticleConstants() as object
                                     return m.OTHER3
                                   else if (identityTypeString = IDENTITY_TYPE.OTHER4) then
                                     return m.OTHER4
+                                  else if (identityTypeString = IDENTITY_TYPE.OTHER5) then
+                                    return m.OTHER5
+                                  else if (identityTypeString = IDENTITY_TYPE.OTHER6) then
+                                    return m.OTHER6
+                                  else if (identityTypeString = IDENTITY_TYPE.OTHER7) then
+                                    return m.OTHER7
+                                  else if (identityTypeString = IDENTITY_TYPE.OTHER8) then
+                                    return m.OTHER8
+                                  else if (identityTypeString = IDENTITY_TYPE.OTHER9) then
+                                    return m.OTHER9
+                                  else if (identityTypeString = IDENTITY_TYPE.OTHER10) then
+                                    return m.OTHER10
+                                  else if (identityTypeString = IDENTITY_TYPE.MOBILE_NUMBER) then
+                                    return m.MOBILE_NUMBER
+                                  else if (identityTypeString = IDENTITY_TYPE.PHONE_NUMBER2) then
+                                    return m.PHONE_NUMBER2
+                                  else if (identityTypeString = IDENTITY_TYPE.PHONE_NUMBER3) then
+                                    return m.PHONE_NUMBER3
                                   end if
                                   return 0
                                end function
@@ -126,6 +153,15 @@ function mParticleConstants() as object
         OTHER2:                "other2",
         OTHER3:                "other3",
         OTHER4:                "other4",
+        OTHER5:                "other5",
+        OTHER6:                "other6",
+        OTHER7:                "other7",
+        OTHER8:                "other8",
+        OTHER9:                "other9",
+        OTHER10:               "other10",
+        MOBILE_NUMBER:         "mobile_number",
+        PHONE_NUMBER2:         "phone_number_2",
+        PHONE_NUMBER3:         "phone_number_3",
         isValidIdentityType:    function(identityType as string) as boolean
                                     allTypes = m.Keys()
                                     mputils = mparticle()._internal.utils
