@@ -19,6 +19,9 @@ sub Main(args as dynamic)
     options.logLevel = mparticleConstants().LOG_LEVEL.DEBUG
     options.apiKey = "REPLACE WITH API KEY"
     options.apiSecret = "REPLACE WITH API SECRET"
+    'OPTIONAL: For use with our data master feature
+    options.dataPlanId = "REPLACE WITH DATA PLAN ID"
+    options.dataPlanVersion = 1 'REPLACE WITH DATA PLAN ID
     
     'If you know the users credentials, supply them here
     'otherwise the SDK will use the last known identities

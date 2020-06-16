@@ -27,11 +27,15 @@ function TestCase__mParticle_CheckConfiguration() as string
     options.logLevel = mparticleConstants().LOG_LEVEL.DEBUG
     options.apiKey = "fookey"
     options.apiSecret = "foosecret"
+    option.dataPlanId = "fooId"
+    options.dataPlanVersion = 1
     options.isscenegraph = true
     mparticlestart(options)
     msgs = []
     msgs.push(m.assertEqual(mparticle()._internal.configuration.apiKey, "fookey"))
     msgs.push(m.assertEqual(mparticle()._internal.configuration.apiSecret, "foosecret"))
+    msgs.push(m.assertEqual(mparticle()._internal.configuration.dataPlanId, "fooId"))
+    msgs.push(m.assertEqual(mparticle()._internal.configuration.dataPlanVersion, 1))
     msgs.push(m.assertEqual(mparticle()._internal.configuration.logLevel, mparticleConstants().LOG_LEVEL.DEBUG))
     msgs.push(m.assertTrue(mparticle()._internal.configuration.isscenegraph))
     return testResult(msgs)
