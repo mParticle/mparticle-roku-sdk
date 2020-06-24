@@ -95,9 +95,9 @@ function mParticleConstants() as object
                                   IDENTITY_TYPE = mparticleconstants().IDENTITY_TYPE
                                   if (identityTypeString = IDENTITY_TYPE.OTHER) then
                                     return m.OTHER
-                                  else if (identityTypeString = IDENTITY_TYPE.CUSTOMER_I) then
+                                  else if (identityTypeString = IDENTITY_TYPE.CUSTOMER_ID) then
                                     return m.CUSTOMER_ID
-                                  else if (identityTypeString = IDENTITY_TYPE.FACEBOOK) thenD
+                                  else if (identityTypeString = IDENTITY_TYPE.FACEBOOK) then
                                     return m.FACEBOOK
                                   else if (identityTypeString = IDENTITY_TYPE.TWITTER) then
                                     return m.TWITTER
