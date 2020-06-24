@@ -671,6 +671,14 @@ function mParticleStart(options as object, messagePort as object)
             mpBatch.ck = mparticle()._internal.storage.getCookies()
             mpBatch.das = mparticle()._internal.storage.getDas()
             mpBatch.con = mparticle()._internal.storage.getConsentState(currentMpid)
+            if (mparticle()._internal.configuration.dataPlanId <> invalid) then
+                mpBatch.ctx = {}
+                mpBatch.ctx.dpln = {}
+                mpBatch.ctx.dpln.id = mparticle()._internal.configuration.dataPlanId
+                if (mparticle()._internal.configuration.dataPlanVersion <> invalid) then 
+                    mpBatch.ctx.dpln.v = mparticle()._internal.configuration.dataPlanVersion
+                end if
+            end if 
             return mpBatch
         end function,
     
