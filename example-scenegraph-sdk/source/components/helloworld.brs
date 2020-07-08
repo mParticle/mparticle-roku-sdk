@@ -106,7 +106,51 @@ sub init()
     m.mparticle.setSessionAttribute("foo attribute key", "bar attribute value")
     m.mparticle.logCommerceEvent(productAction, promotionAction, impressions, {"foo-attribute":"bar-attribute-value"})
     
-    if APPInfo.IsDev() and args.RunTests = "true" and TF_Utils__IsFunction(TestRunner)
+    ' Custom Media Event
+    
+    customAttributes = {"example custom attribute" : "example custom attribute value"}
+    m.mparticle.logEvent("Custom Media Event", mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
+    
+    ' Media API
+    customAttributes = {"example custom attribute" : "example custom attribute value"}    
+    mediaSession = mpConstants.MediaSession.build("ABC123", "Space Pilot 3000", mparticleConstants().MEDIA_CONTENT_TYPE.VIDEO, mparticleConstants().MEDIA_STREAM_TYPE.LIVE_STREAM, 1800000)
+    m.mparticle.media.logMediaSessionStart(mediaSession, customAttributes)
+    
+    print  ("Logging session after start: " + formatjson(mediaSession))
+    
+    customAttributes = {"Source" : "Auto Playback"}    
+    m.mparticle.media.logPlay(mediaSession, customAttributes)
+    
+    print  ("Logging session after play: " + formatjson(mediaSession))
+    
+    m.mparticle.media.logPlayheadPosition(mediaSession, 1000)
+    
+    print  ("Logging session after playhead: " + formatjson(mediaSession))
+    
+    customAttributes = {"Source" : "Player Controls"}
+    m.mparticle.media.logPause(mediaSession, customAttributes)
+    
+    print  ("Logging session after pause: " + formatjson(mediaSession))
+
+    adBreak = mpConstants.adBreak.build("XYZ123", "Gamer Ad Collection")
+    adBreak.duration = 32000
+    m.mparticle.media.logAdBreakStart(mediaSession, adBreak, {})
+    
+    print  ("Logging session after adBreak start: " + formatjson(mediaSession))
+
+    adContent = mpConstants.adContent.build("ABC890", "CP 2077 - Be Cool, Be Anything")
+    adContent.duration = 16000
+    adContent.index = 0
+    adContent.campaign = "CP 2077 Preorder Push"
+    m.mparticle.media.logAdStart(mediaSession, adContent, {})
+    
+    print  ("Logging session after ad start: " + formatjson(mediaSession))
+    
+    customAttributes = {"click_timestamp_ms" : 1593007533602}
+    m.mparticle.media.logAdClick(mediaSession, customAttributes)
+    
+    print  ("Logging session after ad click: " + formatjson(mediaSession))
+    
         Runner = TestRunner()
         Runner.SetFunctions([
             TestCase__ProductAction

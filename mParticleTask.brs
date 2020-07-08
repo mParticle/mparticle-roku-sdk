@@ -52,6 +52,9 @@ function executeApiCall(apiCall as Object)
     if (apiCall.methodName.Instr("identity/") = 0) then
         target = m.mparticle.identity
         methodName = apiCall.methodName.Replace("identity/", "")
+    else if (apiCall.methodName.Instr("media/") = 0) then
+        target = m.mparticle.media
+        methodName = apiCall.methodName.Replace("media/", "")
     else 
         target = m.mparticle
         methodName = apiCall.methodName
