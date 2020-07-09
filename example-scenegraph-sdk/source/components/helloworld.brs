@@ -28,6 +28,10 @@ sub init()
     consentState = consentStateAPI.build()
     
     ' GDPR
+    ' This portion is commented out because a workspace has to be configured for specific GDPR purposes (in this case, 'functional' and 'performance').  
+    ' If the purpose is not configured, events will not be accepted and not show up in the Live Stream. 
+    ' To test your own implementation, make sure you have a GDPR consent purpose activated on your workspace and update the purpose below.  
+    ' Similarly, CCPA (which does not require a purpose) must be configured on your workspace for events with a CCPA attached to work.
     'gdprConsentStateApi = mpConstants.GDPRConsentState
     'gdprConsentState = gdprConsentStateApi.build(False, time.asSeconds())
     
@@ -50,6 +54,7 @@ sub init()
 
     'print " --- Test Removing a GDPR Consent State --- "
     consentStateAPI.removeGDPRConsentState(consentState, "performance")
+    consentStateAPI.removeGDPRConsentState(consentState, "functional")
     'print formatjson(consentState)
 
     ' CCPA
@@ -82,7 +87,7 @@ sub init()
     'print " --- Add new CCPA Consent State --- "
     'print formatjson(consentState)
 
-    'm.mparticle.identity.setConsentState(consentState)
+    m.mparticle.identity.setConsentState(consentState)
     'print "--- Consent Test End ---"
 
     ' Commerce
