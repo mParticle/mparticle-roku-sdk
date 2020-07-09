@@ -707,6 +707,23 @@ function mParticleStart(options as object, messagePort as object)
             mpBatch.ck = mparticle()._internal.storage.getCookies()
             mpBatch.das = mparticle()._internal.storage.getDas()
             mpBatch.con = mparticle()._internal.storage.getConsentState(currentMpid)
+            mplogger = mparticle()._internal.logger
+            if (mparticle()._internal.configuration.dataPlanId <> invalid) then                
+                if ((LCase(type(mparticle()._internal.configuration.dataPlanId))) = "rostring") then
+                    mpBatch.ctx = {}
+                    mpBatch.ctx.dpln = {}
+                    mpBatch.ctx.dpln.id = mparticle()._internal.configuration.dataPlanId
+                    if (mparticle()._internal.configuration.dataPlanVersion <> invalid) then
+                        if ((LCase(type(mparticle()._internal.configuration.dataPlanVersion))) = "roint") then
+                            mpBatch.ctx.dpln.v = mparticle()._internal.configuration.dataPlanVersion
+                        else
+                            mplogger.error("Your data plan version must be a integer.")
+                        endif
+                    end if
+                else
+                    mplogger.error("Your data plan id must be a string.")
+                end if
+            end if 
             return mpBatch
         end function,
     
