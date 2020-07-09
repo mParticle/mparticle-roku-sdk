@@ -123,10 +123,12 @@ sub init()
     
     print  ("Logging session after play: " + formatjson(mediaSession))
     
-    m.mparticle.media.logPlayheadPosition(mediaSession, 1000)
+    mediaSession.currentPlayheadPosition = 1000
+    m.mparticle.media.logPlayheadPosition(mediaSession)
     
     print  ("Logging session after playhead: " + formatjson(mediaSession))
     
+    mediaSession.currentPlayheadPosition = 1900
     customAttributes = {"Source" : "Player Controls"}
     m.mparticle.media.logPause(mediaSession, customAttributes)
     
@@ -141,7 +143,7 @@ sub init()
 
     adContent = mpConstants.adContent.build("ABC890", "CP 2077 - Be Cool, Be Anything")
     adContent.duration = 16000
-    adContent.index = 0
+    adContent.position = 0
     adContent.campaign = "CP 2077 Preorder Push"
     mediaSession.adContent = adContent
     m.mparticle.media.logAdStart(mediaSession, {})
@@ -153,6 +155,16 @@ sub init()
     
     print  ("Logging session after ad click: " + formatjson(mediaSession))
     
+    m.mparticle.media.logAdEnd(mediaSession, {})
+    mediaSession.adContent = invalid
+    
+    print  ("Logging session after ad end: " + formatjson(mediaSession))
+    
+    m.mparticle.media.logQoS(mediaSession, 120, 3, 1232133, 46, {})
+    
+    print  ("Logging session after QOS: " + formatjson(mediaSession))
+    
+    if APPInfo.IsDev() and args.RunTests = "true" and TF_Utils__IsFunction(TestRunner)
         Runner = TestRunner()
         Runner.SetFunctions([
             TestCase__ProductAction

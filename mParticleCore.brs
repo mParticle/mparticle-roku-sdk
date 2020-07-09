@@ -97,12 +97,12 @@ function mParticleConstants() as object
         SEGMENT_SUMMARY: "Segment Session Summary"
     }
     MEDIA_CONTENT_TYPE = {
-        VIDEO: "video",
-        AUDIO: "audio"
+        VIDEO: "Video",
+        AUDIO: "Audio"
     }
     MEDIA_STREAM_TYPE = {
-        LIVE_STREAM: "liveStream",
-        ON_DEMAND: "onDemand"
+        LIVE_STREAM: "LiveStream",
+        ON_DEMAND: "OnDemand"
     }
     IDENTITY_TYPE_INT = {
         OTHER:                 0,
@@ -410,14 +410,14 @@ function mParticleConstants() as object
     '
     
     MediaSession = {
-        build : function(contentID as string, title as string, contentType as string, streamType as string, duration=0 as integer)
+        build : function(contentId as string, title as string, contentType as string, streamType as string, duration=0 as integer)
             session = {}
-            session.contentID = contentID
+            session.contentId = contentId
             session.title = title
             session.duration = duration
             session.contentType = contentType
             session.streamType = streamType
-            session.mediaSessionID = CreateObject("roDeviceInfo").GetRandomUUID()
+            session.mediaSessionId = CreateObject("roDeviceInfo").GetRandomUUID()
             session.currentPlayheadPosition = 0
             return session
         end function,
@@ -460,8 +460,8 @@ function mParticleConstants() as object
         setPlacement : function(ad as object, placement as string)
             ad.placement = placement
         end function,
-        setIndex : function(ad as object, index as integer)
-            ad.index = index
+        setPosition : function(ad as object, position as integer)
+            ad.position = position
         end function,
         setSiteId : function(ad as object, siteId as string)
             ad.siteId = siteId
@@ -1585,11 +1585,15 @@ function mParticleStart(options as object, messagePort as object)
         getEventAttributes: function(mediaSession as object, customAttributes={} as object) as object
             eventAttributes = customAttributes
             if (mediaSession <> invalid) then
-                eventAttributes.media_session_id = mediaSession.mediaSessionID
-                eventAttributes.playhead_position = mediaSession.currentPlayheadPosition.ToStr()
+                eventAttributes.media_session_id = mediaSession.mediaSessionId
+                if (mediaSession.currentPlayheadPosition <> invalid) then
+                    eventAttributes.playhead_position = mediaSession.currentPlayheadPosition.ToStr()
+                end if
                 eventAttributes.content_title = mediaSession.title
-                eventAttributes.content_id = mediaSession.contentID
-                eventAttributes.content_duration = mediaSession.duration.ToStr()
+                eventAttributes.content_id = mediaSession.contentId
+                if (mediaSession.duration <> invalid) then
+                    eventAttributes.content_duration = mediaSession.duration.ToStr()
+                end if
                 eventAttributes.stream_type = mediaSession.streamType
                 eventAttributes.content_type = mediaSession.contentType
                 
@@ -1601,27 +1605,37 @@ function mParticleStart(options as object, messagePort as object)
                     eventAttributes.ad_content_campaign = mediaSession.adContent.campaign
                     eventAttributes.ad_content_creative = mediaSession.adContent.creative
                     eventAttributes.ad_content_placement = mediaSession.adContent.placement
-                    eventAttributes.ad_content_position = mediaSession.adContent.index.ToStr()
+                    if (mediaSession.adContent.position <> invalid) then
+                        eventAttributes.ad_content_position = mediaSession.adContent.position.ToStr()
+                    end if
                     eventAttributes.ad_content_site_id = mediaSession.adContent.siteId
                 end if
                 
                 if (mediaSession.adBreak <> invalid) then
                     eventAttributes.ad_break_title = mediaSession.adBreak.title
-                    eventAttributes.ad_break_duration = mediaSession.adBreak.duration.ToStr()
-                    eventAttributes.ad_break_playback_time = mediaSession.currentPlayheadPosition.ToStr()
+                    if (mediaSession.adBreak.duration <> invalid) then
+                        eventAttributes.ad_break_duration = mediaSession.adBreak.duration.ToStr()
+                    end if
+                    if (mediaSession.currentPlayheadPosition <> invalid) then
+                        eventAttributes.ad_break_playback_time = mediaSession.currentPlayheadPosition.ToStr()
+                    end if
                     eventAttributes.ad_break = mediaSession.adBreak.id
                 end if
                 
                 if (mediaSession.segment <> invalid) then
                     eventAttributes.segment_title = mediaSession.segment.title
-                    eventAttributes.segment_index = mediaSession.segment.index.ToStr()
-                    eventAttributes.segment_duration = mediaSession.segment.duration.ToStr()
+                    if (mediaSession.segment.index <> invalid) then
+                        eventAttributes.segment_index = mediaSession.segment.index.ToStr()
+                    end if
+                    if (mediaSession.segment.duration <> invalid) then
+                        eventAttributes.segment_duration = mediaSession.segment.duration.ToStr()
+                    end if
                 end if
             end if
             
             return eventAttributes
         end function
-        sendMediaMessage : function(eventName as string, eventType as string,  attributes={}) as object
+        sendMediaMessage : function(eventName as string, eventType as string,  attributes={}) as void
             messageType = mParticleConstants().MESSAGE_TYPE.CUSTOM
             currentSession = mparticle()._internal.sessionManager.getCurrentSession()
             if (attributes <> invalid)
@@ -1652,126 +1666,102 @@ function mParticleStart(options as object, messagePort as object)
             message.est = message.ct
             mparticle().logMessage(message)
         end function,
-        logMediaSessionStart: function(mediaSession as object, options={} as object) as object
+        logMediaSessionStart: function(mediaSession as object, options={} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SESSION_START, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
-            return mediaSession
         end function
-        logMediaSessionEnd: function(mediaSession as object, options={} as object) as object
+        logMediaSessionEnd: function(mediaSession as object, options={} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SESSION_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
-            return mediaSession
         end function
-        logMediaContentEnd: function(mediaSession as object, options={} as object) as object
+        logMediaContentEnd: function(mediaSession as object, options={} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.CONTENT_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
-            return mediaSession
         end function
-        logPlay: function(mediaSession as object, options={} as object) as object
+        logPlay: function(mediaSession as object, options={} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.PLAY, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
-            return mediaSession
         end function
-        logPause: function(mediaSession as object, options={} as object) as object
+        logPause: function(mediaSession as object, options={} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.PAUSE, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
-            return mediaSession
         end function
-        logSeekStart: function(mediaSession as object, position as double, options={} as object) as object
+        logSeekStart: function(mediaSession as object, position as double, options={} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             customAttributes.seek_position = position
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SEEK_START, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
-            return mediaSession
         end function
-        logSeekEnd: function(mediaSession as object, position as double, options={}as object) as object
+        logSeekEnd: function(mediaSession as object, position as double, options={} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             customAttributes.seek_position = position
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SEEK_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
-            return mediaSession
         end function
-        logBufferStart: function(mediaSession as object, duration as double, bufferPercent as double, position as double, options={} as object) as object
+        logBufferStart: function(mediaSession as object, duration as double, bufferPercent as double, position as double, options={} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
-            customAttributes.buffer_duration = duration
-            customAttributes.buffer_percent = bufferPercent
-            customAttributes.buffer_position = position
+            customAttributes.buffer_duration = duration.ToStr()
+            customAttributes.buffer_percent = bufferPercent.ToStr()
+            customAttributes.buffer_position = position.ToStr()
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.BUFFER_START, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
-            return mediaSession
         end function
-        logBufferEnd: function(mediaSession as object, duration as double, bufferPercent as double, position as double, options={} as object) as object
+        logBufferEnd: function(mediaSession as object, duration as double, bufferPercent as double, position as double, options={} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
-            customAttributes.buffer_duration = duration
-            customAttributes.buffer_percent = bufferPercent
-            customAttributes.buffer_position = position
+            customAttributes.buffer_duration = duration.ToStr()
+            customAttributes.buffer_percent = bufferPercent.ToStr()
+            customAttributes.buffer_position = position.ToStr()
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.BUFFER_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
-            return mediaSession
         end function
-        logAdBreakStart: function(mediaSession as object, adBreak as object, options={} as object) as object
-            mediaSession.adBreak = adBreak
+        logAdBreakStart: function(mediaSession as object, options={} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.AD_BREAK_START, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
-            return mediaSession
         end function
-        logAdBreakEnd: function(mediaSession as object, options={} as object) as object
+        logAdBreakEnd: function(mediaSession as object, options={} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.AD_BREAK_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
             mediaSession.adBreak = invalid
-            return mediaSession
         end function
-        logAdStart: function(mediaSession as object, adContent as object, options={} as object) as object
-            mediaSession.adContent = adContent
+        logAdStart: function(mediaSession as object, options={} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.AD_START, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
-            return mediaSession
         end function
-        logAdClick: function(mediaSession as object, options={} as object) as object
+        logAdClick: function(mediaSession as object, options={} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.AD_CLICK, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
-            return mediaSession
         end function
-        logAdSkip: function(mediaSession as object, options={} as object) as object
+        logAdSkip: function(mediaSession as object, options={} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.AD_SKIP, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
             mediaSession.adContent = invalid
-            return mediaSession
         end function
-        logAdEnd: function(mediaSession as object, options={} as object) as object
+        logAdEnd: function(mediaSession as object, options={} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.AD_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
             mediaSession.adContent = invalid
-            return mediaSession
         end function
-        logSegmentStart: function(mediaSession as object, segment as object, options={} as object) as object
-            mediaSession.segment = segment
+        logSegmentStart: function(mediaSession as object, options={} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SEGMENT_START, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
-            return mediaSession
         end function
-        logSegmentSkip: function(mediaSession as object, options={} as object) as object
+        logSegmentSkip: function(mediaSession as object, options={} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SEGMENT_SKIP, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
             mediaSession.segment = invalid
-            return mediaSession
         end function
-        logSegmentEnd: function(mediaSession as object, options={} as object) as object
+        logSegmentEnd: function(mediaSession as object, options={} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SEGMENT_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
             mediaSession.segment = invalid
-            return mediaSession
         end function
-        logPlayheadPosition: function(mediaSession as object, position as integer, options={} as object) as object
-            mediaSession.currentPlayheadPosition = position
+        logPlayheadPosition: function(mediaSession as object, options={} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
-            m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SEGMENT_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
-            return mediaSession
+            m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.UPDATE_PLAYHEAD_POSITION, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
         end function
-        logQoS: function(mediaSession as object, startupTime as integer, droppedFrames as integer, bitRate as integer, fps as integer, options={} as object) as object
+        logQoS: function(mediaSession as object, startupTime as integer, droppedFrames as integer, bitRate as integer, fps as integer, options={} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
-            customAttributes.qos_bitrate = bitRate
-            customAttributes.qos_fps = fps
-            customAttributes.qos_startup_time = startupTime
-            customAttributes.qos_dropped_frames = droppedFrames
-            m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SEGMENT_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
-            return mediaSession
+            customAttributes.qos_bitrate = bitRate.ToStr()
+            customAttributes.qos_fps = fps.ToStr()
+            customAttributes.qos_startup_time = startupTime.ToStr()
+            customAttributes.qos_dropped_frames = droppedFrames.ToStr()
+            m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.UPDATE_QOS, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
         end function
     }
     
@@ -1911,65 +1901,65 @@ function mParticleSGBridge(task as object) as object
     mpCreateSGBridgeMediaApi = function(task as object) as object
         return {
             mParticleTask:          task
-            logMediaSessionStart:   function(mediaSession as object, options={} as object) as object
-                                        return m.invokeFunction("media/logMediaSessionStart", [mediaSession, options])
+            logMediaSessionStart:   function(mediaSession as object, options={} as object) as void
+                                        m.invokeFunction("media/logMediaSessionStart", [mediaSession, options])
                                     end function,
-            logMediaSessionEnd:     function(mediaSession as object, options={} as object) as object
-                                        return m.invokeFunction("media/logMediaSessionEnd", [mediaSession, options])
+            logMediaSessionEnd:     function(mediaSession as object, options={} as object) as void
+                                        m.invokeFunction("media/logMediaSessionEnd", [mediaSession, options])
                                     end function,
-            logMediaContentEnd:     function(mediaSession as object, options={} as object) as object
-                                        return m.invokeFunction("media/logMediaContentEnd", [mediaSession, options])
+            logMediaContentEnd:     function(mediaSession as object, options={} as object) as void
+                                        m.invokeFunction("media/logMediaContentEnd", [mediaSession, options])
                                     end function,
-            logPlay:                function(mediaSession as object, options={} as object) as object
-                                        return m.invokeFunction("media/logPlay", [mediaSession, options])
+            logPlay:                function(mediaSession as object, options={} as object) as void
+                                        m.invokeFunction("media/logPlay", [mediaSession, options])
                                     end function,
-            logPause:               function(mediaSession as object, options={} as object) as object
-                                        return m.invokeFunction("media/logPause", [mediaSession, options])
+            logPause:               function(mediaSession as object, options={} as object) as void
+                                        m.invokeFunction("media/logPause", [mediaSession, options])
                                     end function,
-            logSeekStart:           function(mediaSession as object, position as double, options={} as object) as object
-                                        return m.invokeFunction("media/logSeekStart", [mediaSession, position, options])
+            logSeekStart:           function(mediaSession as object, position as double, options={} as object) as void
+                                        m.invokeFunction("media/logSeekStart", [mediaSession, position, options])
                                     end function,
-            logSeekEnd:             function(mediaSession as object, position as double, options={}as object) as object
-                                        return m.invokeFunction("media/logSeekEnd", [mediaSession, position, options])
+            logSeekEnd:             function(mediaSession as object, position as double, options={} as object) as void
+                                        m.invokeFunction("media/logSeekEnd", [mediaSession, position, options])
                                     end function,
-            logBufferStart:         function(mediaSession as object, duration as double, bufferPercent as double, position as double, options={} as object) as object
-                                        return m.invokeFunction("media/logBufferStart", [mediaSession, duration, bufferPercent, position, options])
+            logBufferStart:         function(mediaSession as object, duration as double, bufferPercent as double, position as double, options={} as object) as void
+                                        m.invokeFunction("media/logBufferStart", [mediaSession, duration, bufferPercent, position, options])
                                     end function,
-            logBufferEnd:           function(mediaSession as object, duration as double, bufferPercent as double, position as double, options={} as object) as object
-                                        return m.invokeFunction("media/logBufferEnd", [mediaSession, duration, bufferPercent, position, options])
+            logBufferEnd:           function(mediaSession as object, duration as double, bufferPercent as double, position as double, options={} as object) as void
+                                        m.invokeFunction("media/logBufferEnd", [mediaSession, duration, bufferPercent, position, options])
                                     end function,
-            logAdBreakStart:        function(mediaSession as object, adBreak as object, options={} as object) as object
-                                        return m.invokeFunction("media/logAdBreakStart", [mediaSession, adBreak, options])
+            logAdBreakStart:        function(mediaSession as object, options={} as object) as void
+                                        m.invokeFunction("media/logAdBreakStart", [mediaSession, options])
                                     end function,
-            logAdBreakEnd:          function(mediaSession as object, options={} as object) as object
-                                        return m.invokeFunction("media/logAdBreakEnd", [mediaSession, options])
+            logAdBreakEnd:          function(mediaSession as object, options={} as object) as void
+                                        m.invokeFunction("media/logAdBreakEnd", [mediaSession, options])
                                     end function,
-            logAdStart:             function(mediaSession as object, adContent as object, options={} as object) as object
-                                        return m.invokeFunction("media/logAdStart", [mediaSession, adContent, options])
+            logAdStart:             function(mediaSession as object, options={} as object) as void
+                                        m.invokeFunction("media/logAdStart", [mediaSession, options])
                                     end function,
-            logAdClick:             function(mediaSession as object, options={} as object) as object
-                                        return m.invokeFunction("media/logAdClick", [mediaSession, options])
+            logAdClick:             function(mediaSession as object, options={} as object) as void
+                                        m.invokeFunction("media/logAdClick", [mediaSession, options])
                                     end function,
-            logAdSkip:              function(mediaSession as object, options={} as object) as object
-                                        return m.invokeFunction("media/logAdSkip", [mediaSession, options])
+            logAdSkip:              function(mediaSession as object, options={} as object) as void
+                                        m.invokeFunction("media/logAdSkip", [mediaSession, options])
                                     end function,
-            logAdEnd:               function(mediaSession as object, options={} as object) as object
-                                        return m.invokeFunction("media/logAdEnd", [mediaSession, options])
+            logAdEnd:               function(mediaSession as object, options={} as object) as void
+                                        m.invokeFunction("media/logAdEnd", [mediaSession, options])
                                     end function,
-            logSegmentStart:        function(mediaSession as object, segment as object, options={} as object) as object
-                                        return m.invokeFunction("media/logSegmentStart", [mediaSession, segment, options])
+            logSegmentStart:        function(mediaSession as object, options={} as object) as void
+                                        m.invokeFunction("media/logSegmentStart", [mediaSession, segment, options])
                                     end function,
-            logSegmentSkip:         function(mediaSession as object, options={} as object) as object
-                                        return m.invokeFunction("media/logSegmentSkip", [mediaSession, options])
+            logSegmentSkip:         function(mediaSession as object, options={} as object) as void
+                                        m.invokeFunction("media/logSegmentSkip", [mediaSession, options])
                                     end function,
-            logSegmentEnd:          function(mediaSession as object, options={} as object) as object
-                                        return m.invokeFunction("media/logSegmentEnd", [mediaSession, options])
+            logSegmentEnd:          function(mediaSession as object, options={} as object) as void
+                                        m.invokeFunction("media/logSegmentEnd", [mediaSession, options])
                                     end function,
-            logPlayheadPosition:    function(mediaSession as object, position as integer, options={} as object) as object
-                                        return m.invokeFunction("media/logPlayheadPosition", [mediaSession, position, options])
+            logPlayheadPosition:    function(mediaSession as object, options={} as object) as void
+                                        m.invokeFunction("media/logPlayheadPosition", [mediaSession, options])
                                     end function,
-            logQoS:                 function(mediaSession as object, startupTime as integer, droppedFrames as integer, bitRate as integer, fps as integer, options={} as object) as object
-                                        return m.invokeFunction("media/logQoS", [mediaSession, startupTime, droppedFrames, bitRate, fps, options])
+            logQoS:                 function(mediaSession as object, startupTime as integer, droppedFrames as integer, bitRate as integer, fps as integer, options={} as object) as void
+                                        m.invokeFunction("media/logQoS", [mediaSession, startupTime, droppedFrames, bitRate, fps, options])
                                     end function,
             invokeFunction:         function(name as string, args)
                                         invocation = {}
