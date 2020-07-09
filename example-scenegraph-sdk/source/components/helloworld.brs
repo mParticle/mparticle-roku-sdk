@@ -134,7 +134,8 @@ sub init()
 
     adBreak = mpConstants.adBreak.build("XYZ123", "Gamer Ad Collection")
     adBreak.duration = 32000
-    m.mparticle.media.logAdBreakStart(mediaSession, adBreak, {})
+    mediaSession.adBreak = adBreak
+    m.mparticle.media.logAdBreakStart(mediaSession, {})
     
     print  ("Logging session after adBreak start: " + formatjson(mediaSession))
 
@@ -142,7 +143,8 @@ sub init()
     adContent.duration = 16000
     adContent.index = 0
     adContent.campaign = "CP 2077 Preorder Push"
-    m.mparticle.media.logAdStart(mediaSession, adContent, {})
+    mediaSession.adContent = adContent
+    m.mparticle.media.logAdStart(mediaSession, {})
     
     print  ("Logging session after ad start: " + formatjson(mediaSession))
     

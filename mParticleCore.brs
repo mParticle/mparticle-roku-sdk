@@ -1586,10 +1586,10 @@ function mParticleStart(options as object, messagePort as object)
             eventAttributes = customAttributes
             if (mediaSession <> invalid) then
                 eventAttributes.media_session_id = mediaSession.mediaSessionID
-                eventAttributes.playhead_position = mediaSession.currentPlayheadPosition
+                eventAttributes.playhead_position = mediaSession.currentPlayheadPosition.ToStr()
                 eventAttributes.content_title = mediaSession.title
                 eventAttributes.content_id = mediaSession.contentID
-                eventAttributes.content_duration = mediaSession.duration
+                eventAttributes.content_duration = mediaSession.duration.ToStr()
                 eventAttributes.stream_type = mediaSession.streamType
                 eventAttributes.content_type = mediaSession.contentType
                 
@@ -1601,21 +1601,21 @@ function mParticleStart(options as object, messagePort as object)
                     eventAttributes.ad_content_campaign = mediaSession.adContent.campaign
                     eventAttributes.ad_content_creative = mediaSession.adContent.creative
                     eventAttributes.ad_content_placement = mediaSession.adContent.placement
-                    eventAttributes.ad_content_position = mediaSession.adContent.index
+                    eventAttributes.ad_content_position = mediaSession.adContent.index.ToStr()
                     eventAttributes.ad_content_site_id = mediaSession.adContent.siteId
                 end if
                 
                 if (mediaSession.adBreak <> invalid) then
                     eventAttributes.ad_break_title = mediaSession.adBreak.title
-                    eventAttributes.ad_break_duration = mediaSession.adBreak.duration
-                    eventAttributes.ad_break_playback_time = mediaSession.currentPlayheadPosition
+                    eventAttributes.ad_break_duration = mediaSession.adBreak.duration.ToStr()
+                    eventAttributes.ad_break_playback_time = mediaSession.currentPlayheadPosition.ToStr()
                     eventAttributes.ad_break = mediaSession.adBreak.id
                 end if
                 
                 if (mediaSession.segment <> invalid) then
                     eventAttributes.segment_title = mediaSession.segment.title
-                    eventAttributes.segment_index = mediaSession.segment.index
-                    eventAttributes.segment_duration = mediaSession.segment.duration
+                    eventAttributes.segment_index = mediaSession.segment.index.ToStr()
+                    eventAttributes.segment_duration = mediaSession.segment.duration.ToStr()
                 end if
             end if
             
