@@ -105,6 +105,30 @@ sub init()
     impressions = [mpConstants.Impression.build("foo-list", [product])]
     m.mparticle.setSessionAttribute("foo attribute key", "bar attribute value")
     m.mparticle.logCommerceEvent(productAction, promotionAction, impressions, {"foo-attribute":"bar-attribute-value"})
+    
+    if APPInfo.IsDev() and args.RunTests = "true" and TF_Utils__IsFunction(TestRunner)
+        Runner = TestRunner()
+        Runner.SetFunctions([
+            TestCase__ProductAction
+            Test_SimpleCustom
+            Test_Consent
+        ])
+    
+        if args.IncludeFilter <> invalid
+            Runner.SetIncludeFilter(args.IncludeFilter)
+        end if
+    
+        if args.ExcludeFilter <> invalid
+            Runner.SetExcludeFilter(args.ExcludeFilter)
+        end if
+    
+        Runner.Logger.SetVerbosity(3)
+        Runner.Logger.SetEcho(false)
+        Runner.Logger.SetJUnit(false)
+        Runner.SetFailFast(true)
+      
+        Runner.Run()
+    end if
 end sub
 
 function onIdentityResult() as void
