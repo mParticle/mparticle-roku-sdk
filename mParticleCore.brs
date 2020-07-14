@@ -1947,7 +1947,7 @@ function mParticleSGBridge(task as object) as object
                                         m.invokeFunction("media/logAdEnd", [mediaSession, options])
                                     end function,
             logSegmentStart:        function(mediaSession as object, options={} as object) as void
-                                        m.invokeFunction("media/logSegmentStart", [mediaSession, segment, options])
+                                        m.invokeFunction("media/logSegmentStart", [mediaSession, options])
                                     end function,
             logSegmentSkip:         function(mediaSession as object, options={} as object) as void
                                         m.invokeFunction("media/logSegmentSkip", [mediaSession, options])

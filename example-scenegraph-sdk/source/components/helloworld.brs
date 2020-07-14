@@ -118,6 +118,12 @@ sub init()
     
     print  ("Logging session after start: " + formatjson(mediaSession))
     
+    segment = mpConstants.Segment.build("Chapter 1", 0, 183400)
+    mediaSession.segment = segment
+    m.mparticle.media.logSegmentStart(mediaSession, customAttributes)
+    
+    print  ("Logging session after segment start: " + formatjson(mediaSession))
+    
     customAttributes = {"Source" : "Auto Playback"}    
     m.mparticle.media.logPlay(mediaSession, customAttributes)
     
@@ -160,16 +166,77 @@ sub init()
     
     print  ("Logging session after ad end: " + formatjson(mediaSession))
     
+    adContent2 = mpConstants.adContent.build("ABC543", "VtM: B2 - Own the night")
+    adContent2.duration = 16000
+    adContent2.position = 0
+    adContent2.campaign = "VtM: Revival"
+    mediaSession.adContent = adContent2
+    m.mparticle.media.logAdStart(mediaSession, {})
+    
+    print  ("Logging session after ad start 2: " + formatjson(mediaSession))
+    
+    m.mparticle.media.logAdSkip(mediaSession, {})
+    mediaSession.adContent = invalid
+    
+    print  ("Logging session after ad skip: " + formatjson(mediaSession))
+    
+    m.mparticle.media.logAdBreakEnd(mediaSession, {})
+    mediaSession.adBreak = invalid
+    
+    print  ("Logging session after adBreak end: " + formatjson(mediaSession))
+        
     m.mparticle.media.logQoS(mediaSession, 120, 3, 1232133, 46, {})
     
     print  ("Logging session after QOS: " + formatjson(mediaSession))
     
-    if APPInfo.IsDev() and args.RunTests = "true" and TF_Utils__IsFunction(TestRunner)
+    m.mparticle.media.logSegmentEnd(mediaSession, customAttributes)
+    mediaSession.segment = invalid
+    
+    print  ("Logging session after segment end: " + formatjson(mediaSession))
+    
+    segment2 = mpConstants.Segment.build("Chapter 2", 1, 17500)
+    mediaSession.segment = segment2
+    m.mparticle.media.logSegmentStart(mediaSession, customAttributes)
+    
+    print  ("Logging session after segment start 2: " + formatjson(mediaSession))
+    
+    m.mparticle.media.logSeekStart(mediaSession, 1900, customAttributes)
+    
+    print  ("Logging session after seek start: " + formatjson(mediaSession))
+    
+    m.mparticle.media.logSeekEnd(mediaSession, 45600, {})
+    
+    print  ("Logging session after seek end: " + formatjson(mediaSession))
+    
+    m.mparticle.media.logSegmentSkip(mediaSession, customAttributes)
+    mediaSession.segment = invalid
+    
+    print  ("Logging session after segment skip: " + formatjson(mediaSession))
+    
+    m.mparticle.media.logBufferStart(mediaSession, 1200, 0.12, 45600, customAttributes)
+    
+    print  ("Logging session after buffer start: " + formatjson(mediaSession))
+    
+    m.mparticle.media.logBufferEnd(mediaSession, 563300, 1.0, 45600, {})
+    
+    print  ("Logging session after buffer end: " + formatjson(mediaSession))
+    
+    m.mparticle.media.logMediaContentEnd(mediaSession, customAttributes)
+    
+    print  ("Logging session after media content End: " + formatjson(mediaSession))
+    
+    m.mparticle.media.logMediaSessionEnd(mediaSession, customAttributes)
+    
+    print  ("Logging session after End: " + formatjson(mediaSession))
+    
+    appInfo = CreateObject("roAppInfo")
+    if appInfo.IsDev() and Type(TestRunner) <> "<uninitialized>" and TestRunner <> invalid and GetInterface(TestRunner, "ifFunction") <> invalid then
         Runner = TestRunner()
         Runner.SetFunctions([
             TestCase__ProductAction
             Test_SimpleCustom
             Test_Consent
+            Test_Media
         ])
     
         if args.IncludeFilter <> invalid
