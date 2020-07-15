@@ -122,12 +122,6 @@ end function
 
  ' @Test
  function Test_Media() as String
-    ' Custom Media Event
-    
-    customAttributes = {"example custom attribute" : "example custom attribute value"}
-    m.mp.logEvent("Custom Media Event", mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
-    
-    ' Media API
     customAttributes = {"example custom attribute" : "example custom attribute value"}    
     mediaSession = mpConstants.MediaSession.build("ABC123", "Space Pilot 3000", mparticleConstants().MEDIA_CONTENT_TYPE.VIDEO, mparticleConstants().MEDIA_STREAM_TYPE.LIVE_STREAM, 1800000)
     m.mp.media.logMediaSessionStart(mediaSession, customAttributes)
