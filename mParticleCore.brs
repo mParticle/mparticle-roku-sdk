@@ -102,7 +102,10 @@ function mParticleConstants() as object
     }
     MEDIA_STREAM_TYPE = {
         LIVE_STREAM: "LiveStream",
-        ON_DEMAND: "OnDemand"
+        ON_DEMAND: "OnDemand",
+        LINEAR = "Linear",
+        PODCAST = "Podcast",
+        AUDIOBOOK = "Audiobook"
     }
     IDENTITY_TYPE_INT = {
         OTHER:                 0,
