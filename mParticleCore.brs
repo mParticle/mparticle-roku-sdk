@@ -1195,7 +1195,7 @@ function mParticleStart(options as object, messagePort as object)
                 end if
 
                 return {
-                    sessionId: mparticle()._internal.utils.randomGuid()
+                    sessionId: mparticle()._internal.utils.randomGuid(),
                     startTime: currentTime,
                     dataConnection: deviceInfo.GetConnectionType(),
                     launchReferrer: launchReferrer
@@ -1258,10 +1258,10 @@ function mParticleStart(options as object, messagePort as object)
             return message
         end function,
 
-        SessionStart: function(session) as object
+        SessionStart: function(session as object) as object
             message = m.Message(mParticleConstants().MESSAGE_TYPE.SESSION_START)
             message.ct = session.startTime
-            message.sid = session.sessionId
+            message.id = session.sessionId
             message.dct = session.dataConnection
             message.lr = session.launchReferrer
             if (session.previousSessionLength <> invalid) then
