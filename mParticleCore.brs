@@ -968,7 +968,7 @@ function mParticleStart(options as object, messagePort as object)
                     end if
                 end if
 
-                m.nextAllowedUploadTime = mparticle()._internal.utils.unixTimeMillis() + m.currentBackoffAttempt
+                m.nextAllowedUploadTime = mparticle()._internal.utils.unixTimeMillis() + m.currentBackoffDuration
             end function,
             canUpload: function() as boolean
                 if (m.nextAllowedUploadTime = 0)
