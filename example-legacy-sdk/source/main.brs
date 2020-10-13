@@ -1,13 +1,13 @@
 function main(args as dynamic)
 
     if args.RunIntegrationTests = "true" then
-        screen = CreateObject("roPosterScreen") 
+        screen = CreateObject("roPosterScreen")
         port = CreateObject("roMessagePort")
         screen.SetMessagePort(port)
 
         screen.ShowMessage("Hello mParticle!")
         screen.Show()
-        
+
         options = {}
         options.logLevel = mparticleConstants().LOG_LEVEL.DEBUG
         options.apiKey = "REPLACE WITH API KEY"
@@ -32,7 +32,7 @@ function main(args as dynamic)
         end while
 
         screen.Close()
-  
+
     else if args.RunUnitTests = "true" and type(TestRunner) = "Function" then
         Runner = TestRunner()
         Runner.testsDirectory = "pkg:/source/testing/tests"
@@ -40,6 +40,6 @@ function main(args as dynamic)
         Runner.logger.SetEcho(true)
         Runner.SetFailFast(true)
         Runner.Run()
-    end if 
-    
+    end if
+
 end function
