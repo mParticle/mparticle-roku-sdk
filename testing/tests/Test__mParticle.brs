@@ -60,11 +60,11 @@ function TestCase__mParticle_CheckSetEnvironment() as string
     return testResult(msgs)
 end function
 
-function TestCase__mParticle_TestSetUserIdentity() as string 
+function TestCase__mParticle_TestSetUserIdentity() as string
     reset()
     options = {}
     mparticlestart({})
-    mp =  mparticle()
+    mp = mparticle()
     mp._internal.storage.clear()
     mp.setuseridentity(mparticleConstants().IDENTITY_TYPE.CUSTOMER_ID, "foo-customer-id")
     identity = mparticle()._internal.storage.getUserIdentities().lookup(mparticleConstants().IDENTITY_TYPE.CUSTOMER_ID)

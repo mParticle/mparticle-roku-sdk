@@ -1,0 +1,26 @@
+
+name: CI
+# This workflow is triggered on pushes to the repository.
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  ci:
+    name: CI
+    runs-on: macOS-latest
+    strategy:
+      matrix:
+        os: [macos-10.15]
+    steps:
+     - uses: actions/checkout@v2
+     - name: Use Node.js ${{ matrix.node-version }}
+       uses: actions/setup-node@v1
+       with:
+         node-version: ${{ matrix.node-version }}
+     - run: npm i -g brighterscript-formatter
+     - run: bsfmt "**/*.brs" --check

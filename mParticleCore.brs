@@ -1,35 +1,35 @@
 '*************************************************************
 ' mParticle Roku SDK - Core APIs
-' Copyright 2019 mParticle, Inc. 
+' Copyright 2019 mParticle, Inc.
 '*************************************************************
 
 '
 ' mParticleConstants() surface various fields for interacting with the mParticle APIs
 '
-function mParticleConstants() as object 
+function mParticleConstants() as object
     SDK_VERSION = "2.1.5"
     LOG_LEVEL = {
-        NONE:   0,
-        ERROR:  1,
-        INFO:   2,
-        DEBUG:  3
+        NONE: 0,
+        ERROR: 1,
+        INFO: 2,
+        DEBUG: 3
     }
     ENVIRONMENT = {
-        AUTO_DETECT:        0,
-        FORCE_DEVELOPMENT:  1,
-        FORCE_PRODUCTION:   2
+        AUTO_DETECT: 0,
+        FORCE_DEVELOPMENT: 1,
+        FORCE_PRODUCTION: 2
     }
     'You may pass in any of these options to the mParticle SDK, via mParticleStart
     'or via the Global mParticle options field
     DEFAULT_OPTIONS = {
-        apiKey:                 "",
-        apiSecret:              "",
-        environment:            ENVIRONMENT.AUTO_DETECT,
-        logLevel:               LOG_LEVEL.ERROR,
-        enablePinning:          true,
-        certificateDir:         "pkg:/source/mparticle/mParticleBundle.crt",
-        sessionTimeoutMillis:   60 * 1000,
-        batchUploads:           false,
+        apiKey: "",
+        apiSecret: "",
+        environment: ENVIRONMENT.AUTO_DETECT,
+        logLevel: LOG_LEVEL.ERROR,
+        enablePinning: true,
+        certificateDir: "pkg:/source/mparticle/mParticleBundle.crt",
+        sessionTimeoutMillis: 60 * 1000,
+        batchUploads: false,
     }
     SCENEGRAPH_NODES = {
         API_CALL_NODE: "mParticleApiCall",
@@ -37,38 +37,38 @@ function mParticleConstants() as object
         IDENTITY_RESULT_NODE: "mParticleIdentityResult"
     }
     USER_ATTRIBUTES = {
-        FIRSTNAME:      "$FirstName",
-        LASTNAME:       "$LastName",
-        ADDRESS:        "$Address",
-        STATE:          "$State",
-        CITY:           "$City",
-        ZIPCODE:        "$Zip",
-        COUNTRY:        "$Country",
-        AGE:            "$Age",
-        GENDER:         "$Gender",
-        MOBILE_NUMBER:  "$Mobile"
+        FIRSTNAME: "$FirstName",
+        LASTNAME: "$LastName",
+        ADDRESS: "$Address",
+        STATE: "$State",
+        CITY: "$City",
+        ZIPCODE: "$Zip",
+        COUNTRY: "$Country",
+        AGE: "$Age",
+        GENDER: "$Gender",
+        MOBILE_NUMBER: "$Mobile"
     }
     MESSAGE_TYPE = {
-        SESSION_START:          "ss",
-        SESSION_END:            "se",
-        CUSTOM:                 "e",
-        SCREEN:                 "v",
-        OPT_OUT:                "o",
-        ERROR:                  "x",
-        BREADCRUMB:             "b",
-        APP_STATE_TRANSITION:   "ast",
-        COMMERCE:               "cm"
+        SESSION_START: "ss",
+        SESSION_END: "se",
+        CUSTOM: "e",
+        SCREEN: "v",
+        OPT_OUT: "o",
+        ERROR: "x",
+        BREADCRUMB: "b",
+        APP_STATE_TRANSITION: "ast",
+        COMMERCE: "cm"
     }
     CUSTOM_EVENT_TYPE = {
-        NAVIGATION:         "navigation",
-        LOCATION:           "location",
-        SEARCH:             "search",
-        TRANSACTION:        "transaction", 
-        USER_CONTENT:       "usercontent",
-        USER_PREFERENCE:    "userpreference",
-        SOCIAL:             "social",
-        OTHER:              "other",
-        MEDIA:              "media"
+        NAVIGATION: "navigation",
+        LOCATION: "location",
+        SEARCH: "search",
+        TRANSACTION: "transaction",
+        USER_CONTENT: "usercontent",
+        USER_PREFERENCE: "userpreference",
+        SOCIAL: "social",
+        OTHER: "other",
+        MEDIA: "media"
     }
     MEDIA_EVENT_NAME = {
         PLAY: "Play",
@@ -108,115 +108,115 @@ function mParticleConstants() as object
         AUDIOBOOK: "Audiobook"
     }
     IDENTITY_TYPE_INT = {
-        OTHER:                 0,
-        CUSTOMER_ID:           1,
-        FACEBOOK:              2,
-        TWITTER:               3,
-        GOOGLE:                4,
-        MICROSOFT:             5,
-        YAHOO:                 6,
-        EMAIL:                 7,
-        FACEBOOK_AUDIENCE_ID:  9,
-        OTHER2:                10,
-        OTHER3:                11,
-        OTHER4:                12,
-        OTHER5:                13,
-        OTHER6:                14,
-        OTHER7:                15,
-        OTHER8:                16,
-        OTHER9:                17,
-        OTHER10:               18,
-        MOBILE_NUMBER:         19,
-        PHONE_NUMBER2:         20,
-        PHONE_NUMBER3:         21,
-        parseString:           function(identityTypeString as string) as integer
-                                  IDENTITY_TYPE = mparticleconstants().IDENTITY_TYPE
-                                  if (identityTypeString = IDENTITY_TYPE.OTHER) then
-                                    return m.OTHER
-                                  else if (identityTypeString = IDENTITY_TYPE.CUSTOMER_ID) then
-                                    return m.CUSTOMER_ID
-                                  else if (identityTypeString = IDENTITY_TYPE.FACEBOOK) then
-                                    return m.FACEBOOK
-                                  else if (identityTypeString = IDENTITY_TYPE.TWITTER) then
-                                    return m.TWITTER
-                                  else if (identityTypeString = IDENTITY_TYPE.GOOGLE) then
-                                    return m.GOOGLE
-                                  else if (identityTypeString = IDENTITY_TYPE.MICROSOFT) then
-                                    return m.MICROSOFT
-                                  else if (identityTypeString = IDENTITY_TYPE.YAHOO) then
-                                    return m.YAHOO
-                                  else if (identityTypeString = IDENTITY_TYPE.EMAIL) then
-                                    return m.EMAIL
-                                  else if (identityTypeString = IDENTITY_TYPE.FACEBOOK_AUDIENCE_ID) then
-                                    return m.FACEBOOK_AUDIENCE_ID
-                                  else if (identityTypeString = IDENTITY_TYPE.OTHER2) then
-                                    return m.OTHER2
-                                  else if (identityTypeString = IDENTITY_TYPE.OTHER3) then
-                                    return m.OTHER3
-                                  else if (identityTypeString = IDENTITY_TYPE.OTHER4) then
-                                    return m.OTHER4
-                                  else if (identityTypeString = IDENTITY_TYPE.OTHER5) then
-                                    return m.OTHER5
-                                  else if (identityTypeString = IDENTITY_TYPE.OTHER6) then
-                                    return m.OTHER6
-                                  else if (identityTypeString = IDENTITY_TYPE.OTHER7) then
-                                    return m.OTHER7
-                                  else if (identityTypeString = IDENTITY_TYPE.OTHER8) then
-                                    return m.OTHER8
-                                  else if (identityTypeString = IDENTITY_TYPE.OTHER9) then
-                                    return m.OTHER9
-                                  else if (identityTypeString = IDENTITY_TYPE.OTHER10) then
-                                    return m.OTHER10
-                                  else if (identityTypeString = IDENTITY_TYPE.MOBILE_NUMBER) then
-                                    return m.MOBILE_NUMBER
-                                  else if (identityTypeString = IDENTITY_TYPE.PHONE_NUMBER2) then
-                                    return m.PHONE_NUMBER2
-                                  else if (identityTypeString = IDENTITY_TYPE.PHONE_NUMBER3) then
-                                    return m.PHONE_NUMBER3
-                                  end if
-                                  return 0
-                               end function
+        OTHER: 0,
+        CUSTOMER_ID: 1,
+        FACEBOOK: 2,
+        TWITTER: 3,
+        GOOGLE: 4,
+        MICROSOFT: 5,
+        YAHOO: 6,
+        EMAIL: 7,
+        FACEBOOK_AUDIENCE_ID: 9,
+        OTHER2: 10,
+        OTHER3: 11,
+        OTHER4: 12,
+        OTHER5: 13,
+        OTHER6: 14,
+        OTHER7: 15,
+        OTHER8: 16,
+        OTHER9: 17,
+        OTHER10: 18,
+        MOBILE_NUMBER: 19,
+        PHONE_NUMBER2: 20,
+        PHONE_NUMBER3: 21,
+        parseString: function(identityTypeString as string) as integer
+            IDENTITY_TYPE = mparticleconstants().IDENTITY_TYPE
+            if (identityTypeString = IDENTITY_TYPE.OTHER) then
+                return m.OTHER
+            else if (identityTypeString = IDENTITY_TYPE.CUSTOMER_ID) then
+                return m.CUSTOMER_ID
+            else if (identityTypeString = IDENTITY_TYPE.FACEBOOK) then
+                return m.FACEBOOK
+            else if (identityTypeString = IDENTITY_TYPE.TWITTER) then
+                return m.TWITTER
+            else if (identityTypeString = IDENTITY_TYPE.GOOGLE) then
+                return m.GOOGLE
+            else if (identityTypeString = IDENTITY_TYPE.MICROSOFT) then
+                return m.MICROSOFT
+            else if (identityTypeString = IDENTITY_TYPE.YAHOO) then
+                return m.YAHOO
+            else if (identityTypeString = IDENTITY_TYPE.EMAIL) then
+                return m.EMAIL
+            else if (identityTypeString = IDENTITY_TYPE.FACEBOOK_AUDIENCE_ID) then
+                return m.FACEBOOK_AUDIENCE_ID
+            else if (identityTypeString = IDENTITY_TYPE.OTHER2) then
+                return m.OTHER2
+            else if (identityTypeString = IDENTITY_TYPE.OTHER3) then
+                return m.OTHER3
+            else if (identityTypeString = IDENTITY_TYPE.OTHER4) then
+                return m.OTHER4
+            else if (identityTypeString = IDENTITY_TYPE.OTHER5) then
+                return m.OTHER5
+            else if (identityTypeString = IDENTITY_TYPE.OTHER6) then
+                return m.OTHER6
+            else if (identityTypeString = IDENTITY_TYPE.OTHER7) then
+                return m.OTHER7
+            else if (identityTypeString = IDENTITY_TYPE.OTHER8) then
+                return m.OTHER8
+            else if (identityTypeString = IDENTITY_TYPE.OTHER9) then
+                return m.OTHER9
+            else if (identityTypeString = IDENTITY_TYPE.OTHER10) then
+                return m.OTHER10
+            else if (identityTypeString = IDENTITY_TYPE.MOBILE_NUMBER) then
+                return m.MOBILE_NUMBER
+            else if (identityTypeString = IDENTITY_TYPE.PHONE_NUMBER2) then
+                return m.PHONE_NUMBER2
+            else if (identityTypeString = IDENTITY_TYPE.PHONE_NUMBER3) then
+                return m.PHONE_NUMBER3
+            end if
+            return 0
+        end function
     }
-    
+
     IDENTITY_TYPE = {
-        OTHER:                 "other",
-        CUSTOMER_ID:           "customerid",
-        FACEBOOK:              "facebook",
-        TWITTER:               "twitter",
-        GOOGLE:                "google",
-        MICROSOFT:             "microsoft",
-        YAHOO:                 "yahoo",
-        EMAIL:                 "email",
-        FACEBOOK_AUDIENCE_ID:  "facebookcustomaudienceid",
-        OTHER2:                "other2",
-        OTHER3:                "other3",
-        OTHER4:                "other4",
-        OTHER5:                "other5",
-        OTHER6:                "other6",
-        OTHER7:                "other7",
-        OTHER8:                "other8",
-        OTHER9:                "other9",
-        OTHER10:               "other10",
-        MOBILE_NUMBER:         "mobile_number",
-        PHONE_NUMBER2:         "phone_number_2",
-        PHONE_NUMBER3:         "phone_number_3",
-        isValidIdentityType:    function(identityType as string) as boolean
-                                    allTypes = m.Keys()
-                                    mputils = mparticle()._internal.utils
-                                    for each idType in allTypes
-                                        if (mputils.isString(m[idType]) and m[idType] = identityType) then
-                                            return true
-                                        end if
-                                    end for
-                                    return false
-                                end function
-        
+        OTHER: "other",
+        CUSTOMER_ID: "customerid",
+        FACEBOOK: "facebook",
+        TWITTER: "twitter",
+        GOOGLE: "google",
+        MICROSOFT: "microsoft",
+        YAHOO: "yahoo",
+        EMAIL: "email",
+        FACEBOOK_AUDIENCE_ID: "facebookcustomaudienceid",
+        OTHER2: "other2",
+        OTHER3: "other3",
+        OTHER4: "other4",
+        OTHER5: "other5",
+        OTHER6: "other6",
+        OTHER7: "other7",
+        OTHER8: "other8",
+        OTHER9: "other9",
+        OTHER10: "other10",
+        MOBILE_NUMBER: "mobile_number",
+        PHONE_NUMBER2: "phone_number_2",
+        PHONE_NUMBER3: "phone_number_3",
+        isValidIdentityType: function(identityType as string) as boolean
+            allTypes = m.Keys()
+            mputils = mparticle()._internal.utils
+            for each idType in allTypes
+                if (mputils.isString(m[idType]) and m[idType] = identityType) then
+                    return true
+                end if
+            end for
+            return false
+        end function
+
     }
     '
     ' Consent Management
     '
     ConsentState = {
-        build : function ()
+        build: function()
             consentState = {}
             consentState.gdpr = {}
             consentState.ccpa = {}
@@ -224,95 +224,95 @@ function mParticleConstants() as object
         end function,
 
         ' GDPR
-        addGDPRConsentState : function (consentState as object, purpose as string, gdprConsent as object)
+        addGDPRConsentState: function(consentState as object, purpose as string, gdprConsent as object)
             consentState.gdpr.AddReplace(purpose, gdprConsent)
         end function,
-        getCCPAConsentState : function(consentState as object)
+        getCCPAConsentState: function(consentState as object)
             return consentState.ccpa
         end function,
-        getGDPRConsentState : function(consentState as object)
+        getGDPRConsentState: function(consentState as object)
             return consentState.gdpr
         end function,
-        removeGDPRConsentState : function (consentState as object, purpose as string)
+        removeGDPRConsentState: function(consentState as object, purpose as string)
             if (consentState.gdpr.DoesExist(purpose)) then
                 consentState.gdpr.Delete(purpose)
             end if
         end function,
 
         ' CCPA
-        setCCPAConsentState : function (consentState as object, ccpaConsent as object)
+        setCCPAConsentState: function(consentState as object, ccpaConsent as object)
             consentState.ccpa.AddReplace("data_sale_opt_out", ccpaConsent)
         end function,
-        removeCCPAConsentState : function (consentState as object)
+        removeCCPAConsentState: function(consentState as object)
             consentState.ccpa.Delete("data_sale_opt_out")
         end function
     }
     CCPAConsentState = {
-        build : function (consented as boolean, timestamp as longInteger)
+        build: function(consented as boolean, timestamp as longinteger)
             ccpaConsentState = {}
             ccpaConsentState.c = consented
             ccpaConsentState.ts = timestamp
             return ccpaConsentState
         end function
-        setDocument : function (ccpaConsentState as object, document as string)
+        setDocument: function(ccpaConsentState as object, document as string)
             ccpaConsentState.d = document
         end function,
-        setConsented : function (ccpaConsentState as object, consented as boolean)
+        setConsented: function(ccpaConsentState as object, consented as boolean)
             ccpaConsentState.c = consented
         end function,
-        setLocation : function (ccpaConsentState as object, location as string)
+        setLocation: function(ccpaConsentState as object, location as string)
             ccpaConsentState.l = location
         end function,
-        setTimestamp : function (ccpaConsentState as object, timestamp as LongInteger)
+        setTimestamp: function(ccpaConsentState as object, timestamp as longinteger)
             ccpaConsentState.ts = timestamp
         end function,
-        setHardwareId : function (ccpaConsentState as object, hardwareId as string)
+        setHardwareId: function(ccpaConsentState as object, hardwareId as string)
             ccpaConsentState.h = hardwareId
         end function,
     }
     GDPRConsentState = {
-        build : function (consented as boolean, timestamp as longInteger)
+        build: function(consented as boolean, timestamp as longinteger)
             gdprConsentState = {}
             gdprConsentState.c = consented
             gdprConsentState.ts = timestamp
             return gdprConsentState
         end function,
-        setDocument : function (gdprConsentState as object, document as string)
+        setDocument: function(gdprConsentState as object, document as string)
             gdprConsentState.d = document
         end function,
-        setConsented : function (gdprConsentState as object, consented as boolean)
+        setConsented: function(gdprConsentState as object, consented as boolean)
             gdprConsentState.c = consented
         end function,
-        setLocation : function (gdprConsentState as object, location as string)
+        setLocation: function(gdprConsentState as object, location as string)
             gdprConsentState.l = location
         end function,
-        setTimestamp : function (gdprConsentState as object, timestamp as LongInteger)
+        setTimestamp: function(gdprConsentState as object, timestamp as longinteger)
             gdprConsentState.ts = timestamp
         end function,
-        setHardwareId : function (gdprConsentState as object, hardwareId as string)
+        setHardwareId: function(gdprConsentState as object, hardwareId as string)
             gdprConsentState.h = hardwareId
         end function,
     }
 
-    
+
     '
     ' eCommerce APIs
     '
     PromotionAction = {
-        ACTION_TYPE : {
-            VIEW:   "view",
-            CLICK:  "click"
+        ACTION_TYPE: {
+            VIEW: "view",
+            CLICK: "click"
         },
-        build : function(actionType as string, promotionList as object)
+        build: function(actionType as string, promotionList as object)
             return {
-                an : actionType,
-                pl : promotionList
+                an: actionType,
+                pl: promotionList
             }
         end function,
     }
-    
+
     Promotion = {
-        build : function(promotionId as string, name as string, creative as string, position as string)
+        build: function(promotionId as string, name as string, creative as string, position as string)
             return {
                 id: promotionId,
                 nm: name,
@@ -321,67 +321,67 @@ function mParticleConstants() as object
             }
         end function
     }
-    
+
     Impression = {
-        build : function(impressionList as string, productList as object)
+        build: function(impressionList as string, productList as object)
             return {
-                pil:    impressionList,
-                pl:     productList
+                pil: impressionList,
+                pl: productList
             }
         end function
     }
-   
+
     ProductAction = {
-        ACTION_TYPE : {
-            ADD_TO_CART:          "add_to_cart",
-            REMOVE_FROM_CART:     "remove_from_cart",
-            CHECKOUT:             "checkout",
-            CLICK:                "click",
-            VIEW:                 "view",
-            VIEW_DETAIL:          "view_detail",
-            PURCHASE:             "purchase",
-            REFUND:               "refund",
-            ADD_TO_WISHLIST:      "add_to_wishlist",
+        ACTION_TYPE: {
+            ADD_TO_CART: "add_to_cart",
+            REMOVE_FROM_CART: "remove_from_cart",
+            CHECKOUT: "checkout",
+            CLICK: "click",
+            VIEW: "view",
+            VIEW_DETAIL: "view_detail",
+            PURCHASE: "purchase",
+            REFUND: "refund",
+            ADD_TO_WISHLIST: "add_to_wishlist",
             REMOVE_FROM_WISHLIST: "remove_from_wishlist"
         },
-        build : function(actionType as string, totalAmount as double, productList as object)
+        build: function(actionType as string, totalAmount as double, productList as object)
             return {
-                an  : actionType,
-                tr  : totalAmount,
-                pl  : productList
+                an: actionType,
+                tr: totalAmount,
+                pl: productList
             }
         end function,
-        setCheckoutStep : function(productAction as object, checkoutStep as integer)
+        setCheckoutStep: function(productAction as object, checkoutStep as integer)
             productAction.cs = checkoutStep
         end function,
-        setCheckoutOptions : function(productAction as object, checkoutOptions as string)
+        setCheckoutOptions: function(productAction as object, checkoutOptions as string)
             productAction.co = checkoutOptions
         end function,
-        setProductActionList : function(productAction as object, productActionList as string)
+        setProductActionList: function(productAction as object, productActionList as string)
             productAction.pal = productActionList
         end function,
-        setProductListSource : function(productAction as object, productListSource as string)
+        setProductListSource: function(productAction as object, productListSource as string)
             productAction.pls = productListSource
         end function,
-        setTransactionId : function(productAction as object, transactionId as string)
+        setTransactionId: function(productAction as object, transactionId as string)
             productAction.ti = transactionId
         end function,
-        setAffiliation : function(productAction as object, affiliation as string)
+        setAffiliation: function(productAction as object, affiliation as string)
             productAction.ta = affiliation
         end function,
-        setTaxAmount : function(productAction as object, taxAmount as double)
+        setTaxAmount: function(productAction as object, taxAmount as double)
             productAction.tt = taxAmount
         end function,
-        setShippingAmount : function(productAction as object, shippingAmout as double)
+        setShippingAmount: function(productAction as object, shippingAmout as double)
             productAction.ts = shippingAmout
         end function,
-        setCouponCode : function(productAction as object, couponCode as string)
+        setCouponCode: function(productAction as object, couponCode as string)
             productAction.cc = couponCode
         end function
     }
-    
+
     Product = {
-        build : function(sku as string, name as string, price=0 as double, quantity=1 as integer, customAttributes={} as object)
+        build: function(sku as string, name as string, price = 0 as double, quantity = 1 as integer, customAttributes = {} as object)
             product = {}
             product.id = sku
             product.nm = name
@@ -391,29 +391,29 @@ function mParticleConstants() as object
             product.attrs = customAttributes
             return product
         end function,
-        setBrand : function(product as object, brand as string)
+        setBrand: function(product as object, brand as string)
             product.cs = brand
         end function,
-        setCategory : function(product as object, category as string)
+        setCategory: function(product as object, category as string)
             product.ca = category
         end function,
-        setVariant : function(product as object, variant as string)
+        setVariant: function(product as object, variant as string)
             product.va = variant
         end function,
-        setPosition : function(product as object, position as integer)
+        setPosition: function(product as object, position as integer)
             product.ps = position
         end function,
-        setCouponCode : function(product as object, couponCode as string)
+        setCouponCode: function(product as object, couponCode as string)
             product.cc = couponCode
         end function
     }
-    
+
     '
     ' Media APIs
     '
-    
+
     MediaSession = {
-        build : function(contentId as string, title as string, contentType as string, streamType as string, duration=0 as integer)
+        build: function(contentId as string, title as string, contentType as string, streamType as string, duration = 0 as integer)
             session = {}
             session.contentId = contentId
             session.title = title
@@ -424,67 +424,67 @@ function mParticleConstants() as object
             session.currentPlayheadPosition = 0
             return session
         end function,
-        setDuration : function(session as object, duration as integer)
+        setDuration: function(session as object, duration as integer)
             session.duration = duration
         end function,
-        setCurrentPlayheadPosition : function(session as object, playheadPosition as integer)
+        setCurrentPlayheadPosition: function(session as object, playheadPosition as integer)
             session.currentPlayheadPosition = playheadPosition
         end function,
-        setAdContent : function(session as object, adContent as object)
+        setAdContent: function(session as object, adContent as object)
             session.adContent = adContent
         end function,
-        setAdBreak : function(session as object, adBreak as object)
+        setAdBreak: function(session as object, adBreak as object)
             session.adBreak = adBreak
         end function,
-        setSegment : function(session as object, segment as object)
+        setSegment: function(session as object, segment as object)
             session.segment = segment
         end function
     }
-    
+
     AdContent = {
-        build : function(id as string, title as string)
+        build: function(id as string, title as string)
             ad = {}
             ad.id = id
             ad.title = title
             return ad
         end function,
-        setDuration : function(ad as object, duration as integer)
+        setDuration: function(ad as object, duration as integer)
             ad.duration = duration
         end function,
-        setAdvertiser : function(ad as object, advertiser as string)
+        setAdvertiser: function(ad as object, advertiser as string)
             ad.advertiser = advertiser
         end function,
-        setCampaign : function(ad as object, campaign as string)
+        setCampaign: function(ad as object, campaign as string)
             ad.campaign = campaign
         end function,
-        setCreative : function(ad as object, creative as string)
+        setCreative: function(ad as object, creative as string)
             ad.creative = creative
         end function,
-        setPlacement : function(ad as object, placement as string)
+        setPlacement: function(ad as object, placement as string)
             ad.placement = placement
         end function,
-        setPosition : function(ad as object, position as integer)
+        setPosition: function(ad as object, position as integer)
             ad.position = position
         end function,
-        setSiteId : function(ad as object, siteId as string)
+        setSiteId: function(ad as object, siteId as string)
             ad.siteId = siteId
         end function
     }
-    
+
     AdBreak = {
-        build : function(id as string, title as string)
+        build: function(id as string, title as string)
             adBreak = {}
             adBreak.id = id
             adBreak.title = title
             return adBreak
         end function,
-        setDuration : function(adBreak as object, duration as integer)
+        setDuration: function(adBreak as object, duration as integer)
             adBreak.duration = duration
         end function
     }
-    
+
     Segment = {
-        build : function(title as string, index as integer, duration as integer)
+        build: function(title as string, index as integer, duration as integer)
             segment = {}
             segment.title = title
             segment.index = index
@@ -494,30 +494,30 @@ function mParticleConstants() as object
     }
 
     return {
-        SDK_VERSION:            SDK_VERSION,
-        LOG_LEVEL:              LOG_LEVEL,
-        DEFAULT_OPTIONS:        DEFAULT_OPTIONS,
-        SCENEGRAPH_NODES:       SCENEGRAPH_NODES,
-        MESSAGE_TYPE:           MESSAGE_TYPE,
-        CUSTOM_EVENT_TYPE:      CUSTOM_EVENT_TYPE,
-        IDENTITY_TYPE:          IDENTITY_TYPE,
-        IDENTITY_TYPE_INT:      IDENTITY_TYPE_INT,
-        ENVIRONMENT:            ENVIRONMENT,
-        MEDIA_EVENT_NAME:       MEDIA_EVENT_NAME,
-        MEDIA_CONTENT_TYPE:     MEDIA_CONTENT_TYPE,
-        MEDIA_STREAM_TYPE:      MEDIA_STREAM_TYPE,
-        ProductAction:          ProductAction,
-        Product:                Product,
-        PromotionAction:        PromotionAction
-        Promotion:              Promotion,
-        Impression:             Impression,
-        ConsentState:           ConsentState,
-        CCPAConsentState:       CCPAConsentState,
-        GDPRConsentState:       GDPRConsentState,
-        MediaSession:           MediaSession,
-        AdContent:              AdContent,
-        AdBreak:                AdBreak,
-        Segment:                Segment
+        SDK_VERSION: SDK_VERSION,
+        LOG_LEVEL: LOG_LEVEL,
+        DEFAULT_OPTIONS: DEFAULT_OPTIONS,
+        SCENEGRAPH_NODES: SCENEGRAPH_NODES,
+        MESSAGE_TYPE: MESSAGE_TYPE,
+        CUSTOM_EVENT_TYPE: CUSTOM_EVENT_TYPE,
+        IDENTITY_TYPE: IDENTITY_TYPE,
+        IDENTITY_TYPE_INT: IDENTITY_TYPE_INT,
+        ENVIRONMENT: ENVIRONMENT,
+        MEDIA_EVENT_NAME: MEDIA_EVENT_NAME,
+        MEDIA_CONTENT_TYPE: MEDIA_CONTENT_TYPE,
+        MEDIA_STREAM_TYPE: MEDIA_STREAM_TYPE,
+        ProductAction: ProductAction,
+        Product: Product,
+        PromotionAction: PromotionAction
+        Promotion: Promotion,
+        Impression: Impression,
+        ConsentState: ConsentState,
+        CCPAConsentState: CCPAConsentState,
+        GDPRConsentState: GDPRConsentState,
+        MediaSession: MediaSession,
+        AdContent: AdContent,
+        AdBreak: AdBreak,
+        Segment: Segment
     }
 
 end function
@@ -545,80 +545,80 @@ function mParticleStart(options as object, messagePort as object)
         mplogger.info("mParticleStart called twice.")
         return mParticle()
     end if
-    
+
     mpLogger = {
-        PREFIX : "mParticle SDK",
-        
-        debug : function(message as String) as void
+        PREFIX: "mParticle SDK",
+
+        debug: function(message as string) as void
             m.printlog(mParticleConstants().LOG_LEVEL.DEBUG, message)
         end function,
-        
-        info : function(message as String) as void
+
+        info: function(message as string) as void
             m.printlog(mParticleConstants().LOG_LEVEL.INFO, message)
         end function,
-        
-        error : function(message as String) as void
+
+        error: function(message as string) as void
             m.printlog(mParticleConstants().LOG_LEVEL.ERROR, message)
         end function,
-        
-        printlog : function(level as integer, message as String) as void
-             if (mparticle()._internal.configuration.logLevel >= level) then
-                print "============== "+m.PREFIX+" ====================="
+
+        printlog: function(level as integer, message as string) as void
+            if (mparticle()._internal.configuration.logLevel >= level) then
+                print "============== " + m.PREFIX + " ====================="
                 print message
                 print "=================================================="
             end if
         end function
     }
-    
+
     mpUtils = {
-        currentChannelVersion : function() as string
-             info = CreateObject("roAppInfo")
-             return info.getversion()
+        currentChannelVersion: function() as string
+            info = CreateObject("roAppInfo")
+            return info.getversion()
         end function,
-        randomGuid : function() as string
-            return CreateObject("roDeviceInfo").GetRandomUUID() 
+        randomGuid: function() as string
+            return CreateObject("roDeviceInfo").GetRandomUUID()
         end function,
-        
-        unixTimeMillis : function() as longinteger
+
+        unixTimeMillis: function() as longinteger
             date = CreateObject("roDateTime")
             currentTime = CreateObject("roLongInteger")
             currentTime.SetLongInt(date.asSeconds())
             return (currentTime * 1000) + date.getMilliseconds()
         end function,
-        
-        isEmpty : function(input as dynamic) as boolean
-            return input = invalid OR len(input) = 0
+
+        isEmpty: function(input as dynamic) as boolean
+            return input = invalid or len(input) = 0
         end function,
-        
-        isString : function(input as object) as boolean
+
+        isString: function(input as object) as boolean
             return input <> invalid and (LCase(type(input)) = "rostring" or LCase(type(input)) = "string")
         end function,
-        
-        isArray : function(input as object) as boolean
+
+        isArray: function(input as object) as boolean
             return input <> invalid and (LCase(type(input)) = "roarray" or LCase(type(input)) = "array")
         end function
     }
-    
+
     mpCreateStorage = function()
         storage = {}
         'channels can share registry when packaged by the same developer token
         'token, so include the channel ID
         appInfo = CreateObject("roAppInfo")
         storage.mpkeys = {
-            SECTION_NAME : "mparticle_storage_"+appInfo.getid(),
-            USER_IDENTITIES : "user_identities",
-            USER_ATTRIBUTES : "user_attributes",
+            SECTION_NAME: "mparticle_storage_" + appInfo.getid(),
+            USER_IDENTITIES: "user_identities",
+            USER_ATTRIBUTES: "user_attributes",
             CONSENT_STATE: "consent_state",
-            CURRENT_MPID : "current_mpid",
-            COOKIES : "cookies",
-            SESSION : "saved_session",
-            CHANNEL_VERSION : "channel_version",
-            LTV : "ltv",
-            OPT_OUT : "opt_out",
-            DAS : "das"
+            CURRENT_MPID: "current_mpid",
+            COOKIES: "cookies",
+            SESSION: "saved_session",
+            CHANNEL_VERSION: "channel_version",
+            LTV: "ltv",
+            OPT_OUT: "opt_out",
+            DAS: "das"
         }
         storage.section = CreateObject("roRegistrySection", storage.mpkeys.SECTION_NAME)
-        
+
         storage.cleanCookies = sub()
             cookies = m.getCookies()
             validCookies = {}
@@ -636,26 +636,26 @@ function mParticleStart(options as object, messagePort as object)
                 m.setCookies(validCookies)
             end if
         end sub
-        
+
         storage.set = function(key as string, value as string) as boolean
-             return m.section.Write(key, value)
+            return m.section.Write(key, value)
         end function
-        
+
         storage.flush = function() as boolean
-             return m.section.Flush()
+            return m.section.Flush()
         end function
-        
+
         storage.get = function(key as string) as string
-             return m.section.Read(key)
+            return m.section.Read(key)
         end function
-        
+
         storage.clear = function()
-             for each key in m.mpkeys
+            for each key in m.mpkeys
                 m.section.delete(key)
-             end for
-             m.flush()
+            end for
+            m.flush()
         end function
-        
+
         storage.setUserIdentity = function(mpid as string, identityType as string, identityValue as string) as void
             if (not mparticleConstants().IDENTITY_TYPE.isValidIdentityType(identityType)) then
                 return
@@ -667,7 +667,7 @@ function mParticleStart(options as object, messagePort as object)
             else
                 if (identityValue.len() = 0) then
                     identities.Delete(identityType)
-                else 
+                else
                     identities[identityType].i = identityValue
                     identities[identityType].f = false
                 end if
@@ -675,32 +675,32 @@ function mParticleStart(options as object, messagePort as object)
             m.set(m.mpkeys.USER_IDENTITIES + mpid, FormatJson(identities))
             m.flush()
         end function
-        
+
         storage.getUserIdentities = function(mpid as string) as object
             identityJson = m.get(m.mpkeys.USER_IDENTITIES + mpid)
             userIdentities = {}
             if (not mparticle()._internal.utils.isEmpty(identityJson)) then
-               userIdentities = ParseJson(identityJson)
-            end if   
+                userIdentities = ParseJson(identityJson)
+            end if
             return userIdentities
         end function
-        
+
         storage.setUserAttribute = function(mpid as string, attributeKey as string, attributeValue as object) as void
             attributes = m.getUserAttributes(mpid)
             attributes[attributeKey] = attributeValue
             m.set(m.mpkeys.USER_ATTRIBUTES + mpid, FormatJson(attributes))
             m.flush()
         end function
-        
+
         storage.getUserAttributes = function(mpid as string) as object
             attributeJson = m.get(m.mpkeys.USER_ATTRIBUTES + mpid)
             userAttributes = {}
             if (not mparticle()._internal.utils.isEmpty(attributeJson)) then
-               userAttributes = ParseJson(attributeJson)
+                userAttributes = ParseJson(attributeJson)
             end if
             return userAttributes
         end function
-        
+
         storage.setConsentState = function(mpid as string, consentState as object) as void
             m.set(m.mpkeys.CONSENT_STATE + mpid, FormatJson(consentState))
             m.flush()
@@ -710,7 +710,7 @@ function mParticleStart(options as object, messagePort as object)
             consentJson = m.get(m.mpkeys.CONSENT_STATE + mpid)
             consentState = {}
             if (not mparticle()._internal.utils.isEmpty(consentJson)) then
-               consentState = ParseJson(consentJson)
+                consentState = ParseJson(consentJson)
             end if
             return consentState
         end function
@@ -719,7 +719,7 @@ function mParticleStart(options as object, messagePort as object)
             m.set(m.mpkeys.CURRENT_MPID, mpid)
             m.flush()
         end function
-        
+
         storage.getCurrentMpid = function() as string
             mpid = m.get(m.mpkeys.CURRENT_MPID)
             if (mparticle()._internal.utils.isEmpty(mpid)) then
@@ -727,7 +727,7 @@ function mParticleStart(options as object, messagePort as object)
             end if
             return mpid
         end function
-        
+
         storage.getDas = function() as string
             das = m.get(m.mpkeys.DAS)
             if (mparticle()._internal.utils.isEmpty(das)) then
@@ -736,39 +736,39 @@ function mParticleStart(options as object, messagePort as object)
             end if
             return das
         end function
-        
-        storage.setDas = function(das as string) 
+
+        storage.setDas = function(das as string)
             m.set(m.mpkeys.DAS, das)
             m.flush()
         end function
-        
+
         storage.setCookies = function(cookies as object)
             currentCookies = m.getCookies()
             currentCookies.append(cookies)
             m.set(m.mpkeys.COOKIES, FormatJson(currentCookies))
             m.flush()
         end function
-        
-        storage.getCookies = function() as object 
+
+        storage.getCookies = function() as object
             if (m.cookies = invalid) then
                 cookieJson = m.get(m.mpkeys.COOKIES)
                 if (not mparticle()._internal.utils.isEmpty(cookieJson)) then
-                   m.cookies = ParseJson(cookieJson)
-                end if   
+                    m.cookies = ParseJson(cookieJson)
+                end if
                 if (m.cookies = invalid) then
-                   m.cookies = {}
+                    m.cookies = {}
                 end if
             end if
             return m.cookies
         end function
-        
+
         storage.setSession = function(session as object)
             if (session <> invalid) then
                 m.set(m.mpkeys.SESSION, FormatJson(session))
                 m.flush()
             end if
         end function
-        
+
         storage.getSession = function() as object
             sessionJson = m.get(m.mpkeys.SESSION)
             if (not mparticle()._internal.utils.isEmpty(sessionJson)) then
@@ -777,21 +777,21 @@ function mParticleStart(options as object, messagePort as object)
                 return invalid
             end if
         end function
-        
+
         storage.getChannelVersion = function() as string
             return m.get(m.mpkeys.CHANNEL_VERSION)
         end function
-        
+
         storage.setChannelVersion = function(version as string)
             m.set(m.mpkeys.CHANNEL_VERSION, version)
             m.flush()
         end function
-        
+
         storage.setLtv = function(ltv as double)
             m.set(m.mpkeys.LTV, ltv.tostr())
             m.flush()
         end function
-        
+
         storage.getLtv = function() as double
             ltv = m.get(m.mpkeys.LTV)
             if (not mparticle()._internal.utils.isEmpty(ltv)) then
@@ -800,23 +800,23 @@ function mParticleStart(options as object, messagePort as object)
                 return 0
             end if
         end function
-        
+
         storage.setOptOut = function(optOut as boolean)
             m.set(m.mpkeys.OPT_OUT, optOut.tostr())
             m.flush()
         end function
-        
+
         storage.getOptOut = function() as boolean
             mpOptOut = m.get(m.mpkeys.OPT_OUT)
             return "true" = mpOptOut
         end function
-        
+
         return storage
     end function
-    
+
     mpInternalModel = {
-    
-       Batch : function(messages as object) as object
+
+        Batch: function(messages as object) as object
             currentMpid = mparticle()._internal.storage.getCurrentMpid()
             mpBatch = {}
             mpBatch.dbg = mparticle()._internal.configuration.development
@@ -839,7 +839,7 @@ function mParticleStart(options as object, messagePort as object)
             mpBatch.das = mparticle()._internal.storage.getDas()
             mpBatch.con = mparticle()._internal.storage.getConsentState(currentMpid)
             mplogger = mparticle()._internal.logger
-            if (mparticle()._internal.configuration.dataPlanId <> invalid) then                
+            if (mparticle()._internal.configuration.dataPlanId <> invalid) then
                 if ((LCase(type(mparticle()._internal.configuration.dataPlanId))) = "rostring") then
                     mpBatch.ctx = {}
                     mpBatch.ctx.dpln = {}
@@ -849,47 +849,47 @@ function mParticleStart(options as object, messagePort as object)
                             mpBatch.ctx.dpln.v = mparticle()._internal.configuration.dataPlanVersion
                         else
                             mplogger.error("Your data plan version must be a integer.")
-                        endif
+                        end if
                     end if
                 else
                     mplogger.error("Your data plan id must be a string.")
                 end if
-            end if 
+            end if
             return mpBatch
         end function,
-    
-        UserIdentity : function(identityType as string, identityValue as String) as object
+
+        UserIdentity: function(identityType as string, identityValue as string) as object
             return {
-                n : mParticleConstants().IDENTITY_TYPE_INT.parseString(identityType),
-                i : identityValue,
-                dfs : mparticle()._internal.utils.unixTimeMillis(),
-                f : true
+                n: mParticleConstants().IDENTITY_TYPE_INT.parseString(identityType),
+                i: identityValue,
+                dfs: mparticle()._internal.utils.unixTimeMillis(),
+                f: true
             }
         end function,
-        
-        ApplicationInformation : function() as object
+
+        ApplicationInformation: function() as object
             if (m.collectedApplicationInfo = invalid) then
                 appInfo = CreateObject("roAppInfo")
                 deviceInfo = CreateObject("roDeviceInfo")
                 env = 2
-                if (mparticle()._internal.configuration.development) then 
+                if (mparticle()._internal.configuration.development) then
                     env = 1
                 end if
                 m.collectedApplicationInfo = {
-                    an:     appInfo.GetTitle(),
-                    av:     appInfo.GetVersion(),
-                    apn:    appInfo.GetID(),
-                    abn:    appInfo.GetValue("build_version"),
-                    env:    env
+                    an: appInfo.GetTitle(),
+                    av: appInfo.GetVersion(),
+                    apn: appInfo.GetID(),
+                    abn: appInfo.GetValue("build_version"),
+                    env: env
                 }
             end if
             return m.collectedApplicationInfo
         end function,
-        
-        DeviceInformation : function() as object
+
+        DeviceInformation: function() as object
             if (m.collectedDeviceInfo = invalid) then
                 info = CreateObject("roDeviceInfo")
-                
+
                 tempDatetime = CreateObject ("roDateTime")
                 utcSeconds = tempDatetime.AsSeconds ()
                 tempDatetime.ToLocalTime ()
@@ -898,23 +898,23 @@ function mParticleStart(options as object, messagePort as object)
                 utcHoursOffset = utcSecondsOffset / 3600
 
                 m.collectedDeviceInfo = {
-                    dp:     "Roku",
-                    dn:     info.GetModelDisplayName(),
-                    p:      info.GetModel(),
-                    duid:   info.GetChannelClientId(),
-                    vr:     info.GetVersion(),
-                    rida:   info.GetRIDA(),
-                    lat:    info.IsRIDADisabled(),
-                    rpb:    info.GetChannelClientId(),
-                    dmdl:   info.GetModel(),
-                    dc:     info.GetCountryCode(),
-                    dll:    info.GetCurrentLocale(),
-                    dlc:    info.GetUserCountryCode(),
-                    tzn:    info.GetTimeZone(),
-                    dr:     info.GetConnectionType(),
-                    tz:     utcHoursOffset
+                    dp: "Roku",
+                    dn: info.GetModelDisplayName(),
+                    p: info.GetModel(),
+                    duid: info.GetChannelClientId(),
+                    vr: info.GetVersion(),
+                    rida: info.GetRIDA(),
+                    lat: info.IsRIDADisabled(),
+                    rpb: info.GetChannelClientId(),
+                    dmdl: info.GetModel(),
+                    dc: info.GetCountryCode(),
+                    dll: info.GetCurrentLocale(),
+                    dlc: info.GetUserCountryCode(),
+                    tzn: info.GetTimeZone(),
+                    dr: info.GetConnectionType(),
+                    tz: utcHoursOffset
                 }
-              
+
                 modelDetails = info.GetModelDetails()
                 if (modelDetails <> invalid) then
                     m.collectedDeviceInfo.b = modelDetails["VendorName"]
@@ -923,10 +923,10 @@ function mParticleStart(options as object, messagePort as object)
 
                 displaySize = info.GetDisplaySize()
                 if (displaySize <> invalid) then
-                    m.collectedDeviceInfo.dsh  = displaySize["h"]
-                    m.collectedDeviceInfo.dsw  = displaySize["w"]
+                    m.collectedDeviceInfo.dsh = displaySize["h"]
+                    m.collectedDeviceInfo.dsw = displaySize["w"]
                 end if
-                    
+
 
                 buildIdArray = CreateObject("roByteArray")
                 buildIdArray.FromAsciiString(mparticle()._internal.utils.currentChannelVersion())
@@ -940,23 +940,23 @@ function mParticleStart(options as object, messagePort as object)
                     versionString = versionString.mid(2, 4)
                 end if
                 m.collectedDeviceInfo.dosv = versionString
-                
+
             end if
             return m.collectedDeviceInfo
         end function
     }
-    
+
     mpNetworking = {
-        messagePort : messagePort,
-        mpBackoff : {
-            nextAllowedUploadTime : 0,
-            currentBackoffDuration : 0,
-            reset : function()
+        messagePort: messagePort,
+        mpBackoff: {
+            nextAllowedUploadTime: 0,
+            currentBackoffDuration: 0,
+            reset: function()
                 m.currentBackoffDuration = 0
                 m.nextAllowedUploadTime = 0
             end function,
-            increase : function()
-                maxDuration = 2*60*60*1000
+            increase: function()
+                maxDuration = 2 * 60 * 60 * 1000
                 base = 1000
                 intervalMillis = 5000
                 if (m.currentBackoffDuration = 0) then
@@ -967,26 +967,26 @@ function mParticleStart(options as object, messagePort as object)
                         m.currentBackoffDuration = maxDuration
                     end if
                 end if
-            
+
                 m.nextAllowedUploadTime = mparticle()._internal.utils.unixTimeMillis() + m.currentBackoffAttempt
             end function,
-            canUpload : function() as boolean
+            canUpload: function() as boolean
                 if (m.nextAllowedUploadTime = 0)
                     return true
-                else 
+                else
                     currentTime = mparticle()._internal.utils.unixTimeMillis()
                     return currentTime >= m.nextAllowedUploadTime
                 end if
             end function
         },
-        pendingTransfers : {},
-        messageQueue : [],
-        uploadQueue : [],
-        queueMessage : function(message as object)
+        pendingTransfers: {},
+        messageQueue: [],
+        uploadQueue: [],
+        queueMessage: function(message as object)
             storage = mparticle()._internal.storage
             if (message.dt = mParticleConstants().MESSAGE_TYPE.OPT_OUT) then
                 storage.setOptOut(message.lookup("s"))
-            else if (storage.getOptOut()) then 
+            else if (storage.getOptOut()) then
                 return 0
             end if
             m.messageQueue.push(message)
@@ -995,14 +995,14 @@ function mParticleStart(options as object, messagePort as object)
                 m.processUploads()
             end if
         end function,
-        queueUpload : function()
+        queueUpload: function()
             if (m.messageQueue.count() > 0 and mparticle()._internal.storage.getCurrentMpid() <> "0") then
                 upload = mparticle()._internal.internalModel.Batch(m.messageQueue)
                 m.uploadQueue.push(upload)
                 m.messageQueue = []
             end if
         end function,
-        processUploads : function()
+        processUploads: function()
             if (m.mpBackoff.canUpload()) then
                 m.mpBackoff.reset()
             else
@@ -1014,13 +1014,13 @@ function mParticleStart(options as object, messagePort as object)
                 mplogger.error("No active network connection - deferring upload.")
                 return -1
             end if
-            while (m.uploadQueue.count() > 0) 
+            while (m.uploadQueue.count() > 0)
                 nextUpload = m.uploadQueue.shift()
                 m.mpUploadBatch(nextUpload)
             end while
         end function,
-      
-        mpUploadBatch : function (mpBatch as object)
+
+        mpUploadBatch: function(mpBatch as object)
             urlTransfer = CreateObject("roUrlTransfer")
             if (mparticle()._internal.configuration.enablePinning) then
                 urlTransfer.SetCertificatesFile(mparticle()._internal.configuration.certificateDir)
@@ -1028,33 +1028,33 @@ function mParticleStart(options as object, messagePort as object)
             urlTransfer.SetUrl("https://nativesdks.mparticle.com/v2/" + mparticle()._internal.configuration.apikey + "/events")
             urlTransfer.EnableEncodings(true)
             requestId = urlTransfer.GetIdentity().ToStr()
-            m.pendingTransfers[requestId] = {"transfer": urlTransfer, "batch":mpBatch}
+            m.pendingTransfers[requestId] = { "transfer": urlTransfer, "batch": mpBatch }
             dateString = CreateObject("roDateTime").ToISOString()
             jsonBatch = FormatJson(mpBatch)
             hashString = "POST" + Chr(10) + dateString + Chr(10) + "/v2/" + mparticle()._internal.configuration.apikey + "/events" + jsonBatch
-            
+
             signature_key = CreateObject("roByteArray")
             signature_key.fromAsciiString(mparticle()._internal.configuration.apisecret)
-            
+
             hmac = CreateObject("roHMAC")
             hmac.Setup("sha256", signature_key)
             message = CreateObject("roByteArray")
             message.FromAsciiString(hashString)
             result = hmac.process(message)
             hashResult = LCase(result.ToHexString())
-            
+
             urlTransfer.AddHeader("Date", dateString)
             urlTransfer.AddHeader("x-mp-signature", hashResult)
-            urlTransfer.AddHeader("Content-Type","application/json")
-            urlTransfer.AddHeader("User-Agent","mParticle Roku SDK/" + mpBatch.sdk)
+            urlTransfer.AddHeader("Content-Type", "application/json")
+            urlTransfer.AddHeader("User-Agent", "mParticle Roku SDK/" + mpBatch.sdk)
             urlTransfer.RetainBodyOnError(true)
             mplogger = mparticle()._internal.logger
             mplogger.debug("Uploading batch: " + jsonBatch)
             urlTransfer.setPort(m.messagePort)
             urlTransfer.AsyncPostFromString(jsonBatch)
         end function,
-        
-        mpHandleUrlEvent : function(urlEvent as object)
+
+        mpHandleUrlEvent: function(urlEvent as object)
             if (urlEvent <> invalid)
                 requestId = urlEvent.GetSourceIdentity().ToStr()
                 transfer = m.pendingTransfers[requestId]
@@ -1066,7 +1066,7 @@ function mParticleStart(options as object, messagePort as object)
                     responseCode = urlEvent.GetResponseCode()
                     responseBody = urlEvent.GetString()
                     mplogger.debug("Batch response: code" + str(responseCode) + " body: " + responseBody)
-                    
+
                     if (responseCode = -77) then
                         mplogger.error("SSL error - please make sure " + mparticle()._internal.configuration.certificateDir + " is present.")
                     else if (responseCode = 400) then
@@ -1092,14 +1092,14 @@ function mParticleStart(options as object, messagePort as object)
                 end if
             end if
         end function
-        
+
     }
-    
+
     mpCreateSessionManager = function(startupArgs as object) as object
         sessionManager = {}
         sessionManager.startupArgs = startupArgs
         sessionManagerApi = {
-            onSdkStart : function()
+            onSdkStart: function()
                 isFirstRun = true
                 isUpgrade = false
                 logAst = false
@@ -1113,7 +1113,7 @@ function mParticleStart(options as object, messagePort as object)
                     storage.setChannelVersion(currentChannelVersion)
                 end if
                 mplogger = mparticle()._internal.logger
-                if (m.currentSession = invalid) then      
+                if (m.currentSession = invalid) then
                     mplogger.debug("Restoring previous session.")
                     m.currentSession = mparticle()._internal.storage.getSession()
                     if (m.currentSession = invalid) then
@@ -1140,14 +1140,14 @@ function mParticleStart(options as object, messagePort as object)
                     mparticle().logMessage(mparticle().model.AppStateTransition("app_init", isFirstRun, isUpgrade, m.startupArgs))
                 end if
             end function,
-            getCurrentSession : function()
+            getCurrentSession: function()
                 return m.currentSession
             end function,
-            updateLastEventTime : function(time as longinteger)
+            updateLastEventTime: function(time as longinteger)
                 m.currentSession.lastEventTime = time
                 m.saveSession()
             end function,
-            onForeground : function(time as longinteger)
+            onForeground: function(time as longinteger)
                 m.updateLastEventTime(time)
             end function,
             setSessionAttribute: function(attributeKey as string, attributeValue as object)
@@ -1178,7 +1178,7 @@ function mParticleStart(options as object, messagePort as object)
                 m.currentSession.sessionMpids.push(mpid)
                 m.saveSession()
             end function,
-            createSession : function(previousSession = invalid as object)
+            createSession: function(previousSession = invalid as object)
                 deviceInfo = CreateObject("roDeviceInfo")
                 currentTime = mparticle()._internal.utils.unixTimeMillis()
                 launchReferrer = invalid
@@ -1193,30 +1193,30 @@ function mParticleStart(options as object, messagePort as object)
                     previousSessionId = previousSession.sessionId
                     previousSessionStartTime = previousSession.startTime
                 end if
-                
+
                 return {
-                    sessionId : mparticle()._internal.utils.randomGuid()
-                    startTime : currentTime,
-                    dataConnection : deviceInfo.GetConnectionType(),
+                    sessionId: mparticle()._internal.utils.randomGuid()
+                    startTime: currentTime,
+                    dataConnection: deviceInfo.GetConnectionType(),
                     launchReferrer: launchReferrer
-                    lastEventTime : currentTime,
-                    previousSessionLength : previousSessionLength,
+                    lastEventTime: currentTime,
+                    previousSessionLength: previousSessionLength,
                     previousSessionId: previousSessionId,
                     previousSessionStartTime: previousSessionStartTime,
-                    attributes : {},
+                    attributes: {},
                     sessionMpids: [mparticle()._internal.storage.getCurrentMpid()]
                 }
             end function,
-            sessionLength : function(session as object) as integer
+            sessionLength: function(session as object) as integer
                 return (session.lastEventTime - session.startTime)
-            end function, 
+            end function,
         }
         sessionManager.append(sessionManagerApi)
         return sessionManager
     end function
-    
+
     mpPublicModels = {
-        Message : function(messageType as string, attributes={}) as object
+        Message: function(messageType as string, attributes = {}) as object
             currentSession = mparticle()._internal.sessionManager.getCurrentSession()
             if (attributes <> invalid)
                 if (attributes.count() = 0) then
@@ -1226,7 +1226,7 @@ function mParticleStart(options as object, messagePort as object)
                     attributeKeys = attributes.Keys()
                     validAttributes = {}
                     for each attributeKey in attributeKeys
-                        if (mputils.isString(attributes[attributeKey])) then 
+                        if (mputils.isString(attributes[attributeKey])) then
                             validAttributes[attributeKey] = attributes[attributeKey]
                         end if
                     end for
@@ -1234,15 +1234,15 @@ function mParticleStart(options as object, messagePort as object)
                 end if
             end if
             return {
-                dt : messageType,
-                id : mparticle()._internal.utils.randomGuid(),
-                ct : mparticle()._internal.utils.unixTimeMillis(),
-                attrs : attributes,
-                sid : currentSession.sessionId,
-                sct : currentSession.startTime
+                dt: messageType,
+                id: mparticle()._internal.utils.randomGuid(),
+                ct: mparticle()._internal.utils.unixTimeMillis(),
+                attrs: attributes,
+                sid: currentSession.sessionId,
+                sct: currentSession.startTime
             }
         end function,
-        
+
         CustomEvent: function(eventName as string, eventType as string, customAttributes = {}) as object
             message = m.Message(mParticleConstants().MESSAGE_TYPE.CUSTOM, customAttributes)
             message.n = eventName
@@ -1250,14 +1250,14 @@ function mParticleStart(options as object, messagePort as object)
             message.est = message.ct
             return message
         end function,
-        
+
         ScreenEvent: function(screenName as string, customAttributes = {}) as object
             message = m.Message(mParticleConstants().MESSAGE_TYPE.SCREEN, customAttributes)
             message.n = screenName
             message.est = message.ct
             return message
         end function,
-        
+
         SessionStart: function(session) as object
             message = m.Message(mParticleConstants().MESSAGE_TYPE.SESSION_START)
             message.ct = session.startTime
@@ -1271,7 +1271,7 @@ function mParticleStart(options as object, messagePort as object)
             message.pss = session.previousSessionStartTime
             return message
         end function,
-        
+
         SessionEnd: function(session as object) as object
             message = m.Message(mParticleConstants().MESSAGE_TYPE.SESSION_END)
             message.dct = session.dataConnection
@@ -1281,14 +1281,14 @@ function mParticleStart(options as object, messagePort as object)
             message.smpids = session.sessionMpids
             return message
         end function,
-        
+
         OptOut: function(optOut as boolean) as object
             message = m.Message(mParticleConstants().MESSAGE_TYPE.OPT_OUT)
             message.s = optOut
             return message
         end function,
-        
-        CommerceEvent: function(productAction={} as object, promotionAction={} as object, impressions=[] as object, customAttributes={} as object, screenName=invalid as string) as object
+
+        CommerceEvent: function(productAction = {} as object, promotionAction = {} as object, impressions = [] as object, customAttributes = {} as object, screenName = invalid as string) as object
             message = m.Message(mParticleConstants().MESSAGE_TYPE.COMMERCE, customAttributes)
             if (productAction <> invalid and productAction.count() > 0) then
                 message.pd = productAction
@@ -1304,7 +1304,7 @@ function mParticleStart(options as object, messagePort as object)
             end if
             return message
         end function,
-        
+
         AppStateTransition: function(astType as string, firstRun as boolean, isUpgrade as boolean, startupArgs as object) as object
             message = m.Message(mParticleConstants().MESSAGE_TYPE.APP_STATE_TRANSITION)
             message.t = astType
@@ -1316,19 +1316,19 @@ function mParticleStart(options as object, messagePort as object)
                 message.lr = startupArgs.contentId
                 message.lpr = formatjson(startupArgs)
             end if
-            
+
             return message
         end function,
-       
+
     }
-    
+
     mpInternalIdentityApi = {
         context: "",
         IDENTITY_API_PATHS: {
-            IDENTIFY:   "identify",
-            LOGIN:      "login",
-            LOGOUT:     "logout",
-            MODIFY:     "modify"
+            IDENTIFY: "identify",
+            LOGIN: "login",
+            LOGOUT: "logout",
+            MODIFY: "modify"
         },
         pendingApiRequests: {},
         messagePort: messagePort,
@@ -1345,7 +1345,7 @@ function mParticleStart(options as object, messagePort as object)
             modifyPath = mparticle()._internal.storage.getCurrentMpid() + "/" + m.IDENTITY_API_PATHS.MODIFY
             m.performIdentityHttpRequest(modifyPath, identityApiRequest)
         end function,
-        generateIdentityHttpBody: function(path as String, identityApiRequest as object) as object
+        generateIdentityHttpBody: function(path as string, identityApiRequest as object) as object
             environmentString = "production"
             if (mparticle()._internal.configuration.development) then
                 environmentString = "development"
@@ -1358,7 +1358,7 @@ function mParticleStart(options as object, messagePort as object)
                 },
                 environment: environmentString,
                 requestId: mparticle()._internal.utils.randomGuid(),
-                request_timestamp_ms:  mparticle()._internal.utils.unixTimeMillis(),
+                request_timestamp_ms: mparticle()._internal.utils.unixTimeMillis(),
                 context: m.context
             }
             mplogger = mparticle()._internal.logger
@@ -1387,7 +1387,7 @@ function mParticleStart(options as object, messagePort as object)
                     currentUserIdentities = m.getCurrentUser().userIdentities
                     for each identityType in identityKeys
                         if (mparticleConstants().IDENTITY_TYPE.isValidIdentityType(identityType))
-                            identityChange = {identity_type:identityType}
+                            identityChange = { identity_type: identityType }
                             if (identityApiRequest.userIdentities[identityType].len() > 0) then
                                 identityChange.new_value = identityApiRequest.userIdentities[identityType]
                             end if
@@ -1401,11 +1401,11 @@ function mParticleStart(options as object, messagePort as object)
             end if
             return identityHttpRequest
         end function,
-        performIdentityHttpRequest: function(path as String, identityApiRequest as object) as object
+        performIdentityHttpRequest: function(path as string, identityApiRequest as object) as object
             mplogger = mparticle()._internal.logger
             mplogger.debug("Starting Identity API request: " + path)
             identityHttpBody = m.generateIdentityHttpBody(path, identityApiRequest)
-            mplogger.debug("Identity API request:"+Chr(10)+"Path:"+path+Chr(10)+"Body:"+formatjson(identityHttpBody))
+            mplogger.debug("Identity API request:" + Chr(10) + "Path:" + path + Chr(10) + "Body:" + formatjson(identityHttpBody))
             urlTransfer = CreateObject("roUrlTransfer")
             if (mparticle()._internal.configuration.enablePinning) then
                 urlTransfer.SetCertificatesFile(mparticle()._internal.configuration.certificateDir)
@@ -1413,26 +1413,26 @@ function mParticleStart(options as object, messagePort as object)
             urlTransfer.SetUrl("https://identity.mparticle.com/v1/" + path)
             urlTransfer.EnableEncodings(true)
             requestId = urlTransfer.GetIdentity().ToStr()
-            m.pendingApiRequests[requestId] = {"transfer": urlTransfer, "originalPublicRequest":identityApiRequest, "path":path}
+            m.pendingApiRequests[requestId] = { "transfer": urlTransfer, "originalPublicRequest": identityApiRequest, "path": path }
             dateString = CreateObject("roDateTime").ToISOString()
             jsonRequest = FormatJson(identityHttpBody)
             hashString = "POST" + Chr(10) + dateString + Chr(10) + "/v1/" + path + jsonRequest
-            
+
             signature_key = CreateObject("roByteArray")
             signature_key.fromAsciiString(mparticle()._internal.configuration.apisecret)
-            
+
             hmac = CreateObject("roHMAC")
             hmac.Setup("sha256", signature_key)
             message = CreateObject("roByteArray")
             message.FromAsciiString(hashString)
             result = hmac.process(message)
             hashResult = LCase(result.ToHexString())
-            
+
             urlTransfer.AddHeader("Date", dateString)
             urlTransfer.AddHeader("x-mp-key", mparticle()._internal.configuration.apikey)
             urlTransfer.AddHeader("x-mp-signature", hashResult)
-            urlTransfer.AddHeader("Content-Type","application/json")
-            urlTransfer.AddHeader("User-Agent","mParticle Roku SDK/" + mParticleConstants().SDK_VERSION)
+            urlTransfer.AddHeader("Content-Type", "application/json")
+            urlTransfer.AddHeader("User-Agent", "mParticle Roku SDK/" + mParticleConstants().SDK_VERSION)
             urlTransfer.RetainBodyOnError(true)
             urlTransfer.setPort(m.messagePort)
             urlTransfer.AsyncPostFromString(jsonRequest)
@@ -1452,7 +1452,7 @@ function mParticleStart(options as object, messagePort as object)
                 if (responseBody <> invalid and responseBody.Len() > 0) then
                     responseObject = parsejson(responseBody)
                 end if
-                
+
                 if (responseCode = -77) then
                     mplogger.error("SSL error - please make sure " + mparticle()._internal.configuration.certificateDir + " is present.")
                 else if (responseCode = 400) then
@@ -1498,7 +1498,7 @@ function mParticleStart(options as object, messagePort as object)
                 end for
             end if
         end function,
-        onMpidChanged: function(mpid as String) as void
+        onMpidChanged: function(mpid as string) as void
             storage = mparticle()._internal.storage
             if (mpid <> storage.getCurrentMpid()) then
                 networking = mparticle()._internal.networking
@@ -1526,7 +1526,7 @@ function mParticleStart(options as object, messagePort as object)
             }
         end function
     }
-    
+
     mpIdentityApi = {
         identify: function(identityApiRequest as object) as void
             identity = mparticle()._internal.identity
@@ -1573,19 +1573,19 @@ function mParticleStart(options as object, messagePort as object)
         end function,
         IdentityApiRequest: function(userIdentities as object, copyUserAttributes as boolean) as object
             return {
-                "userIdentities":userIdentities,
+                "userIdentities": userIdentities,
                 "copyUserAttributes": copyUserAttributes
             }
-            
+
         end function,
         getCurrentUser: function() as object
             identity = mparticle()._internal.identity
             return identity.getCurrentUser()
         end function
     }
-     
+
     mpMediaApi = {
-        getEventAttributes: function(mediaSession as object, customAttributes={} as object) as object
+        getEventAttributes: function(mediaSession as object, customAttributes = {} as object) as object
             eventAttributes = customAttributes
             if (mediaSession <> invalid) then
                 eventAttributes.media_session_id = mediaSession.mediaSessionId
@@ -1599,7 +1599,7 @@ function mParticleStart(options as object, messagePort as object)
                 end if
                 eventAttributes.stream_type = mediaSession.streamType
                 eventAttributes.content_type = mediaSession.contentType
-                
+
                 if (mediaSession.adContent <> invalid) then
                     eventAttributes.ad_content_title = mediaSession.adContent.title
                     eventAttributes.ad_content_duration = mediaSession.adContent.duration
@@ -1613,7 +1613,7 @@ function mParticleStart(options as object, messagePort as object)
                     end if
                     eventAttributes.ad_content_site_id = mediaSession.adContent.siteId
                 end if
-                
+
                 if (mediaSession.adBreak <> invalid) then
                     eventAttributes.ad_break_title = mediaSession.adBreak.title
                     if (mediaSession.adBreak.duration <> invalid) then
@@ -1624,7 +1624,7 @@ function mParticleStart(options as object, messagePort as object)
                     end if
                     eventAttributes.ad_break = mediaSession.adBreak.id
                 end if
-                
+
                 if (mediaSession.segment <> invalid) then
                     eventAttributes.segment_title = mediaSession.segment.title
                     if (mediaSession.segment.index <> invalid) then
@@ -1635,10 +1635,10 @@ function mParticleStart(options as object, messagePort as object)
                     end if
                 end if
             end if
-            
+
             return eventAttributes
         end function
-        sendMediaMessage : function(eventName as string, eventType as string,  attributes={}) as void
+        sendMediaMessage: function(eventName as string, eventType as string, attributes = {}) as void
             messageType = mParticleConstants().MESSAGE_TYPE.CUSTOM
             currentSession = mparticle()._internal.sessionManager.getCurrentSession()
             if (attributes <> invalid)
@@ -1649,7 +1649,7 @@ function mParticleStart(options as object, messagePort as object)
                     attributeKeys = attributes.Keys()
                     validAttributes = {}
                     for each attributeKey in attributeKeys
-                        if (mputils.isString(attributes[attributeKey])) then 
+                        if (mputils.isString(attributes[attributeKey])) then
                             validAttributes[attributeKey] = attributes[attributeKey]
                         end if
                     end for
@@ -1657,108 +1657,108 @@ function mParticleStart(options as object, messagePort as object)
                 end if
             end if
             message = {
-                dt : messageType,
-                id : mparticle()._internal.utils.randomGuid(),
-                ct : mparticle()._internal.utils.unixTimeMillis(),
-                attrs : attributes,
-                sid : currentSession.sessionId,
-                sct : currentSession.startTime
+                dt: messageType,
+                id: mparticle()._internal.utils.randomGuid(),
+                ct: mparticle()._internal.utils.unixTimeMillis(),
+                attrs: attributes,
+                sid: currentSession.sessionId,
+                sct: currentSession.startTime
             }
             message.n = eventName
             message.et = eventType
             message.est = message.ct
             mparticle().logMessage(message)
         end function,
-        logMediaSessionStart: function(mediaSession as object, options={} as object) as void
+        logMediaSessionStart: function(mediaSession as object, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SESSION_START, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
         end function
-        logMediaSessionEnd: function(mediaSession as object, options={} as object) as void
+        logMediaSessionEnd: function(mediaSession as object, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SESSION_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
         end function
-        logMediaContentEnd: function(mediaSession as object, options={} as object) as void
+        logMediaContentEnd: function(mediaSession as object, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.CONTENT_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
         end function
-        logPlay: function(mediaSession as object, options={} as object) as void
+        logPlay: function(mediaSession as object, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.PLAY, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
         end function
-        logPause: function(mediaSession as object, options={} as object) as void
+        logPause: function(mediaSession as object, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.PAUSE, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
         end function
-        logSeekStart: function(mediaSession as object, position as double, options={} as object) as void
+        logSeekStart: function(mediaSession as object, position as double, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             customAttributes.seek_position = position
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SEEK_START, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
         end function
-        logSeekEnd: function(mediaSession as object, position as double, options={} as object) as void
+        logSeekEnd: function(mediaSession as object, position as double, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             customAttributes.seek_position = position
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SEEK_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
         end function
-        logBufferStart: function(mediaSession as object, duration as double, bufferPercent as double, position as double, options={} as object) as void
+        logBufferStart: function(mediaSession as object, duration as double, bufferPercent as double, position as double, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             customAttributes.buffer_duration = duration.ToStr()
             customAttributes.buffer_percent = bufferPercent.ToStr()
             customAttributes.buffer_position = position.ToStr()
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.BUFFER_START, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
         end function
-        logBufferEnd: function(mediaSession as object, duration as double, bufferPercent as double, position as double, options={} as object) as void
+        logBufferEnd: function(mediaSession as object, duration as double, bufferPercent as double, position as double, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             customAttributes.buffer_duration = duration.ToStr()
             customAttributes.buffer_percent = bufferPercent.ToStr()
             customAttributes.buffer_position = position.ToStr()
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.BUFFER_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
         end function
-        logAdBreakStart: function(mediaSession as object, options={} as object) as void
+        logAdBreakStart: function(mediaSession as object, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.AD_BREAK_START, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
         end function
-        logAdBreakEnd: function(mediaSession as object, options={} as object) as void
+        logAdBreakEnd: function(mediaSession as object, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.AD_BREAK_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
             mediaSession.adBreak = invalid
         end function
-        logAdStart: function(mediaSession as object, options={} as object) as void
+        logAdStart: function(mediaSession as object, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.AD_START, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
         end function
-        logAdClick: function(mediaSession as object, options={} as object) as void
+        logAdClick: function(mediaSession as object, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.AD_CLICK, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
         end function
-        logAdSkip: function(mediaSession as object, options={} as object) as void
+        logAdSkip: function(mediaSession as object, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.AD_SKIP, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
             mediaSession.adContent = invalid
         end function
-        logAdEnd: function(mediaSession as object, options={} as object) as void
+        logAdEnd: function(mediaSession as object, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.AD_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
             mediaSession.adContent = invalid
         end function
-        logSegmentStart: function(mediaSession as object, options={} as object) as void
+        logSegmentStart: function(mediaSession as object, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SEGMENT_START, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
         end function
-        logSegmentSkip: function(mediaSession as object, options={} as object) as void
+        logSegmentSkip: function(mediaSession as object, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SEGMENT_SKIP, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
             mediaSession.segment = invalid
         end function
-        logSegmentEnd: function(mediaSession as object, options={} as object) as void
+        logSegmentEnd: function(mediaSession as object, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SEGMENT_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
             mediaSession.segment = invalid
         end function
-        logPlayheadPosition: function(mediaSession as object, options={} as object) as void
+        logPlayheadPosition: function(mediaSession as object, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.UPDATE_PLAYHEAD_POSITION, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
         end function
-        logQoS: function(mediaSession as object, startupTime as integer, droppedFrames as integer, bitRate as integer, fps as integer, options={} as object) as void
+        logQoS: function(mediaSession as object, startupTime as integer, droppedFrames as integer, bitRate as integer, fps as integer, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             customAttributes.qos_bitrate = bitRate.ToStr()
             customAttributes.qos_fps = fps.ToStr()
@@ -1767,7 +1767,7 @@ function mParticleStart(options as object, messagePort as object)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.UPDATE_QOS, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
         end function
     }
-    
+
     if (mpUtils.isEmpty(options.apiKey) or mpUtils.isEmpty(options.apiSecret)) then
         print "mParticleStart() called with empty API key or secret!"
     end if
@@ -1782,13 +1782,13 @@ function mParticleStart(options as object, messagePort as object)
             configuration.development = true
         else if configuration.environment = mParticleConstants().ENVIRONMENT.FORCE_PRODUCTION then
             configuration.development = false
-        else 
+        else
             appInfo = CreateObject("roAppInfo")
             configuration.development = appInfo.IsDev()
         end if
         return configuration
     end function
-    
+
     'this is called after everything is initialized
     'perform whatever we need to on every startup
     mpPerformStartupTasks = function(options as object)
@@ -1796,74 +1796,74 @@ function mParticleStart(options as object, messagePort as object)
         storage.cleanCookies()
         sessionManager = mparticle()._internal.sessionManager
         sessionManager.onSdkStart()
-        
+
         identityApi = mparticle().identity
         identifyRequest = options.identifyRequest
         if (identifyRequest = invalid) then
-            identifyRequest = {userIdentities:identityApi.getCurrentUser().userIdentities}
+            identifyRequest = { userIdentities: identityApi.getCurrentUser().userIdentities }
         end if
-        
+
         identityApi.identify(identifyRequest)
     end function
 
-    
+
     '
     ' Public API implementations
     '
     mpPublicApi = {
-        logEvent:           function(eventName as string, eventType = mParticleConstants().CUSTOM_EVENT_TYPE.OTHER, customAttributes = {}) as void
-                                m.logMessage(m.model.CustomEvent(eventName, eventType, customAttributes))
-                            end function,
-        logScreenEvent:     function(screenName as string, customAttributes = {}) as void
-                                m.logMessage(m.model.ScreenEvent(screenName, customAttributes))
-                            end function,
-        logCommerceEvent:   function(productAction={} as object, promotionAction={} as object, impressions=[] as object, customAttributes={} as object, screenName=invalid as string)
-                                m.logMessage(m.model.CommerceEvent(productAction, promotionAction, impressions, customAttributes, screenName))
-                            end function,
-        logMessage:         function(message as object) as void
-                                mplogger = mparticle()._internal.logger
-                                mplogger.debug("Logging message: " + formatjson(message))
-                                m._internal.networking.queueMessage(message)
-                            end function,
-        setSessionAttribute:function(attributeKey as string, attributeValue as string) as void
-                                m._internal.sessionManager.setSessionAttribute(attributeKey, attributeValue)
-                            end function,
-        setOptOut:          function(optOut as boolean) as void
-                               m.logMessage(m.model.OptOut(optOut))
-                            end function,
-        onUrlEvent:         function(urlEvent as object)
-                                if (m._internal.identity.isIdentityRequest(urlEvent.getSourceIdentity().tostr())) then
-                                    return m._internal.identity.mpHandleUrlEvent(urlEvent)
-                                else 
-                                    m._internal.networking.mpHandleUrlEvent(urlEvent)
-                                end if
-                            end function,     
-        isMparticleEvent:   function(sourceIdentity as integer) as boolean
-                                isBatchUpload = m._internal.networking.pendingTransfers.DoesExist(sourceIdentity.tostr())
-                                isIdentityRequest = m._internal.identity.isIdentityRequest(sourceIdentity.tostr())
-                                return isBatchUpload or isIdentityRequest
-                            end function,
-        upload:             function() as void
-                                m._internal.networking.queueUpload()
-                                m._internal.networking.processUploads()
-                            end function,
-        identity:           mpIdentityApi,
-        media:              mpMediaApi,
-        model:              mpPublicModels
+        logEvent: function(eventName as string, eventType = mParticleConstants().CUSTOM_EVENT_TYPE.OTHER, customAttributes = {}) as void
+            m.logMessage(m.model.CustomEvent(eventName, eventType, customAttributes))
+        end function,
+        logScreenEvent: function(screenName as string, customAttributes = {}) as void
+            m.logMessage(m.model.ScreenEvent(screenName, customAttributes))
+        end function,
+        logCommerceEvent: function(productAction = {} as object, promotionAction = {} as object, impressions = [] as object, customAttributes = {} as object, screenName = invalid as string)
+            m.logMessage(m.model.CommerceEvent(productAction, promotionAction, impressions, customAttributes, screenName))
+        end function,
+        logMessage: function(message as object) as void
+            mplogger = mparticle()._internal.logger
+            mplogger.debug("Logging message: " + formatjson(message))
+            m._internal.networking.queueMessage(message)
+        end function,
+        setSessionAttribute: function(attributeKey as string, attributeValue as string) as void
+            m._internal.sessionManager.setSessionAttribute(attributeKey, attributeValue)
+        end function,
+        setOptOut: function(optOut as boolean) as void
+            m.logMessage(m.model.OptOut(optOut))
+        end function,
+        onUrlEvent: function(urlEvent as object)
+            if (m._internal.identity.isIdentityRequest(urlEvent.getSourceIdentity().tostr())) then
+                return m._internal.identity.mpHandleUrlEvent(urlEvent)
+            else
+                m._internal.networking.mpHandleUrlEvent(urlEvent)
+            end if
+        end function,
+        isMparticleEvent: function(sourceIdentity as integer) as boolean
+            isBatchUpload = m._internal.networking.pendingTransfers.DoesExist(sourceIdentity.tostr())
+            isIdentityRequest = m._internal.identity.isIdentityRequest(sourceIdentity.tostr())
+            return isBatchUpload or isIdentityRequest
+        end function,
+        upload: function() as void
+            m._internal.networking.queueUpload()
+            m._internal.networking.processUploads()
+        end function,
+        identity: mpIdentityApi,
+        media: mpMediaApi,
+        model: mpPublicModels
     }
-        
-    internalApi =  {
-        utils:          mpUtils,
-        logger:         mpLogger,
-        configuration:  mpCreateConfiguration(options),
-        networking:     mpNetworking,
-        storage:        mpCreateStorage(),
+
+    internalApi = {
+        utils: mpUtils,
+        logger: mpLogger,
+        configuration: mpCreateConfiguration(options),
+        networking: mpNetworking,
+        storage: mpCreateStorage(),
         sessionManager: mpCreateSessionManager(options.startupArgs)
-        internalModel:  mpInternalModel,
-        identity:       mpInternalIdentityApi
+        internalModel: mpInternalModel,
+        identity: mpInternalIdentityApi
     }
-    
-    mpPublicApi.append({_internal:internalApi})
+
+    mpPublicApi.append({ _internal: internalApi })
     getGlobalAA().mparticleInstance = mpPublicApi
     mpPerformStartupTasks(options)
 end function
@@ -1874,138 +1874,138 @@ end function
 function mParticleSGBridge(task as object) as object
     mpCreateSGBridgeIdentityApi = function(task as object) as object
         return {
-            mParticleTask:      task
-            identify:           function(identityApiRequest) as void
-                                    m.invokeFunction("identity/identify", [identityApiRequest])
-                                end function,
-            login:              function(identityApiRequest) as void
-                                    m.invokeFunction("identity/login", [identityApiRequest])
-                                end function,
-            logout:             function(identityApiRequest) as void
-                                    m.invokeFunction("identity/logout", [identityApiRequest])
-                                end function,
-            modify:             function(identityApiRequest) as void
-                                    m.invokeFunction("identity/modify", [identityApiRequest])
-                                end function,
-            setUserAttribute:   function(attributeKey as string, attributeValue as object) as void
-                                    m.invokeFunction("identity/setUserAttribute", [attributeKey, attributeValue])
-                                end function,
-            setConsentState:    function(consentState as object) as void
-                                    m.invokeFunction("identity/setConsentState", [consentState])
-                                end function
-            invokeFunction:     function(name as string, args)
-                                    invocation = {}
-                                    invocation.methodName = name
-                                    invocation.args = args
-                                    m.mParticleTask[mParticleConstants().SCENEGRAPH_NODES.API_CALL_NODE] = invocation
-                                end function
+            mParticleTask: task
+            identify: function(identityApiRequest) as void
+                m.invokeFunction("identity/identify", [identityApiRequest])
+            end function,
+            login: function(identityApiRequest) as void
+                m.invokeFunction("identity/login", [identityApiRequest])
+            end function,
+            logout: function(identityApiRequest) as void
+                m.invokeFunction("identity/logout", [identityApiRequest])
+            end function,
+            modify: function(identityApiRequest) as void
+                m.invokeFunction("identity/modify", [identityApiRequest])
+            end function,
+            setUserAttribute: function(attributeKey as string, attributeValue as object) as void
+                m.invokeFunction("identity/setUserAttribute", [attributeKey, attributeValue])
+            end function,
+            setConsentState: function(consentState as object) as void
+                m.invokeFunction("identity/setConsentState", [consentState])
+            end function
+            invokeFunction: function(name as string, args)
+                invocation = {}
+                invocation.methodName = name
+                invocation.args = args
+                m.mParticleTask[mParticleConstants().SCENEGRAPH_NODES.API_CALL_NODE] = invocation
+            end function
         }
     end function
     mpCreateSGBridgeMediaApi = function(task as object) as object
         return {
-            mParticleTask:          task
-            logMediaSessionStart:   function(mediaSession as object, options={} as object) as void
-                                        m.invokeFunction("media/logMediaSessionStart", [mediaSession, options])
-                                    end function,
-            logMediaSessionEnd:     function(mediaSession as object, options={} as object) as void
-                                        m.invokeFunction("media/logMediaSessionEnd", [mediaSession, options])
-                                    end function,
-            logMediaContentEnd:     function(mediaSession as object, options={} as object) as void
-                                        m.invokeFunction("media/logMediaContentEnd", [mediaSession, options])
-                                    end function,
-            logPlay:                function(mediaSession as object, options={} as object) as void
-                                        m.invokeFunction("media/logPlay", [mediaSession, options])
-                                    end function,
-            logPause:               function(mediaSession as object, options={} as object) as void
-                                        m.invokeFunction("media/logPause", [mediaSession, options])
-                                    end function,
-            logSeekStart:           function(mediaSession as object, position as double, options={} as object) as void
-                                        m.invokeFunction("media/logSeekStart", [mediaSession, position, options])
-                                    end function,
-            logSeekEnd:             function(mediaSession as object, position as double, options={} as object) as void
-                                        m.invokeFunction("media/logSeekEnd", [mediaSession, position, options])
-                                    end function,
-            logBufferStart:         function(mediaSession as object, duration as double, bufferPercent as double, position as double, options={} as object) as void
-                                        m.invokeFunction("media/logBufferStart", [mediaSession, duration, bufferPercent, position, options])
-                                    end function,
-            logBufferEnd:           function(mediaSession as object, duration as double, bufferPercent as double, position as double, options={} as object) as void
-                                        m.invokeFunction("media/logBufferEnd", [mediaSession, duration, bufferPercent, position, options])
-                                    end function,
-            logAdBreakStart:        function(mediaSession as object, options={} as object) as void
-                                        m.invokeFunction("media/logAdBreakStart", [mediaSession, options])
-                                    end function,
-            logAdBreakEnd:          function(mediaSession as object, options={} as object) as void
-                                        m.invokeFunction("media/logAdBreakEnd", [mediaSession, options])
-                                    end function,
-            logAdStart:             function(mediaSession as object, options={} as object) as void
-                                        m.invokeFunction("media/logAdStart", [mediaSession, options])
-                                    end function,
-            logAdClick:             function(mediaSession as object, options={} as object) as void
-                                        m.invokeFunction("media/logAdClick", [mediaSession, options])
-                                    end function,
-            logAdSkip:              function(mediaSession as object, options={} as object) as void
-                                        m.invokeFunction("media/logAdSkip", [mediaSession, options])
-                                    end function,
-            logAdEnd:               function(mediaSession as object, options={} as object) as void
-                                        m.invokeFunction("media/logAdEnd", [mediaSession, options])
-                                    end function,
-            logSegmentStart:        function(mediaSession as object, options={} as object) as void
-                                        m.invokeFunction("media/logSegmentStart", [mediaSession, options])
-                                    end function,
-            logSegmentSkip:         function(mediaSession as object, options={} as object) as void
-                                        m.invokeFunction("media/logSegmentSkip", [mediaSession, options])
-                                    end function,
-            logSegmentEnd:          function(mediaSession as object, options={} as object) as void
-                                        m.invokeFunction("media/logSegmentEnd", [mediaSession, options])
-                                    end function,
-            logPlayheadPosition:    function(mediaSession as object, options={} as object) as void
-                                        m.invokeFunction("media/logPlayheadPosition", [mediaSession, options])
-                                    end function,
-            logQoS:                 function(mediaSession as object, startupTime as integer, droppedFrames as integer, bitRate as integer, fps as integer, options={} as object) as void
-                                        m.invokeFunction("media/logQoS", [mediaSession, startupTime, droppedFrames, bitRate, fps, options])
-                                    end function,
-            invokeFunction:         function(name as string, args)
-                                        invocation = {}
-                                        invocation.methodName = name
-                                        invocation.args = args
-                                        m.mParticleTask[mParticleConstants().SCENEGRAPH_NODES.API_CALL_NODE] = invocation
-                                    end function
+            mParticleTask: task
+            logMediaSessionStart: function(mediaSession as object, options = {} as object) as void
+                m.invokeFunction("media/logMediaSessionStart", [mediaSession, options])
+            end function,
+            logMediaSessionEnd: function(mediaSession as object, options = {} as object) as void
+                m.invokeFunction("media/logMediaSessionEnd", [mediaSession, options])
+            end function,
+            logMediaContentEnd: function(mediaSession as object, options = {} as object) as void
+                m.invokeFunction("media/logMediaContentEnd", [mediaSession, options])
+            end function,
+            logPlay: function(mediaSession as object, options = {} as object) as void
+                m.invokeFunction("media/logPlay", [mediaSession, options])
+            end function,
+            logPause: function(mediaSession as object, options = {} as object) as void
+                m.invokeFunction("media/logPause", [mediaSession, options])
+            end function,
+            logSeekStart: function(mediaSession as object, position as double, options = {} as object) as void
+                m.invokeFunction("media/logSeekStart", [mediaSession, position, options])
+            end function,
+            logSeekEnd: function(mediaSession as object, position as double, options = {} as object) as void
+                m.invokeFunction("media/logSeekEnd", [mediaSession, position, options])
+            end function,
+            logBufferStart: function(mediaSession as object, duration as double, bufferPercent as double, position as double, options = {} as object) as void
+                m.invokeFunction("media/logBufferStart", [mediaSession, duration, bufferPercent, position, options])
+            end function,
+            logBufferEnd: function(mediaSession as object, duration as double, bufferPercent as double, position as double, options = {} as object) as void
+                m.invokeFunction("media/logBufferEnd", [mediaSession, duration, bufferPercent, position, options])
+            end function,
+            logAdBreakStart: function(mediaSession as object, options = {} as object) as void
+                m.invokeFunction("media/logAdBreakStart", [mediaSession, options])
+            end function,
+            logAdBreakEnd: function(mediaSession as object, options = {} as object) as void
+                m.invokeFunction("media/logAdBreakEnd", [mediaSession, options])
+            end function,
+            logAdStart: function(mediaSession as object, options = {} as object) as void
+                m.invokeFunction("media/logAdStart", [mediaSession, options])
+            end function,
+            logAdClick: function(mediaSession as object, options = {} as object) as void
+                m.invokeFunction("media/logAdClick", [mediaSession, options])
+            end function,
+            logAdSkip: function(mediaSession as object, options = {} as object) as void
+                m.invokeFunction("media/logAdSkip", [mediaSession, options])
+            end function,
+            logAdEnd: function(mediaSession as object, options = {} as object) as void
+                m.invokeFunction("media/logAdEnd", [mediaSession, options])
+            end function,
+            logSegmentStart: function(mediaSession as object, options = {} as object) as void
+                m.invokeFunction("media/logSegmentStart", [mediaSession, options])
+            end function,
+            logSegmentSkip: function(mediaSession as object, options = {} as object) as void
+                m.invokeFunction("media/logSegmentSkip", [mediaSession, options])
+            end function,
+            logSegmentEnd: function(mediaSession as object, options = {} as object) as void
+                m.invokeFunction("media/logSegmentEnd", [mediaSession, options])
+            end function,
+            logPlayheadPosition: function(mediaSession as object, options = {} as object) as void
+                m.invokeFunction("media/logPlayheadPosition", [mediaSession, options])
+            end function,
+            logQoS: function(mediaSession as object, startupTime as integer, droppedFrames as integer, bitRate as integer, fps as integer, options = {} as object) as void
+                m.invokeFunction("media/logQoS", [mediaSession, startupTime, droppedFrames, bitRate, fps, options])
+            end function,
+            invokeFunction: function(name as string, args)
+                invocation = {}
+                invocation.methodName = name
+                invocation.args = args
+                m.mParticleTask[mParticleConstants().SCENEGRAPH_NODES.API_CALL_NODE] = invocation
+            end function
         }
     end function
     return {
-        mParticleTask:      task
-        logEvent:           function(eventName as string, eventType = mParticleConstants().CUSTOM_EVENT_TYPE.OTHER, customAttributes = {}) as void
-                                m.invokeFunction("logEvent", [eventName, eventType, customAttributes])
-                            end function,
-        logScreenEvent:     function(screenName as string, customAttributes = {}) as void
-                                m.invokeFunction("logScreenEvent", [screenName, customAttributes])
-                            end function,
-        logCommerceEvent:   function(productAction={} as object, promotionAction={} as object, impressions=[] as object, customAttributes={} as object, screenName="" as string)
-                                m.invokeFunction("logCommerceEvent", [productAction, promotionAction, impressions, customAttributes, screenName])
-                            end function,
-        logMessage:         function(message as object) as void
-                                m.invokeFunction("logMessage", [message])
-                            end function,
-        setUserAttribute:   function(attributeKey as string, attributeValue as object) as void
-                                m.invokeFunction("setUserAttribute", [attributeKey, attributeValue])
-                            end function,
-        setConsentState:    function(consentState as object) as void
-                                m.invokeFunction("setConsentState", [consentState])
-                            end function,
-        setSessionAttribute:   function(attributeKey as string, attributeValue as object) as void
-                                m.invokeFunction("setSessionAttribute", [attributeKey, attributeValue])
-                            end function,
-        upload:             function() as void
-                                m.invokeFunction("upload", [])
-                            end function,
-        identity:           mpCreateSGBridgeIdentityApi(task),
-        media:              mpCreateSGBridgeMediaApi(task),
-        invokeFunction:     function(name as string, args)
-                                invocation = {}
-                                invocation.methodName = name
-                                invocation.args = args
-                                m.mParticleTask[mParticleConstants().SCENEGRAPH_NODES.API_CALL_NODE] = invocation
-                            end function
-     }
-    
+        mParticleTask: task
+        logEvent: function(eventName as string, eventType = mParticleConstants().CUSTOM_EVENT_TYPE.OTHER, customAttributes = {}) as void
+            m.invokeFunction("logEvent", [eventName, eventType, customAttributes])
+        end function,
+        logScreenEvent: function(screenName as string, customAttributes = {}) as void
+            m.invokeFunction("logScreenEvent", [screenName, customAttributes])
+        end function,
+        logCommerceEvent: function(productAction = {} as object, promotionAction = {} as object, impressions = [] as object, customAttributes = {} as object, screenName = "" as string)
+            m.invokeFunction("logCommerceEvent", [productAction, promotionAction, impressions, customAttributes, screenName])
+        end function,
+        logMessage: function(message as object) as void
+            m.invokeFunction("logMessage", [message])
+        end function,
+        setUserAttribute: function(attributeKey as string, attributeValue as object) as void
+            m.invokeFunction("setUserAttribute", [attributeKey, attributeValue])
+        end function,
+        setConsentState: function(consentState as object) as void
+            m.invokeFunction("setConsentState", [consentState])
+        end function,
+        setSessionAttribute: function(attributeKey as string, attributeValue as object) as void
+            m.invokeFunction("setSessionAttribute", [attributeKey, attributeValue])
+        end function,
+        upload: function() as void
+            m.invokeFunction("upload", [])
+        end function,
+        identity: mpCreateSGBridgeIdentityApi(task),
+        media: mpCreateSGBridgeMediaApi(task),
+        invokeFunction: function(name as string, args)
+            invocation = {}
+            invocation.methodName = name
+            invocation.args = args
+            m.mParticleTask[mParticleConstants().SCENEGRAPH_NODES.API_CALL_NODE] = invocation
+        end function
+    }
+
 end function
