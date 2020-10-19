@@ -701,11 +701,11 @@ function mParticleStart(options as object, messagePort as object)
 
             if (FormatJSON(attributeValue) <> FormatJSON(oldValue)) then
                 deleted = false
-                if (attributeValue = invalid or FormatJSON(attributeValue).len() = 0) then
+                if (mparticle()._internal.utils.isEmpty(attributeValue) or FormatJSON(attributeValue).len() = 0) then
                     deleted = true
                 end if
                 isNewAttribute = false
-                if (oldValue = invalid or FormatJSON(oldValue).len() = 0) then
+                if (mparticle()._internal.utils.isEmpty(oldValue) or FormatJSON(oldValue).len() = 0) then
                     isNewAttribute = true
                 end if
                 mparticle().logMessage(mparticle().model.UserAttributeChange(attributeKey, attributeValue, oldValue, deleted, isNewAttribute))
@@ -1347,8 +1347,6 @@ function mParticleStart(options as object, messagePort as object)
             message.ov = oldValue
             message.d = deleted
             message.na = isNewAttribute
-            currentMpid = mparticle()._internal.storage.getCurrentMpid()
-            message.ua = mparticle()._internal.storage.getUserAttributes(currentMpid)
 
             return message
         end function,
@@ -1357,9 +1355,6 @@ function mParticleStart(options as object, messagePort as object)
             message = m.Message(mParticleConstants().MESSAGE_TYPE.USER_IDENTITY_CHANGE)
             message.ni = newIdentity
             message.oi = oldIdentity
-            currentMpid = mparticle()._internal.storage.getCurrentMpid()
-            identities = mparticle()._internal.storage.getUserIdentities(currentMpid)
-            message.ui = identities
 
             return message
         end function,

@@ -16,7 +16,7 @@ sub init()
     identityApiRequest.userIdentities = {}
     identityApiRequest.userIdentities[mpConstants.IDENTITY_TYPE.OTHER] = "foo"
     m.mparticle.identity.modify(identityApiRequest)
-    dentityApiRequest = {}
+    identityApiRequest = {}
     identityApiRequest.userIdentities = {}
     identityApiRequest.userIdentities[mpConstants.IDENTITY_TYPE.OTHER] = "bar"
     m.mparticle.identity.modify(identityApiRequest)
