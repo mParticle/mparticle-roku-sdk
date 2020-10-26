@@ -7,7 +7,7 @@
 ' mParticleConstants() surface various fields for interacting with the mParticle APIs
 '
 function mParticleConstants() as object
-    SDK_VERSION = "2.1.6"
+    SDK_VERSION = "2.1.7"
     LOG_LEVEL = {
         NONE: 0,
         ERROR: 1,
