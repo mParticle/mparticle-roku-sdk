@@ -16,9 +16,15 @@ sub init()
     identityApiRequest.userIdentities = {}
     identityApiRequest.userIdentities[mpConstants.IDENTITY_TYPE.OTHER] = "foo"
     m.mparticle.identity.modify(identityApiRequest)
+    identityApiRequest = {}
+    identityApiRequest.userIdentities = {}
+    identityApiRequest.userIdentities[mpConstants.IDENTITY_TYPE.OTHER] = "bar"
+    m.mparticle.identity.modify(identityApiRequest)
     m.mparticle.logEvent("hello world!")
-    m.mparticle.identity.setUserAttribute("example attribute key", "example attribute value")
+    m.mparticle.identity.setUserAttribute("example attribute key", "example attribute value 1")
     m.mparticle.identity.setUserAttribute("example attribute array", ["foo", "bar"])
+    m.mparticle.identity.setUserAttribute("example attribute key", "example attribute value 2")
+    m.mparticle.identity.setUserAttribute("example attribute array", ["noo", "mar"])
 
     m.mparticle.logScreenEvent("hello screen!")
 
