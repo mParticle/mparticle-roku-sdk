@@ -921,7 +921,6 @@ function mParticleStart(options as object, messagePort as object)
                     dp: "Roku",
                     dn: info.GetModelDisplayName(),
                     p: info.GetModel(),
-                    duid: info.GetChannelClientId(),
                     vr: info.GetVersion(),
                     rida: info.GetRIDA(),
                     lat: info.IsRIDADisabled(),
