@@ -593,7 +593,7 @@ function mParticleStart(options as object, messagePort as object)
                 return true
             else
                 if (LCase(type(input)) = "roarray" or LCase(type(input)) = "array")
-                    return input[0] = invalid
+                    return input.Count() = 0
                 end if
                 if (LCase(type(input)) = "rostring" or LCase(type(input)) = "string")
                     return Len(input) = 0
