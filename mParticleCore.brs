@@ -589,7 +589,17 @@ function mParticleStart(options as object, messagePort as object)
         end function,
 
         isEmpty: function(input as dynamic) as boolean
-            return input = invalid or len(input) = 0
+            if input = invalid
+                return true
+            else
+                if (LCase(type(input)) = "roarray" or LCase(type(input)) = "array")
+                    return input.Count() = 0
+                end if
+                if (LCase(type(input)) = "rostring" or LCase(type(input)) = "string")
+                    return Len(input) = 0
+                end if
+            end if
+            return false
         end function,
 
         isString: function(input as object) as boolean
