@@ -926,12 +926,15 @@ function mParticleStart(options as object, messagePort as object)
                 localSeconds = tempDatetime.AsSeconds ()
                 utcSecondsOffset = localSeconds - utcSeconds
                 utcHoursOffset = utcSecondsOffset / 3600
+                versionArray = info.GetOsVersion()
+                versionString = Substitute("{0}.{1}.{2}.{3}", versionArray.major, versionArray.minor, versionArray.revision, versionArray.build)
+
 
                 m.collectedDeviceInfo = {
                     dp: "Roku",
                     dn: info.GetModelDisplayName(),
                     p: info.GetModel(),
-                    vr: info.GetVersion(),
+                    vr: versionString,
                     rida: info.GetRIDA(),
                     lat: info.IsRIDADisabled(),
                     rpb: info.GetChannelClientId(),
@@ -963,11 +966,6 @@ function mParticleStart(options as object, messagePort as object)
                 digest.Setup("md5")
                 digest.update(buildIdArray)
                 m.collectedDeviceInfo.bid = digest.final()
-
-                versionString = info.GetVersion()
-                if (len(versionString) > 5) then
-                    versionString = versionString.mid(2, 4)
-                end if
                 m.collectedDeviceInfo.dosv = versionString
 
             end if
