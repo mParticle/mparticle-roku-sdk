@@ -927,7 +927,7 @@ function mParticleStart(options as object, messagePort as object)
                 utcSecondsOffset = localSeconds - utcSeconds
                 utcHoursOffset = utcSecondsOffset / 3600
                 versionArray = info.GetOsVersion()
-                versionString = Substitute("Version: {0}.{1} Revision: {2} Build: {3}", versionArray.major, versionArray.minor, versionArray.revision, versionArray.build)
+                versionString = Substitute("{0}.{1}.{2}.{3}", versionArray.major, versionArray.minor, versionArray.revision, versionArray.build)
 
 
                 m.collectedDeviceInfo = {
@@ -966,10 +966,6 @@ function mParticleStart(options as object, messagePort as object)
                 digest.Setup("md5")
                 digest.update(buildIdArray)
                 m.collectedDeviceInfo.bid = digest.final()
-
-                versionArray = info.GetOsVersion()
-                versionString = Substitute("Version: {0}.{1} Revision: {2} Build: {3}", versionArray.major, versionArray.minor, versionArray.revision, versionArray.build)
-
                 m.collectedDeviceInfo.dosv = versionString
 
             end if
