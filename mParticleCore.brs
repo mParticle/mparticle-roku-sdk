@@ -575,7 +575,8 @@ function mParticleStart(options as object, messagePort as object)
     mpUtils = {
         currentChannelVersion: function() as string
             info = CreateObject("roAppInfo")
-            return info.getversion()
+            osVersion = info.GetOSVersion()
+            return osVersion["major"] + "." + osVersion["minor"]
         end function,
         randomGuid: function() as string
             return CreateObject("roDeviceInfo").GetRandomUUID()
@@ -902,12 +903,13 @@ function mParticleStart(options as object, messagePort as object)
                 appInfo = CreateObject("roAppInfo")
                 deviceInfo = CreateObject("roDeviceInfo")
                 env = 2
+                osVersion = info.GetOSVersion()
                 if (mparticle()._internal.configuration.development) then
                     env = 1
                 end if
                 m.collectedApplicationInfo = {
                     an: appInfo.GetTitle(),
-                    av: appInfo.GetVersion(),
+                    av: osVersion["major"] + "." + osVersion["minor"],
                     apn: appInfo.GetID(),
                     abn: appInfo.GetValue("build_version"),
                     env: env
@@ -927,8 +929,7 @@ function mParticleStart(options as object, messagePort as object)
                 utcSecondsOffset = localSeconds - utcSeconds
                 utcHoursOffset = utcSecondsOffset / 3600
                 versionArray = info.GetOsVersion()
-                versionString = Substitute("{0}.{1}.{2}.{3}", versionArray.major, versionArray.minor, versionArray.revision, versionArray.build)
-
+                versionString = versionArray["major"] + "." + versionArray["minor"]
 
                 m.collectedDeviceInfo = {
                     dp: "Roku",
