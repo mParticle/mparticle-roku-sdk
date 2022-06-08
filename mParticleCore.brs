@@ -574,7 +574,7 @@ function mParticleStart(options as object, messagePort as object)
 
     mpUtils = {
         currentChannelVersion: function() as string
-            info = CreateObject("roAppInfo")
+            info = CreateObject("roDeviceInfo")
             osVersion = info.GetOSVersion()
             return osVersion["major"] + "." + osVersion["minor"]
         end function,
@@ -903,7 +903,7 @@ function mParticleStart(options as object, messagePort as object)
                 appInfo = CreateObject("roAppInfo")
                 deviceInfo = CreateObject("roDeviceInfo")
                 env = 2
-                osVersion = info.GetOSVersion()
+                osVersion = deviceInfo.GetOSVersion()
                 if (mparticle()._internal.configuration.development) then
                     env = 1
                 end if
