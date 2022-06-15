@@ -998,6 +998,9 @@ function mParticleStart(options as object, messagePort as object)
 
                 m.nextAllowedUploadTime = mparticle()._internal.utils.unixTimeMillis() + m.currentBackoffDuration
             end function,
+            setBackoff: function(backoffDuration as longinteger)
+                m.nextAllowedUploadTime = backoffDuration
+            end function,
             canUpload: function() as boolean
                 if (m.nextAllowedUploadTime = 0)
                     return true
@@ -1099,7 +1102,20 @@ function mParticleStart(options as object, messagePort as object)
                         mplogger.error("SSL error - please make sure " + mparticle()._internal.configuration.certificateDir + " is present.")
                     else if (responseCode = 400) then
                         mplogger.error("HTTP 400 - please check that your mParticle key and secret are valid.")
-                    else if (responseCode = 429 or responseCode = 503) then
+                    else if (responseCode = 429) then
+                        headers = urlEvent.GetResponseHeadersArray()
+                        m.uploadQueue.unshift(transfer.batch)
+                        for each header in headers
+                            if (header["Retry-After"] <> invalid) then
+                                backoff = header["Retry-After"]
+                            end if
+                        end for
+                        if (backoff <> invalid) then
+                            m.mpBackoff.setBackoff(backoff)
+                        else
+                            m.mpBackoff.increase()
+                        end if
+                    else if (responseCode = 503) then
                         m.uploadQueue.unshift(transfer.batch)
                         m.mpBackoff.increase()
                     else if (responseCode = 202 and responseBody <> invalid) then
