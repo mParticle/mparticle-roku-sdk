@@ -1839,6 +1839,10 @@ function mParticleStart(options as object, messagePort as object)
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SESSION_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
         end function
+        logMediaSessionSummary: function(mediaSession as object, options = {} as object) as void
+            customAttributes = m.getEventAttributes(mediaSession, options)
+            m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SESSION_SUMMARY, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
+        end function
         logMediaContentEnd: function(mediaSession as object, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.CONTENT_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
@@ -1902,6 +1906,10 @@ function mParticleStart(options as object, messagePort as object)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.AD_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
             mediaSession.adContent = invalid
         end function
+        logAdSummary: function(mediaSession as object, options = {} as object) as void
+            customAttributes = m.getEventAttributes(mediaSession, options)
+            m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.AD_SUMMARY, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
+        end function
         logSegmentStart: function(mediaSession as object, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SEGMENT_START, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
@@ -1915,6 +1923,10 @@ function mParticleStart(options as object, messagePort as object)
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SEGMENT_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
             mediaSession.segment = invalid
+        end function
+        logSegmentSummary: function(mediaSession as object, options = {} as object) as void
+            customAttributes = m.getEventAttributes(mediaSession, options)
+            m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SEGMENT_SUMMARY, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
         end function
         logPlayheadPosition: function(mediaSession as object, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
@@ -2072,6 +2084,9 @@ function mParticleSGBridge(task as object) as object
             logMediaSessionEnd: function(mediaSession as object, options = {} as object) as void
                 m.invokeFunction("media/logMediaSessionEnd", [mediaSession, options])
             end function,
+            logMediaSessionSummary: function(mediaSession as object, options = {} as object) as void
+                m.invokeFunction("media/logMediaSessionSummary", [mediaSession, options])
+            end function,
             logMediaContentEnd: function(mediaSession as object, options = {} as object) as void
                 m.invokeFunction("media/logMediaContentEnd", [mediaSession, options])
             end function,
@@ -2111,6 +2126,9 @@ function mParticleSGBridge(task as object) as object
             logAdEnd: function(mediaSession as object, options = {} as object) as void
                 m.invokeFunction("media/logAdEnd", [mediaSession, options])
             end function,
+            logAdSummary: function(mediaSession as object, options = {} as object) as void
+                m.invokeFunction("media/logAdSummary", [mediaSession, options])
+            end function,
             logSegmentStart: function(mediaSession as object, options = {} as object) as void
                 m.invokeFunction("media/logSegmentStart", [mediaSession, options])
             end function,
@@ -2119,6 +2137,9 @@ function mParticleSGBridge(task as object) as object
             end function,
             logSegmentEnd: function(mediaSession as object, options = {} as object) as void
                 m.invokeFunction("media/logSegmentEnd", [mediaSession, options])
+            end function,
+            logSegmentSummary: function(mediaSession as object, options = {} as object) as void
+                m.invokeFunction("media/logSegmentSummary", [mediaSession, options])
             end function,
             logPlayheadPosition: function(mediaSession as object, options = {} as object) as void
                 m.invokeFunction("media/logPlayheadPosition", [mediaSession, options])
