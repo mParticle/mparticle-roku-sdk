@@ -430,7 +430,7 @@ function mParticleConstants() as object
             session.mediaSessionAdTotal = 0
             session.mediaTotalAdTimeSpent = 0
             session.mediaAdTimeSpentRate = 0.0
-            session.mediaSessionAdObjects = createObject("roArray", 0, true)
+            session.mediaSessionAdObjects = CreateObject("roArray", 0, true)
             return session
         end function,
         setDuration: function(session as object, duration as integer)
