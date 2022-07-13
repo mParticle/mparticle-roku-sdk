@@ -424,6 +424,13 @@ function mParticleConstants() as object
             session.streamType = streamType
             session.mediaSessionId = CreateObject("roDeviceInfo").GetRandomUUID()
             session.currentPlayheadPosition = 0
+            session.mediaContentComplete = false
+            session.mediaContentTimeSpent = 0
+            session.mediaSessionSegmentTotal = 0
+            session.mediaSessionAdTotal = 0
+            session.mediaTotalAdTimeSpent = 0
+            session.mediaAdTimeSpentRate = 0.0
+            session.mediaSessionAdObjects = CreateObject("roArray", 0, true)
             return session
         end function,
         setDuration: function(session as object, duration as integer)
@@ -440,6 +447,33 @@ function mParticleConstants() as object
         end function,
         setSegment: function(session as object, segment as object)
             session.segment = segment
+        end function,
+        setMediaSessionStartTime: function(session as object, mediaSessionStartTime as longinteger)
+            session.mediaSessionStartTime = mediaSessionStartTime
+        end function,
+        setMediaSessionEndTime: function(session as object, mediaSessionEndTime as longinteger)
+            session.mediaSessionEndTime = mediaSessionEndTime
+        end function,
+        setMediaContentComplete: function(session as object, mediaContentComplete as boolean)
+            session.mediaContentComplete = mediaContentComplete
+        end function,
+        setMediaContentTimeSpent: function(session as object, mediaContentTimeSpent as longinteger)
+            session.mediaContentTimeSpent = mediaContentTimeSpent
+        end function,
+        setMediaSessionSegmentTotal: function(session as object, mediaSessionSegmentTotal as integer)
+            session.mediaSessionSegmentTotal = mediaSessionSegmentTotal
+        end function,
+        setMediaSessionAdTotal: function(session as object, mediaSessionAdTotal as integer)
+            session.mediaSessionAdTotal = mediaSessionAdTotal
+        end function,
+        setMediaTotalAdTimeSpent: function(session as object, mediaTotalAdTimeSpent as longinteger)
+            session.mediaTotalAdTimeSpent = mediaTotalAdTimeSpent
+        end function,
+        setMediaAdTimeSpentRate: function(session as object, mediaAdTimeSpentRate as double)
+            session.mediaAdTimeSpentRate = mediaAdTimeSpentRate
+        end function,
+        setMediaSessionAdObjects: function(session as object, mediaSessionAdObjects as [])
+            session.mediaSessionAdObjects = mediaSessionAdObjects
         end function
     }
 
@@ -448,6 +482,8 @@ function mParticleConstants() as object
             ad = {}
             ad.id = id
             ad.title = title
+            ad.adCompleted = false
+            ad.adSkipped = false
             return ad
         end function,
         setDuration: function(ad as object, duration as integer)
@@ -470,6 +506,18 @@ function mParticleConstants() as object
         end function,
         setSiteId: function(ad as object, siteId as string)
             ad.siteId = siteId
+        end function,
+        setAdStartTime: function(ad as object, adStartTime as longinteger)
+            ad.adStartTime = adStartTime
+        end function,
+        setAdEndTime: function(ad as object, adEndTime as longinteger)
+            ad.adEndTime = adEndTime
+        end function,
+        setAdCompleted: function(ad as object, adCompleted as boolean)
+            ad.adCompleted = adCompleted
+        end function,
+        setAdSkipped: function(ad as object, adSkipped as boolean)
+            ad.adSkipped = adSkipped
         end function
     }
 
@@ -491,7 +539,24 @@ function mParticleConstants() as object
             segment.title = title
             segment.index = index
             segment.duration = duration
+            segment.segmentCompleted = false
+            segment.segmentSkipped = false
             return segment
+        end function,
+        setDuration: function(segment as object, duration as integer)
+            segment.duration = duration
+        end function,
+        setSegmentStartTime: function(segment as object, segmentStartTime as longinteger)
+            segment.segmentStartTime = segmentStartTime
+        end function,
+        setSegmentEndTime: function(segment as object, segmentEndTime as longinteger)
+            segment.segmentEndTime = segmentEndTime
+        end function,
+        setSegmentCompleted: function(segment as object, segmentCompleted as boolean)
+            segment.segmentCompleted = segmentCompleted
+        end function,
+        setSegmentSkipped: function(segment as object, segmentSkipped as boolean)
+            segment.segmentSkipped = segmentSkipped
         end function
     }
 
@@ -1660,6 +1725,25 @@ function mParticleStart(options as object, messagePort as object)
                 eventAttributes.stream_type = mediaSession.streamType
                 eventAttributes.content_type = mediaSession.contentType
 
+                if (mediaSession.mediaSessionStartTime <> invalid) then
+                    eventAttributes.media_session_start_time = mediaSession.mediaSessionStartTime.ToStr()
+                    if (mediaSession.mediaSessionEndTime <> invalid) then
+                        eventAttributes.media_session_end_time = mediaSession.mediaSessionEndTime.ToStr()
+
+                        timeSpent = mediaSession.mediaSessionEndTime - mediaSession.mediaSessionStartTime
+                        eventAttributes.media_time_spent = timeSpent.ToStr()
+                    end if
+                end if
+                eventAttributes.media_content_complete = mediaSession.mediaContentComplete
+                if (mediaSession.mediaContentTimeSpent <> invalid) then
+                    eventAttributes.media_content_time_spent = mediaSession.mediaContentTimeSpent.ToStr()
+                end if
+                eventAttributes.media_session_segment_total = mediaSession.mediaSessionSegmentTotal
+                eventAttributes.media_session_ad_total = mediaSession.mediaSessionAdTotal
+                eventAttributes.media_total_ad_time_spent = mediaSession.mediaTotalAdTimeSpent
+                eventAttributes.media_ad_time_spent_rate = mediaSession.mediaAdTimeSpentRate
+                eventAttributes.media_session_ad_objects = mediaSession.mediaSessionAdObjects.ToStr()
+
                 if (mediaSession.adContent <> invalid) then
                     eventAttributes.ad_content_title = mediaSession.adContent.title
                     eventAttributes.ad_content_duration = mediaSession.adContent.duration
@@ -1672,6 +1756,14 @@ function mParticleStart(options as object, messagePort as object)
                         eventAttributes.ad_content_position = mediaSession.adContent.position.ToStr()
                     end if
                     eventAttributes.ad_content_site_id = mediaSession.adContent.siteId
+                    if (mediaSession.adContent.adStartTime <> invalid) then
+                        eventAttributes.ad_content_start_time = mediaSession.adContent.adStartTime.ToStr()
+                    end if
+                    if (mediaSession.adContent.adEndTime <> invalid) then
+                        eventAttributes.ad_content_end_time = mediaSession.adContent.adEndTime.ToStr()
+                    end if
+                    eventAttributes.ad_completed = mediaSession.adContent.adCompleted
+                    eventAttributes.ad_skipped = mediacontent_title.adContent.adSkipped
                 end if
 
                 if (mediaSession.adBreak <> invalid) then
@@ -1682,7 +1774,7 @@ function mParticleStart(options as object, messagePort as object)
                     if (mediaSession.currentPlayheadPosition <> invalid) then
                         eventAttributes.ad_break_playback_time = mediaSession.currentPlayheadPosition.ToStr()
                     end if
-                    eventAttributes.ad_break = mediaSession.adBreak.id
+                    eventAttributes.ad_break_id = mediaSession.adBreak.id
                 end if
 
                 if (mediaSession.segment <> invalid) then
@@ -1693,6 +1785,16 @@ function mParticleStart(options as object, messagePort as object)
                     if (mediaSession.segment.duration <> invalid) then
                         eventAttributes.segment_duration = mediaSession.segment.duration.ToStr()
                     end if
+                    if (mediaSession.segment.segmentStartTime <> invalid) then
+                        eventAttributes.segment_start_time = mediaSession.segment.segmentStartTime.ToStr()
+                        if (mediaSession.segment.segmentEndTime <> invalid) then
+                            eventAttributes.segment_end_time = mediaSession.segment.segmentEndTime.ToStr()
+                            timeSpent = mediaSession.segment.segmentEndTime - mediaSession.segment.segmentStartTime
+                            eventAttributes.media_segment_time_spent = timeSpent.ToStr()
+                        end if
+                    end if
+                    eventAttributes.segment_completed = mediaSession.segment.segmentCompleted
+                    eventAttributes.segment_skipped = mediaSession.segment.segmentSkipped
                 end if
             end if
 
@@ -1736,6 +1838,10 @@ function mParticleStart(options as object, messagePort as object)
         logMediaSessionEnd: function(mediaSession as object, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SESSION_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
+        end function
+        logMediaSessionSummary: function(mediaSession as object, options = {} as object) as void
+            customAttributes = m.getEventAttributes(mediaSession, options)
+            m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SESSION_SUMMARY, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
         end function
         logMediaContentEnd: function(mediaSession as object, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
@@ -1800,6 +1906,10 @@ function mParticleStart(options as object, messagePort as object)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.AD_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
             mediaSession.adContent = invalid
         end function
+        logAdSummary: function(mediaSession as object, options = {} as object) as void
+            customAttributes = m.getEventAttributes(mediaSession, options)
+            m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.AD_SUMMARY, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
+        end function
         logSegmentStart: function(mediaSession as object, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SEGMENT_START, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
@@ -1813,6 +1923,10 @@ function mParticleStart(options as object, messagePort as object)
             customAttributes = m.getEventAttributes(mediaSession, options)
             m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SEGMENT_END, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
             mediaSession.segment = invalid
+        end function
+        logSegmentSummary: function(mediaSession as object, options = {} as object) as void
+            customAttributes = m.getEventAttributes(mediaSession, options)
+            m.sendMediaMessage(mparticleConstants().MEDIA_EVENT_NAME.SEGMENT_SUMMARY, mparticleConstants().CUSTOM_EVENT_TYPE.MEDIA, customAttributes)
         end function
         logPlayheadPosition: function(mediaSession as object, options = {} as object) as void
             customAttributes = m.getEventAttributes(mediaSession, options)
@@ -1970,6 +2084,9 @@ function mParticleSGBridge(task as object) as object
             logMediaSessionEnd: function(mediaSession as object, options = {} as object) as void
                 m.invokeFunction("media/logMediaSessionEnd", [mediaSession, options])
             end function,
+            logMediaSessionSummary: function(mediaSession as object, options = {} as object) as void
+                m.invokeFunction("media/logMediaSessionSummary", [mediaSession, options])
+            end function,
             logMediaContentEnd: function(mediaSession as object, options = {} as object) as void
                 m.invokeFunction("media/logMediaContentEnd", [mediaSession, options])
             end function,
@@ -2009,6 +2126,9 @@ function mParticleSGBridge(task as object) as object
             logAdEnd: function(mediaSession as object, options = {} as object) as void
                 m.invokeFunction("media/logAdEnd", [mediaSession, options])
             end function,
+            logAdSummary: function(mediaSession as object, options = {} as object) as void
+                m.invokeFunction("media/logAdSummary", [mediaSession, options])
+            end function,
             logSegmentStart: function(mediaSession as object, options = {} as object) as void
                 m.invokeFunction("media/logSegmentStart", [mediaSession, options])
             end function,
@@ -2017,6 +2137,9 @@ function mParticleSGBridge(task as object) as object
             end function,
             logSegmentEnd: function(mediaSession as object, options = {} as object) as void
                 m.invokeFunction("media/logSegmentEnd", [mediaSession, options])
+            end function,
+            logSegmentSummary: function(mediaSession as object, options = {} as object) as void
+                m.invokeFunction("media/logSegmentSummary", [mediaSession, options])
             end function,
             logPlayheadPosition: function(mediaSession as object, options = {} as object) as void
                 m.invokeFunction("media/logPlayheadPosition", [mediaSession, options])
