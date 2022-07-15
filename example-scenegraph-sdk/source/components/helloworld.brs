@@ -93,7 +93,7 @@ sub init()
     'print " --- Add new CCPA Consent State --- "
     'print formatjson(consentState)
 
-    m.mparticle.identity.setConsentState(consentState)
+    'm.mparticle.identity.setConsentState(consentState)
     'print "--- Consent Test End ---"
 
     ' Commerce
@@ -126,6 +126,9 @@ sub init()
 
     segment = mpConstants.Segment.build("Chapter 1", 0, 183400)
     mediaSession.segment = segment
+    mediaSession.mediaSessionSegmentTotal = 1
+    mediaSession.currentPlayheadPosition = 0
+    mediaSession.mediaContentTimeSpent = 0
     m.mparticle.media.logSegmentStart(mediaSession, customAttributes)
 
     print ("Logging session after segment start: " + formatjson(mediaSession))
@@ -136,11 +139,13 @@ sub init()
     print ("Logging session after play: " + formatjson(mediaSession))
 
     mediaSession.currentPlayheadPosition = 1000
+    mediaSession.mediaContentTimeSpent = 1000
     m.mparticle.media.logPlayheadPosition(mediaSession)
 
     print ("Logging session after playhead: " + formatjson(mediaSession))
 
     mediaSession.currentPlayheadPosition = 1900
+    mediaSession.mediaContentTimeSpent = 1900
     customAttributes = { "Source": "Player Controls" }
     m.mparticle.media.logPause(mediaSession, customAttributes)
 
@@ -158,16 +163,22 @@ sub init()
     adContent.position = 0
     adContent.campaign = "CP 2077 Preorder Push"
     mediaSession.adContent = adContent
+    mediaSession.mediaSessionAdTotal = 1
+    mediaSession.mediaSessionAdObjects.push(adContent.id)
+    mediaSession.mediaContentTimeSpent = 1950
     m.mparticle.media.logAdStart(mediaSession, {})
 
     print ("Logging session after ad start: " + formatjson(mediaSession))
 
     customAttributes = { "click_timestamp_ms": 1593007533602 }
+    mediaSession.adContent.position = 800
+    mediaSession.mediaContentTimeSpent = 2750
     m.mparticle.media.logAdClick(mediaSession, customAttributes)
 
     print ("Logging session after ad click: " + formatjson(mediaSession))
 
     m.mparticle.media.logAdEnd(mediaSession, {})
+    m.mparticle.media.logAdSummary(mediaSession, {})
     mediaSession.adContent = invalid
 
     print ("Logging session after ad end: " + formatjson(mediaSession))
@@ -177,11 +188,17 @@ sub init()
     adContent2.position = 0
     adContent2.campaign = "VtM: Revival"
     mediaSession.adContent = adContent2
+    mediaSession.mediaSessionAdTotal = 2
+    mediaSession.mediaSessionAdObjects.push(adContent2.id)
+    mediaSession.mediaContentTimeSpent = 3000
     m.mparticle.media.logAdStart(mediaSession, {})
 
     print ("Logging session after ad start 2: " + formatjson(mediaSession))
 
+    mediaSession.adContent.position = 3000
+    mediaSession.mediaContentTimeSpent = 6000
     m.mparticle.media.logAdSkip(mediaSession, {})
+    m.mparticle.media.logAdSummary(mediaSession, {})
     mediaSession.adContent = invalid
 
     print ("Logging session after ad skip: " + formatjson(mediaSession))
@@ -196,12 +213,14 @@ sub init()
     print ("Logging session after QOS: " + formatjson(mediaSession))
 
     m.mparticle.media.logSegmentEnd(mediaSession, customAttributes)
+    m.mparticle.media.logSegmentSummary(mediaSession, customAttributes)
     mediaSession.segment = invalid
 
     print ("Logging session after segment end: " + formatjson(mediaSession))
 
     segment2 = mpConstants.Segment.build("Chapter 2", 1, 17500)
     mediaSession.segment = segment2
+    mediaSession.mediaSessionSegmentTotal = 2
     m.mparticle.media.logSegmentStart(mediaSession, customAttributes)
 
     print ("Logging session after segment start 2: " + formatjson(mediaSession))
@@ -215,6 +234,7 @@ sub init()
     print ("Logging session after seek end: " + formatjson(mediaSession))
 
     m.mparticle.media.logSegmentSkip(mediaSession, customAttributes)
+    m.mparticle.media.logSegmentSummary(mediaSession, customAttributes)
     mediaSession.segment = invalid
 
     print ("Logging session after segment skip: " + formatjson(mediaSession))
@@ -227,11 +247,14 @@ sub init()
 
     print ("Logging session after buffer end: " + formatjson(mediaSession))
 
+    mediaSession.mediaContentComplete = true
     m.mparticle.media.logMediaContentEnd(mediaSession, customAttributes)
 
     print ("Logging session after media content End: " + formatjson(mediaSession))
 
     m.mparticle.media.logMediaSessionEnd(mediaSession, customAttributes)
+    m.mparticle.media.logMediaSessionSummary(mediaSession, customAttributes)
+
 
     print ("Logging session after End: " + formatjson(mediaSession))
 
