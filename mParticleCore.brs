@@ -472,7 +472,7 @@ function mParticleConstants() as object
         setMediaAdTimeSpentRate: function(session as object, mediaAdTimeSpentRate as double)
             session.mediaAdTimeSpentRate = mediaAdTimeSpentRate
         end function,
-        setMediaSessionAdObjects: function(session as object, mediaSessionAdObjects as [])
+        setMediaSessionAdObjects: function(session as object, mediaSessionAdObjects as object)
             session.mediaSessionAdObjects = mediaSessionAdObjects
         end function
     }
@@ -1734,19 +1734,25 @@ function mParticleStart(options as object, messagePort as object)
                         eventAttributes.media_time_spent = timeSpent.ToStr()
                     end if
                 end if
-                eventAttributes.media_content_complete = mediaSession.mediaContentComplete
+                if (mediaSession.mediaContentComplete)
+                    eventAttributes.media_content_complete = "true"
+                else
+                    eventAttributes.media_content_complete = "false"
+                end if
                 if (mediaSession.mediaContentTimeSpent <> invalid) then
                     eventAttributes.media_content_time_spent = mediaSession.mediaContentTimeSpent.ToStr()
                 end if
-                eventAttributes.media_session_segment_total = mediaSession.mediaSessionSegmentTotal
-                eventAttributes.media_session_ad_total = mediaSession.mediaSessionAdTotal
-                eventAttributes.media_total_ad_time_spent = mediaSession.mediaTotalAdTimeSpent
-                eventAttributes.media_ad_time_spent_rate = mediaSession.mediaAdTimeSpentRate
-                eventAttributes.media_session_ad_objects = mediaSession.mediaSessionAdObjects.ToStr()
+                eventAttributes.media_session_segment_total = mediaSession.mediaSessionSegmentTotal.ToStr()
+                eventAttributes.media_session_ad_total = mediaSession.mediaSessionAdTotal.ToStr()
+                eventAttributes.media_total_ad_time_spent = mediaSession.mediaTotalAdTimeSpent.ToStr()
+                eventAttributes.media_ad_time_spent_rate = mediaSession.mediaAdTimeSpentRate.ToStr()
+                eventAttributes.media_session_ad_objects = formatjson(mediaSession.mediaSessionAdObjects)
 
                 if (mediaSession.adContent <> invalid) then
                     eventAttributes.ad_content_title = mediaSession.adContent.title
-                    eventAttributes.ad_content_duration = mediaSession.adContent.duration
+                    if (mediaSession.adContent.duration <> invalid) then
+                        eventAttributes.ad_content_duration = mediaSession.adContent.duration.ToStr()
+                    end if
                     eventAttributes.ad_content_id = mediaSession.adContent.id
                     eventAttributes.ad_content_advertiser = mediaSession.adContent.advertiser
                     eventAttributes.ad_content_campaign = mediaSession.adContent.campaign
@@ -1763,7 +1769,7 @@ function mParticleStart(options as object, messagePort as object)
                         eventAttributes.ad_content_end_time = mediaSession.adContent.adEndTime.ToStr()
                     end if
                     eventAttributes.ad_completed = mediaSession.adContent.adCompleted
-                    eventAttributes.ad_skipped = mediacontent_title.adContent.adSkipped
+                    eventAttributes.ad_skipped = mediaSession.adContent.adSkipped
                 end if
 
                 if (mediaSession.adBreak <> invalid) then
@@ -1793,8 +1799,16 @@ function mParticleStart(options as object, messagePort as object)
                             eventAttributes.media_segment_time_spent = timeSpent.ToStr()
                         end if
                     end if
-                    eventAttributes.segment_completed = mediaSession.segment.segmentCompleted
-                    eventAttributes.segment_skipped = mediaSession.segment.segmentSkipped
+                    if (mediaSession.segment.segmentCompleted)
+                        eventAttributes.segment_completed = "true"
+                    else
+                        eventAttributes.segment_completed = "false"
+                    end if
+                    if (mediaSession.segment.segmentSkipped)
+                        eventAttributes.segment_skipped = "true"
+                    else
+                        eventAttributes.segment_skipped = "false"
+                    end if
                 end if
             end if
 
