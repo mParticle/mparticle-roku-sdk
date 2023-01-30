@@ -788,6 +788,15 @@ function mParticleStart(options as object, messagePort as object)
             end if
         end function
 
+        storage.removeUserAttribute = function(mpid as string, attributeKey as string) as void
+            attributes = m.getUserAttributes(mpid)
+            oldValue = attributes[attributeKey]
+            attributes.delete(attributeKey)
+            m.set(m.mpkeys.USER_ATTRIBUTES + mpid, FormatJson(attributes))
+            m.flush()
+            mparticle().logMessage(mparticle().model.UserAttributeChange(attributeKey, invalid, oldValue, true, false))
+        end function
+
         storage.getUserAttributes = function(mpid as string) as object
             attributeJson = m.get(m.mpkeys.USER_ATTRIBUTES + mpid)
             userAttributes = {}
@@ -1692,6 +1701,19 @@ function mParticleStart(options as object, messagePort as object)
             storage = mparticle()._internal.storage
             storage.setUserAttribute(storage.getCurrentMpid(), attributeKey, attributeValue)
         end function,
+        removeUserAttribute: function(attributeKey as string) as void
+            mputils = mparticle()._internal.utils
+            mplogger = mparticle()._internal.logger
+            mpGenericMessage = "User attribute must exist. Discarding user attribue passed to removeUserAttribute(): "
+            currentMpid = mparticle()._internal.storage.getCurrentMpid()
+            attributes = mparticle()._internal.storage.getUserAttributes(currentMpid)
+            if (not attributes.DoesExist(attributeKey)) then
+                mplogger.error(mpGenericMessage + attributeKey)
+                return
+            end if
+            storage = mparticle()._internal.storage
+            storage.removeUserAttribute(currentMpid, attributeKey)
+        end function,
         setConsentState: function(consentState as object) as void
             storage = mparticle()._internal.storage
             storage.setConsentState(storage.getCurrentMpid(), consentState)
@@ -2078,6 +2100,9 @@ function mParticleSGBridge(task as object) as object
             setUserAttribute: function(attributeKey as string, attributeValue as object) as void
                 m.invokeFunction("identity/setUserAttribute", [attributeKey, attributeValue])
             end function,
+            removeUserAttribute: function(attributeKey as string) as void
+                m.invokeFunction("identity/removeUserAttribute", [attributeKey])
+            end function
             setConsentState: function(consentState as object) as void
                 m.invokeFunction("identity/setConsentState", [consentState])
             end function
@@ -2185,6 +2210,9 @@ function mParticleSGBridge(task as object) as object
         end function,
         setUserAttribute: function(attributeKey as string, attributeValue as object) as void
             m.invokeFunction("setUserAttribute", [attributeKey, attributeValue])
+        end function,
+        removeUserAttribute: function(attributeKey as string) as void
+            m.invokeFunction("removeUserAttribute", [attributeKey])
         end function,
         setConsentState: function(consentState as object) as void
             m.invokeFunction("setConsentState", [consentState])
