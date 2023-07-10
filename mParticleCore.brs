@@ -693,7 +693,8 @@ function mParticleStart(options as object, messagePort as object)
             CHANNEL_VERSION: "channel_version",
             LTV: "ltv",
             OPT_OUT: "opt_out",
-            DAS: "das"
+            DAS: "das",
+            INTEGRATION_ATTRIBUTES: "integration_attributes"
         }
         storage.section = CreateObject("roRegistrySection", storage.mpkeys.SECTION_NAME)
 
@@ -804,6 +805,28 @@ function mParticleStart(options as object, messagePort as object)
                 userAttributes = ParseJson(attributeJson)
             end if
             return userAttributes
+        end function
+
+        storage.setIntegrationAttribute = function(mpid as string, integrationId as string, attributeKey as string, attributeValue as object) as void
+            attributes = m.getIntegrationAttributes(mpid)
+            if (mparticle()._internal.utils.isEmpty(attributes[integrationId])) then
+                integrationAttributes = {}
+            else
+                interationAttributes = attributes[integrationId]
+            end if
+            interationAttributes[attributeKey] = attributeValue
+            attributes[integrationId] = interationAttributes
+            m.set(m.mpkeys.USER_ATTRIBUTES + mpid, FormatJson(attributes))
+            m.flush()
+        end function
+
+        storage.getIntegrationAttributes = function(mpid as string) as object
+            attributeJson = m.get(m.mpkeys.INTEGRATION_ATTRIBUTES + mpid)
+            integrationAttributes = {}
+            if (not mparticle()._internal.utils.isEmpty(attributeJson)) then
+                integrationAttributes = ParseJson(attributeJson)
+            end if
+            return integrationAttributes
         end function
 
         storage.setConsentState = function(mpid as string, consentState as object) as void
@@ -943,6 +966,7 @@ function mParticleStart(options as object, messagePort as object)
             mpBatch.ck = mparticle()._internal.storage.getCookies()
             mpBatch.das = mparticle()._internal.storage.getDas()
             mpBatch.con = mparticle()._internal.storage.getConsentState(currentMpid)
+            mpBatch.ia = mparticle()._internal.storage.getIntegrationAttributes(currentMpid)
             mplogger = mparticle()._internal.logger
             if (mparticle()._internal.configuration.dataPlanId <> invalid) then
                 if ((LCase(type(mparticle()._internal.configuration.dataPlanId))) = "rostring") then
@@ -1714,6 +1738,29 @@ function mParticleStart(options as object, messagePort as object)
             storage = mparticle()._internal.storage
             storage.removeUserAttribute(currentMpid, attributeKey)
         end function,
+        setIntegrationAttribute: function(integrationId as string, attributeKey as string, attributeValue as object) as void
+            mputils = mparticle()._internal.utils
+            mplogger = mparticle()._internal.logger
+            mpGenericMessage = "Integration Attribute values must be strings or arrays of strings. Discarding value passed to setIntegrationAttribute(): "
+            if (attributeValue = invalid) then
+                mplogger.error(mpGenericMessage + "<invalid>")
+                return
+            end if
+            if (not mputils.isString(attributeValue)) then
+                if (not mputils.isArray(attributeValue)) then
+                    mplogger.error(mpGenericMessage + type(attributeValue))
+                    return
+                end if
+                for each value in attributeValue
+                    if (not mputils.isString(value)) then
+                        mplogger.error(mpGenericMessage + type(value))
+                        return
+                    end if
+                end for
+            end if
+            storage = mparticle()._internal.storage
+            storage.setIntegrationAttribute(storage.getCurrentMpid(), integrationId, attributeKey, attributeValue)
+        end function,
         setConsentState: function(consentState as object) as void
             storage = mparticle()._internal.storage
             storage.setConsentState(storage.getCurrentMpid(), consentState)
@@ -2103,6 +2150,9 @@ function mParticleSGBridge(task as object) as object
             removeUserAttribute: function(attributeKey as string) as void
                 m.invokeFunction("identity/removeUserAttribute", [attributeKey])
             end function
+            setIntegrationAttribute: function(integrationId as string, attributeKey as string, attributeValue as object) as void
+                m.invokeFunction("identity/setIntegrationAttribute", [integrationId, attributeKey, attributeValue])
+            end function,
             setConsentState: function(consentState as object) as void
                 m.invokeFunction("identity/setConsentState", [consentState])
             end function
@@ -2213,6 +2263,9 @@ function mParticleSGBridge(task as object) as object
         end function,
         removeUserAttribute: function(attributeKey as string) as void
             m.invokeFunction("removeUserAttribute", [attributeKey])
+        end function,
+        setIntegrationAttribute: function(integrationId as string, attributeKey as string, attributeValue as object) as void
+            m.invokeFunction("setIntegrationAttribute", [integrationId, attributeKey, attributeValue])
         end function,
         setConsentState: function(consentState as object) as void
             m.invokeFunction("setConsentState", [consentState])
