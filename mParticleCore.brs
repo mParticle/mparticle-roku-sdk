@@ -1007,7 +1007,7 @@ function mParticleStart(options as object, messagePort as object)
                 end if
                 m.collectedApplicationInfo = {
                     an: appInfo.GetTitle(),
-                    av: osVersion["major"] + "." + osVersion["minor"],
+                    av: appInfo.getVersion(),
                     apn: appInfo.GetID(),
                     abn: appInfo.GetValue("build_version"),
                     env: env
