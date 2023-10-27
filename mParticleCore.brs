@@ -1205,10 +1205,10 @@ function mParticleStart(options as object, messagePort as object)
                         m.uploadQueue.unshift(transfer.batch)
                         for each header in headers
                             if (header["Retry-After"] <> invalid) then
-                                backoff = header["Retry-After"]
+                                backoff = parsejson(header["Retry-After"])
                             end if
                         end for
-                        if (backoff <> invalid) then
+                        if (backoff <> invalid and backoff > 0) then
                             m.mpBackoff.setBackoff(backoff)
                         else
                             m.mpBackoff.increase()
