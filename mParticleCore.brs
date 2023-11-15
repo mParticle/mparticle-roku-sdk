@@ -34,7 +34,8 @@ function mParticleConstants() as object
     SCENEGRAPH_NODES = {
         API_CALL_NODE: "mParticleApiCall",
         CURRENT_USER_NODE: "mParticleCurrentUser",
-        IDENTITY_RESULT_NODE: "mParticleIdentityResult"
+        IDENTITY_RESULT_NODE: "mParticleIdentityResult",
+        MEDIA_SESSION_NODE: "mParticleMediaSession"
     }
     USER_ATTRIBUTES = {
         FIRSTNAME: "$FirstName",
@@ -1913,6 +1914,7 @@ function mParticleStart(options as object, messagePort as object)
                     attributes = validAttributes
                 end if
             end if
+            m.mParticleTask[mParticleConstants().SCENEGRAPH_NODES.MEDIA_SESSION_NODE] = attributes
             message = {
                 dt: messageType,
                 id: mparticle()._internal.utils.randomGuid(),

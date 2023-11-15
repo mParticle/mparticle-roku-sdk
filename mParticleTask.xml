@@ -4,6 +4,7 @@
   	<field id="mParticleApiCall" type="assocarray"/>
   	<field id="mParticleIdentityResult" type="assocarray"/>
   	<field id="mParticleCurrentUser" type="assocarray"/>
+  	<field id="mParticleMediaSession" type="assocarray"/>
   </interface>
   <!-- Replace with correct path if necessary -->
   <script type="text/brightscript" uri="pkg:/components/mParticleTask.brs"/>
