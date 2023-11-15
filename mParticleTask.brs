@@ -16,6 +16,7 @@ sub setupRunLoop()
     mParticleStart(options, m.port)
     m.mparticle = mparticle()
     m.top[mParticleConstants().SCENEGRAPH_NODES.CURRENT_USER_NODE] = m.mparticle.identity.getCurrentUser()
+    m.top[mParticleConstants().SCENEGRAPH_NODES.CURRENT_SESSION_NODE] = m.mparticle._internal.sessionManager.getCurrentSession()
     while true
         msg = wait(15 * 1000, m.port)
         if (msg = invalid) then
