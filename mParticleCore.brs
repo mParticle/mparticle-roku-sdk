@@ -34,7 +34,8 @@ function mParticleConstants() as object
     SCENEGRAPH_NODES = {
         API_CALL_NODE: "mParticleApiCall",
         CURRENT_USER_NODE: "mParticleCurrentUser",
-        IDENTITY_RESULT_NODE: "mParticleIdentityResult"
+        IDENTITY_RESULT_NODE: "mParticleIdentityResult",
+        CURRENT_SESSION_NODE: "mParticleCurrentSession"
     }
     USER_ATTRIBUTES = {
         FIRSTNAME: "$FirstName",
