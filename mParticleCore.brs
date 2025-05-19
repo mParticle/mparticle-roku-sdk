@@ -416,13 +416,14 @@ function mParticleConstants() as object
     '
 
     MediaSession = {
-        build: function(contentId as string, title as string, contentType as string, streamType as string, duration = 0 as integer)
+        build: function(contentId as string, title as string, contentType as string, streamType as string, duration = 0 as integer, mediaSessionAttributes = {} as object)
             session = {}
             session.contentId = contentId
             session.title = title
             session.duration = duration
             session.contentType = contentType
             session.streamType = streamType
+            session.mediaSessionAttributes = mediaSessionAttributes
             session.mediaSessionId = CreateObject("roDeviceInfo").GetRandomUUID()
             session.currentPlayheadPosition = 0
             session.mediaContentComplete = false
@@ -436,6 +437,9 @@ function mParticleConstants() as object
         end function,
         setDuration: function(session as object, duration as integer)
             session.duration = duration
+        end function,
+        setMediaSessionAttributes: function(session as object, mediaSessionAttributes as object)
+            session.mediaSessionAttributes = mediaSessionAttributes
         end function,
         setCurrentPlayheadPosition: function(session as object, playheadPosition as integer)
             session.currentPlayheadPosition = playheadPosition
@@ -1831,6 +1835,17 @@ function mParticleStart(options as object, messagePort as object)
                         eventAttributes.segment_duration = mediaSession.segment.duration.ToStr()
                     end if
                 end if
+
+                if (mediaSession.mediaSessionAttributes.count() > 0) then
+                    mputils = mparticle()._internal.utils
+                    mediaSessionAttributes = mediaSession.mediaSessionAttributes
+                    attributeKeys = mediaSessionAttributes.Keys()
+                    for each attributeKey in attributeKeys
+                        if (mputils.isString(mediaSessionAttributes[attributeKey])) then
+                            eventAttributes[attributeKey] = mediaSessionAttributes[attributeKey]
+                        end if
+                    end for
+                endif
             end if
 
             return eventAttributes
