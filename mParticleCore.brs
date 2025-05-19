@@ -1864,10 +1864,7 @@ function mParticleStart(options as object, messagePort as object)
                 end if
                 if (mediaSession.mediaContentTimeSpent <> invalid) then
                     if (mediaSession.currentPlaybackStartTimestamp > 0) then
-                        date = CreateObject("roDateTime")
-                        currentTime = CreateObject("roLongInteger")
-                        currentTime.SetLongInt(date.asSeconds())
-                        currentUnixTimeStamp = (currentTime * 1000) + date.getMilliseconds()
+                        currentUnixTimeStamp = mparticle()._internal.utils.unixTimeMillis()
                         mediaSession.mediaContentTimeSpent = mediaSession.storedPlaybackTime + (currentUnixTimeStamp - mediaSession.currentPlaybackStartTimestamp)
                     else 
                         mediaSession.mediaContentTimeSpent = mediaSession.storedPlaybackTime
