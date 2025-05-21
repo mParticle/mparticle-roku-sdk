@@ -426,7 +426,11 @@ function mParticleConstants() as object
             session.mediaSessionId = CreateObject("roDeviceInfo").GetRandomUUID()
             session.currentPlayheadPosition = 0
             session.mediaContentComplete = false
+            session.currentPlaybackStartTimestamp = 0
+            session.storedPlaybackTime = 0
             session.mediaContentTimeSpent = 0
+            session.mediaSessionStartTime = m.unixTimeMillis()
+            session.mediaSessionEndTime = m.unixTimeMillis()
             session.mediaSessionSegmentTotal = 0
             session.mediaSessionAdTotal = 0
             session.mediaTotalAdTimeSpent = 0
@@ -475,6 +479,12 @@ function mParticleConstants() as object
         end function,
         setMediaSessionAdObjects: function(session as object, mediaSessionAdObjects as object)
             session.mediaSessionAdObjects = mediaSessionAdObjects
+        end function,
+        unixTimeMillis: function() as longinteger
+            date = CreateObject("roDateTime")
+            currentTime = CreateObject("roLongInteger")
+            currentTime.SetLongInt(date.asSeconds())
+            return (currentTime * 1000) + date.getMilliseconds()
         end function
     }
 
@@ -1853,6 +1863,12 @@ function mParticleStart(options as object, messagePort as object)
                     eventAttributes.media_content_complete = "false"
                 end if
                 if (mediaSession.mediaContentTimeSpent <> invalid) then
+                    if (mediaSession.currentPlaybackStartTimestamp > 0) then
+                        currentUnixTimeStamp = mparticle()._internal.utils.unixTimeMillis()
+                        mediaSession.mediaContentTimeSpent = mediaSession.storedPlaybackTime + (currentUnixTimeStamp - mediaSession.currentPlaybackStartTimestamp)
+                    else
+                        mediaSession.mediaContentTimeSpent = mediaSession.storedPlaybackTime
+                    end if
                     eventAttributes.media_content_time_spent = mediaSession.mediaContentTimeSpent.ToStr()
                 end if
                 eventAttributes.media_session_segment_total = mediaSession.mediaSessionSegmentTotal.ToStr()
@@ -2190,12 +2206,24 @@ function mParticleSGBridge(task as object) as object
                 m.invokeFunction("media/logMediaSessionSummary", [mediaSession, options])
             end function,
             logMediaContentEnd: function(mediaSession as object, options = {} as object) as void
+                mediaSession.mediaContentComplete = true
+                if (mediaSession.currentPlaybackStartTimestamp > 0) then
+                    mediaSession.storedPlaybackTime = mediaSession.storedPlaybackTime + (m.unixTimeMillis() - mediaSession.currentPlaybackStartTimestamp)
+                    mediaSession.currentPlaybackStartTimestamp = 0
+                end if
                 m.invokeFunction("media/logMediaContentEnd", [mediaSession, options])
             end function,
             logPlay: function(mediaSession as object, options = {} as object) as void
+                if (mediaSession.currentPlaybackStartTimestamp = 0) then
+                    mediaSession.currentPlaybackStartTimestamp = m.unixTimeMillis()
+                end if
                 m.invokeFunction("media/logPlay", [mediaSession, options])
             end function,
             logPause: function(mediaSession as object, options = {} as object) as void
+                if (mediaSession.currentPlaybackStartTimestamp > 0) then
+                    mediaSession.storedPlaybackTime = mediaSession.storedPlaybackTime + (m.unixTimeMillis() - mediaSession.currentPlaybackStartTimestamp)
+                    mediaSession.currentPlaybackStartTimestamp = 0
+                end if
                 m.invokeFunction("media/logPause", [mediaSession, options])
             end function,
             logSeekStart: function(mediaSession as object, position as double, options = {} as object) as void
@@ -2249,7 +2277,16 @@ function mParticleSGBridge(task as object) as object
             logQoS: function(mediaSession as object, startupTime as integer, droppedFrames as integer, bitRate as integer, fps as integer, options = {} as object) as void
                 m.invokeFunction("media/logQoS", [mediaSession, startupTime, droppedFrames, bitRate, fps, options])
             end function,
+            unixTimeMillis: function() as longinteger
+                date = CreateObject("roDateTime")
+                currentTime = CreateObject("roLongInteger")
+                currentTime.SetLongInt(date.asSeconds())
+                return (currentTime * 1000) + date.getMilliseconds()
+            end function,
             invokeFunction: function(name as string, args)
+                if (args[0].mediaSessionEndTime) then
+                    args[0].mediaSessionEndTime = m.unixTimeMillis()
+                end if
                 invocation = {}
                 invocation.methodName = name
                 invocation.args = args
