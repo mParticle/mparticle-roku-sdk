@@ -1866,7 +1866,7 @@ function mParticleStart(options as object, messagePort as object)
                     if (mediaSession.currentPlaybackStartTimestamp > 0) then
                         currentUnixTimeStamp = mparticle()._internal.utils.unixTimeMillis()
                         mediaSession.mediaContentTimeSpent = mediaSession.storedPlaybackTime + (currentUnixTimeStamp - mediaSession.currentPlaybackStartTimestamp)
-                    else 
+                    else
                         mediaSession.mediaContentTimeSpent = mediaSession.storedPlaybackTime
                     end if
                     eventAttributes.media_content_time_spent = mediaSession.mediaContentTimeSpent.ToStr()
@@ -2207,7 +2207,7 @@ function mParticleSGBridge(task as object) as object
             end function,
             logMediaContentEnd: function(mediaSession as object, options = {} as object) as void
                 mediaSession.mediaContentComplete = true
-                if (mediaSession.currentPlaybackStartTimestamp > 0) then 
+                if (mediaSession.currentPlaybackStartTimestamp > 0) then
                     mediaSession.storedPlaybackTime = mediaSession.storedPlaybackTime + (m.unixTimeMillis() - mediaSession.currentPlaybackStartTimestamp)
                     mediaSession.currentPlaybackStartTimestamp = 0
                 end if
@@ -2220,7 +2220,7 @@ function mParticleSGBridge(task as object) as object
                 m.invokeFunction("media/logPlay", [mediaSession, options])
             end function,
             logPause: function(mediaSession as object, options = {} as object) as void
-                if (mediaSession.currentPlaybackStartTimestamp > 0) then 
+                if (mediaSession.currentPlaybackStartTimestamp > 0) then
                     mediaSession.storedPlaybackTime = mediaSession.storedPlaybackTime + (m.unixTimeMillis() - mediaSession.currentPlaybackStartTimestamp)
                     mediaSession.currentPlaybackStartTimestamp = 0
                 end if
@@ -2286,7 +2286,7 @@ function mParticleSGBridge(task as object) as object
             invokeFunction: function(name as string, args)
                 if (args[0].mediaSessionEndTime) then
                     args[0].mediaSessionEndTime = m.unixTimeMillis()
-                endif
+                end if
                 invocation = {}
                 invocation.methodName = name
                 invocation.args = args
