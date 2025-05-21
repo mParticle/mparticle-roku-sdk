@@ -1843,9 +1843,11 @@ function mParticleStart(options as object, messagePort as object)
                     for each attributeKey in attributeKeys
                         if (mputils.isString(mediaSessionAttributes[attributeKey])) then
                             eventAttributes[attributeKey] = mediaSessionAttributes[attributeKey]
+                        else 
+                            eventAttributes[attributeKey] = mediaSessionAttributes[attributeKey].ToStr()
                         end if
                     end for
-                endif
+                end if
             end if
 
             return eventAttributes
