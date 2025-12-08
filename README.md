@@ -19,6 +19,30 @@ The mParticle platform supports 150+ partners in the ecosystem, including develo
 - [Hello World Legacy](https://github.com/mParticle/mparticle-roku-sdk/tree/master/example-legacy-sdk)
 - [Hello World Scene Graph](https://github.com/mParticle/mparticle-roku-sdk/tree/master/example-legacy-sdk)
 
+## Testing
+
+### First-Time Setup
+
+Enable development on your Roku device (one-time setup):
+
+1. **Get a Roku device** - Any modern Roku works (player, stick, or TV)
+2. **Create a Roku account** - Sign up at [roku.com](https://my.roku.com/signup)
+3. **Enroll as a developer** - Register at [developer.roku.com](https://developer.roku.com/enrollment/standard)
+4. **Enable Developer Mode** - Follow the [setup guide](https://developer.roku.com/docs/developer-program/getting-started/developer-setup.md):
+   - On your Roku remote, press: Home 3x, Up 2x, Right, Left, Right, Left, Right
+   - Create your developer password
+   - Note your device's IP address (Settings → Network → About)
+
+### Running Tests
+
+The test script automatically packages and deploys the channel to your Roku device:
+
+```bash
+./deploy-and-test.sh YOUR_ROKU_IP
+```
+
+When prompted, enter your developer password. The script will package the channel, upload it to your Roku, run all tests, and display results in your terminal.
+
 ## License
 
 [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0)
