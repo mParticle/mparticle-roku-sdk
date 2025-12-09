@@ -35,13 +35,20 @@ Enable development on your Roku device (one-time setup):
 
 ### Running Tests
 
-The test script automatically packages and deploys the channel to your Roku device:
+The automated test script makes it easy to deploy and test the SDK on a physical Roku device:
 
 ```bash
 ./deploy-and-test.sh YOUR_ROKU_IP
 ```
 
-When prompted, enter your developer password. The script will package the channel, upload it to your Roku, run all tests, and display results in your terminal.
+**What the script does:**
+
+1. **Packages** the example-legacy-sdk channel as a zip file
+2. **Deploys** the package to your Roku device via HTTP
+3. **Connects** to the debug console (port 8085) to capture output
+4. **Launches** the channel with test parameters
+5. **Waits** for all unit tests to complete (30 seconds)
+6. **Displays** the test results in your terminal
 
 ## License
 

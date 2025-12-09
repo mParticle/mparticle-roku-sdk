@@ -35,27 +35,46 @@ if [ $? -eq 0 ]; then
     echo "🧪 Running unit tests..."
     echo ""
     
-    # Start nc in background to capture output
+    # Connect to debug console FIRST before launching
     nc $ROKU_IP 8085 > /tmp/roku_test_output_$$.txt 2>&1 &
     NC_PID=$!
     
-    # Give nc time to connect
-    sleep 2
+    # Give nc time to establish connection
+    sleep 3
     
-    # Trigger tests
-    curl -s -d '' "http://$ROKU_IP:8060/launch/dev?RunUnitTests=true" > /dev/null
+    # Launch the dev channel with test parameters
+    # Note: Roku ECP requires custom params as contentId with encoded key-value pairs
+    curl -s -d '' "http://$ROKU_IP:8060/launch/dev?contentId=RunUnitTests%3Dtrue" > /dev/null
     
     # Wait for tests to complete
-    sleep 15
+    sleep 30
     
     # Kill nc
     kill $NC_PID 2>/dev/null || true
     
     # Display results
+    echo ""
     echo "📊 TEST RESULTS:"
     echo "================================================================"
-    cat /tmp/roku_test_output_$$.txt
-    echo "================================================================"
+    if [ -s /tmp/roku_test_output_$$.txt ]; then
+        cat /tmp/roku_test_output_$$.txt
+        echo "================================================================"
+        echo ""
+        
+        # Extract and display test summary if available
+        if grep -q "Total.*Passed.*Failed" /tmp/roku_test_output_$$.txt; then
+            echo "📈 SUMMARY:"
+            grep "Total.*Passed.*Failed" /tmp/roku_test_output_$$.txt | head -1
+            echo ""
+        fi
+    else
+        echo "⚠️  No output captured from debug console!"
+        echo "   This might mean:"
+        echo "   - The app didn't launch"
+        echo "   - Debug console (port 8085) isn't accessible"
+        echo "   - The app exited too quickly"
+        echo "================================================================"
+    fi
     
     # Cleanup
     rm -f /tmp/roku_test_output_$$.txt
