@@ -264,3 +264,100 @@ function Test_Media() as string
 
     return test1 and test2 and test3 and test4 and test5 and test6 and test7 and test8 and test9 and test10 and test11 and test12 and test13 and test14 and test15 and test16 and test71 and test18 and test19 and test20 and test21 and test22
 end function
+
+' @Test
+function Test_MediaContentTimeTracking_WithAdBreakExclusion() as string
+    ' Test that content time tracking works correctly with ad break exclusion enabled
+    mpConstants = mparticleConstants()
+    
+    ' Create media session with excludeAdBreaksFromContentTime = true
+    mediaSession = mpConstants.MediaSession.build("test-id", "Test Content", mpConstants.MEDIA_CONTENT_TYPE.VIDEO, mpConstants.MEDIA_STREAM_TYPE.ON_DEMAND, 180000, {}, true)
+    
+    ' Verify initial state
+    test1 = m.AssertEqual(mediaSession.currentPlaybackStartTimestamp, 0) and m.AssertEqual(mediaSession.storedPlaybackTime, 0) and m.AssertEqual(mediaSession.playbackState, "pausedByUser")
+    
+    ' Start playback - should set timestamp and playbackState
+    m.mp.media.logPlay(mediaSession, {})
+    test2 = m.assertTrue(mediaSession.currentPlaybackStartTimestamp > 0, "currentPlaybackStartTimestamp should be set after logPlay") and m.AssertEqual(mediaSession.playbackState, "playing")
+    
+    ' Pause playback - should clear timestamp and store time
+    m.mp.media.logPause(mediaSession, {})
+    test3 = m.AssertEqual(mediaSession.currentPlaybackStartTimestamp, 0) and m.AssertEqual(mediaSession.playbackState, "pausedByUser")
+    
+    ' Resume playback
+    m.mp.media.logPlay(mediaSession, {})
+    test4 = m.assertTrue(mediaSession.currentPlaybackStartTimestamp > 0, "currentPlaybackStartTimestamp should be set after resume") and m.AssertEqual(mediaSession.playbackState, "playing")
+    
+    ' Start ad break - should pause content time tracking
+    adBreak = mpConstants.adBreak.build("ad-123", "Ad Break")
+    mediaSession.adBreak = adBreak
+    storedTimeBeforeAd = mediaSession.storedPlaybackTime
+    m.mp.media.logAdBreakStart(mediaSession, {})
+    test5 = m.AssertEqual(mediaSession.currentPlaybackStartTimestamp, 0) and m.AssertEqual(mediaSession.playbackState, "pausedByAdBreak")
+    
+    ' End ad break - should resume content time tracking
+    m.mp.media.logAdBreakEnd(mediaSession, {})
+    test6 = m.assertTrue(mediaSession.currentPlaybackStartTimestamp > 0, "currentPlaybackStartTimestamp should be set after ad break") and m.AssertEqual(mediaSession.playbackState, "playing")
+    
+    ' End content - should finalize time tracking
+    m.mp.media.logMediaContentEnd(mediaSession, {})
+    test7 = m.AssertEqual(mediaSession.currentPlaybackStartTimestamp, 0) and m.assertTrue(mediaSession.mediaContentComplete)
+    
+    return test1 and test2 and test3 and test4 and test5 and test6 and test7
+end function
+
+' @Test
+function Test_MediaContentTimeTracking_WithoutAdBreakExclusion() as string
+    ' Test that content time tracking continues during ad breaks when exclusion is disabled
+    mpConstants = mparticleConstants()
+    
+    ' Create media session with excludeAdBreaksFromContentTime = false
+    mediaSession = mpConstants.MediaSession.build("test-id-2", "Test Content 2", mpConstants.MEDIA_CONTENT_TYPE.VIDEO, mpConstants.MEDIA_STREAM_TYPE.ON_DEMAND, 180000, {}, false)
+    
+    ' Verify initial state
+    test1 = m.AssertEqual(mediaSession.currentPlaybackStartTimestamp, 0) and m.AssertEqual(mediaSession.excludeAdBreaksFromContentTime, false)
+    
+    ' Start playback
+    m.mp.media.logPlay(mediaSession, {})
+    test2 = m.assertTrue(mediaSession.currentPlaybackStartTimestamp > 0) and m.AssertEqual(mediaSession.playbackState, "playing")
+    
+    timestampBeforeAd = mediaSession.currentPlaybackStartTimestamp
+    
+    ' Start ad break - should NOT pause content time tracking (exclusion disabled)
+    adBreak = mpConstants.adBreak.build("ad-456", "Ad Break 2")
+    mediaSession.adBreak = adBreak
+    m.mp.media.logAdBreakStart(mediaSession, {})
+    test3 = m.AssertEqual(mediaSession.currentPlaybackStartTimestamp, timestampBeforeAd) and m.AssertEqual(mediaSession.playbackState, "playing")
+    
+    ' End ad break - timestamp should remain unchanged
+    m.mp.media.logAdBreakEnd(mediaSession, {})
+    test4 = m.AssertEqual(mediaSession.currentPlaybackStartTimestamp, timestampBeforeAd) and m.AssertEqual(mediaSession.playbackState, "playing")
+    
+    return test1 and test2 and test3 and test4
+end function
+
+' @Test
+function Test_MediaContentTimeTracking_PausedDuringAdBreak() as string
+    ' Test that ad break doesn't auto-resume if content was already paused
+    mpConstants = mparticleConstants()
+    
+    ' Create media session with excludeAdBreaksFromContentTime = true
+    mediaSession = mpConstants.MediaSession.build("test-id-3", "Test Content 3", mpConstants.MEDIA_CONTENT_TYPE.VIDEO, mpConstants.MEDIA_STREAM_TYPE.ON_DEMAND, 180000, {}, true)
+    
+    ' Start playback then pause
+    m.mp.media.logPlay(mediaSession, {})
+    m.mp.media.logPause(mediaSession, {})
+    test1 = m.AssertEqual(mediaSession.currentPlaybackStartTimestamp, 0) and m.AssertEqual(mediaSession.playbackState, "pausedByUser")
+    
+    ' Start ad break while paused - should NOT change state
+    adBreak = mpConstants.adBreak.build("ad-789", "Ad Break 3")
+    mediaSession.adBreak = adBreak
+    m.mp.media.logAdBreakStart(mediaSession, {})
+    test2 = m.AssertEqual(mediaSession.currentPlaybackStartTimestamp, 0) and m.AssertEqual(mediaSession.playbackState, "pausedByUser")
+    
+    ' End ad break - should NOT auto-resume (user had paused)
+    m.mp.media.logAdBreakEnd(mediaSession, {})
+    test3 = m.AssertEqual(mediaSession.currentPlaybackStartTimestamp, 0) and m.AssertEqual(mediaSession.playbackState, "pausedByUser")
+    
+    return test1 and test2 and test3
+end function
