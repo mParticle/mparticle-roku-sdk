@@ -39,10 +39,7 @@ function main(args as dynamic)
 
     else if args.RunUnitTests = "true" and type(TestRunner) = "Function" then
         Runner = TestRunner()
-        Runner.testsDirectory = "pkg:/source/testing/tests"
-        Runner.SetFunctions([
-            TestSuite__mParticle
-        ])
+        Runner.SetTestsDirectory("pkg:/source/testing/tests")
         Runner.logger.SetVerbosity(2)
         Runner.logger.SetEcho(true)
         Runner.SetFailFast(true)

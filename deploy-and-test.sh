@@ -5,7 +5,6 @@
 
 ROKU_IP=$1
 ROKU_USER="rokudev"
-ZIP_FILE="example-legacy-sdk.zip"
 
 if [ -z "$ROKU_IP" ]; then
     echo "❌ Error: Please provide your Roku IP address"
@@ -13,13 +12,40 @@ if [ -z "$ROKU_IP" ]; then
     exit 1
 fi
 
+# Get absolute path to script directory
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ZIP_FILE="$SCRIPT_DIR/example-legacy-sdk.zip"
+
 # Clean up old package if it exists
 rm -f "$ZIP_FILE"
 
 echo "📦 Packaging channel..."
-cd "$(dirname "$0")/example-legacy-sdk"
-zip -r ../$ZIP_FILE . -x "*.git*" -x "*/.DS_Store" -x "*.zip" > /dev/null 2>&1
-cd ..
+
+# Temporarily copy test framework into the example app
+# (test files are already symlinked from testing/tests)
+TEST_FRAMEWORK_SRC="$SCRIPT_DIR/testing/unit-testing-framework/UnitTestFramework.brs"
+TEST_FRAMEWORK_DEST="$SCRIPT_DIR/example-legacy-sdk/source/testFramework"
+
+echo "   Copying test framework..."
+mkdir -p "$TEST_FRAMEWORK_DEST"
+cp "$TEST_FRAMEWORK_SRC" "$TEST_FRAMEWORK_DEST/"
+
+# Package the channel
+echo "   Creating zip package..."
+cd "$SCRIPT_DIR/example-legacy-sdk"
+zip -r "$ZIP_FILE" . -x "*.git*" -x "*/.DS_Store" -x "*.zip" > /dev/null 2>&1
+ZIP_RESULT=$?
+cd "$SCRIPT_DIR"
+
+# Clean up temporary test framework
+echo "   Cleaning up temporary test framework..."
+rm -rf "$TEST_FRAMEWORK_DEST"
+
+# Check if zip was successful
+if [ $ZIP_RESULT -ne 0 ]; then
+    echo "❌ Failed to create package"
+    exit 1
+fi
 
 echo "🚀 Deploying to Roku at $ROKU_IP..."
 echo "   (You'll be prompted for your Roku developer password)"
