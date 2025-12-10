@@ -54,9 +54,9 @@ function TestCase__ProductAction() as string
     sampleProduct = {}
     sampleProduct.id = "foo-product-sku"
     sampleProduct.nm = "foo-product-name"
-    sampleProduct.pr = 123.45
-    sampleProduct.qt = 1
-    sampleProduct.tpa = 123.45
+    ' sampleProduct.pr = 123.45
+    ' sampleProduct.qt = 1
+    ' sampleProduct.tpa = 123.45
     sampleProduct.attrs = {}
     sampleProductAction = {
         an: actionApi.ACTION_TYPE.PURCHASE,
