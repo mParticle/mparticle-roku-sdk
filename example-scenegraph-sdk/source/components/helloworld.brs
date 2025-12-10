@@ -257,32 +257,6 @@ sub init()
 
 
     print ("Logging session after End: " + formatjson(mediaSession))
-
-    appInfo = CreateObject("roAppInfo")
-    if appInfo.IsDev() and Type(TestRunner) <> "<uninitialized>" and TestRunner <> invalid and GetInterface(TestRunner, "ifFunction") <> invalid then
-        Runner = TestRunner()
-        Runner.SetFunctions([
-            TestCase__ProductAction
-            Test_SimpleCustom
-            Test_Consent
-            Test_Media
-        ])
-
-        if args.IncludeFilter <> invalid
-            Runner.SetIncludeFilter(args.IncludeFilter)
-        end if
-
-        if args.ExcludeFilter <> invalid
-            Runner.SetExcludeFilter(args.ExcludeFilter)
-        end if
-
-        Runner.Logger.SetVerbosity(3)
-        Runner.Logger.SetEcho(false)
-        Runner.Logger.SetJUnit(false)
-        Runner.SetFailFast(true)
-
-        Runner.Run()
-    end if
 end sub
 
 function onIdentityResult() as void
