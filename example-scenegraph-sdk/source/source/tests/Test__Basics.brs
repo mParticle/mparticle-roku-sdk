@@ -162,8 +162,8 @@ function Test_Consent() as string
     gdprConsentStateApi.setHardwareId(gdprConsentState, "IDFA:a5d934n0-232f-4afc-2e9a-3832d95zc702")
 
     consentStateAPI.addGDPRConsentState(consentState, "functional", gdprConsentState)
-
-    return m.AssertEqual(consentStateAPI.gdpr, gdprConsentState)
+    
+    return m.AssertEqual(consentState.gdpr["functional"], gdprConsentState)
 end function
 
 ' @Test
