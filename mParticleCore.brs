@@ -2261,7 +2261,7 @@ function mParticleSGBridge(task as object) as object
             end function,
             logAdBreakStart: function(mediaSession as object, options = {} as object) as void
                 ' Pause content time tracking if excludeAdBreaksFromContentTime is enabled and playback is active
-                if (mediaSession.excludeAdBreaksFromContentTime AND mediaSession.playbackState = "playing") then
+                if (mediaSession.excludeAdBreaksFromContentTime and mediaSession.playbackState = "playing") then
                     mediaSession.storedPlaybackTime = mediaSession.storedPlaybackTime + (m.unixTimeMillis() - mediaSession.currentPlaybackStartTimestamp)
                     mediaSession.currentPlaybackStartTimestamp = 0
                     mediaSession.playbackState = "pausedByAdBreak"
@@ -2270,7 +2270,7 @@ function mParticleSGBridge(task as object) as object
             end function,
             logAdBreakEnd: function(mediaSession as object, options = {} as object) as void
                 ' Resume content time tracking if it was paused by ad break
-                if (mediaSession.excludeAdBreaksFromContentTime AND mediaSession.playbackState = "pausedByAdBreak") then
+                if (mediaSession.excludeAdBreaksFromContentTime and mediaSession.playbackState = "pausedByAdBreak") then
                     mediaSession.currentPlaybackStartTimestamp = m.unixTimeMillis()
                     mediaSession.playbackState = "playing"
                 end if
