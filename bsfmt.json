@@ -1,0 +1,7 @@
+{
+  "files": [
+    "**/*.brs",
+    "!testing/unit-testing-framework/**"
+  ]
+}
+

@@ -12,15 +12,12 @@ on:
 jobs:
   ci:
     name: CI
-    runs-on: macOS-latest
-    strategy:
-      matrix:
-        os: [macos-10.15]
+    runs-on: ubuntu-latest
     steps:
-     - uses: actions/checkout@v2
-     - name: Use Node.js ${{ matrix.node-version }}
-       uses: actions/setup-node@v1
+     - uses: actions/checkout@v6
+     - name: Setup Node.js
+       uses: actions/setup-node@v6
        with:
-         node-version: ${{ matrix.node-version }}
+         node-version: 22
      - run: npm i -g brighterscript-formatter
-     - run: bsfmt "**/*.brs" --check
+     - run: bsfmt --check --bsfmt-path "bsfmt.json"
