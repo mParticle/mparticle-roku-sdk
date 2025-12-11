@@ -59,6 +59,19 @@ echo "   Copying test framework..."
 mkdir -p "$TEST_FRAMEWORK_DEST"
 cp "$TEST_FRAMEWORK_SRC" "$TEST_FRAMEWORK_DEST/"
 
+# For scenegraph, dereference mParticleTask symlinks by copying actual files
+if [ "$EXAMPLE_TYPE" = "scenegraph" ]; then
+    echo "   Copying mParticleTask files (dereferencing symlinks)..."
+    COMPONENTS_DIR="$EXAMPLE_DIR/components"
+    # Remove symlinks and copy actual files from root
+    rm -f "$COMPONENTS_DIR/mParticleTask.brs" "$COMPONENTS_DIR/mParticleTask.xml"
+    cp "$SCRIPT_DIR/mParticleTask.brs" "$COMPONENTS_DIR/mParticleTask.brs"
+    cp "$SCRIPT_DIR/mParticleTask.xml" "$COMPONENTS_DIR/mParticleTask.xml"
+    MPARTICLE_COPIED=true
+else
+    MPARTICLE_COPIED=false
+fi
+
 # Package the channel from the project root so manifest + source/ etc. are included
 echo "   Creating zip package at $ZIP_FILE..."
 (
@@ -77,6 +90,14 @@ ZIP_RESULT=$?
 # Clean up temporary test framework
 echo "   Cleaning up temporary test framework..."
 rm -rf "$TEST_FRAMEWORK_DEST"
+
+# Restore symlinks for mParticleTask files if we copied them
+if [ "$MPARTICLE_COPIED" = true ]; then
+    echo "   Restoring mParticleTask symlinks..."
+    rm -f "$COMPONENTS_DIR/mParticleTask.brs" "$COMPONENTS_DIR/mParticleTask.xml"
+    (cd "$COMPONENTS_DIR" && ln -s ../../../mParticleTask.brs mParticleTask.brs)
+    (cd "$COMPONENTS_DIR" && ln -s ../../../mParticleTask.xml mParticleTask.xml)
+fi
 
 # Check if zip was successful
 if [ $ZIP_RESULT -ne 0 ]; then
