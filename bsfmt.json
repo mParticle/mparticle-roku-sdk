@@ -1,7 +1,10 @@
 {
   "files": [
     "**/*.brs",
-    "!testing/unit-testing-framework/**"
+    "!testing/unit-testing-framework/**",
+    "!example-scenegraph-sdk/components/mParticleTask.brs",
+    "!example-scenegraph-sdk/components/mParticleTask.xml",
+    "!example-legacy-sdk/source/mparticle/**"
   ]
 }
 

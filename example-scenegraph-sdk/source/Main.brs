@@ -12,7 +12,7 @@ sub Main(args as dynamic)
 
     ' Initialize RunUnitTests flag
     runTests = false
-    
+
     ' Check if RunUnitTests is passed via contentId (ECP parameter passing)
     if args.contentId <> invalid then
         print "DEBUG: args.contentId = "; args.contentId
@@ -23,7 +23,7 @@ sub Main(args as dynamic)
     else
         print "DEBUG: args.contentId is invalid"
     end if
-    
+
     ' Check if it's passed directly as a parameter (alternate ECP format)
     if args.RunUnitTests <> invalid then
         print "DEBUG: args.RunUnitTests was already set to: "; args.RunUnitTests
@@ -31,7 +31,7 @@ sub Main(args as dynamic)
             runTests = true
         end if
     end if
-    
+
     ' DEPLOYMENT TEST MODE: Check if this is a fresh deployment auto-run
     ' We detect this by checking if the last run crashed (common after fresh deploy)
     ' AND we haven't run tests yet (tracked via registry)
@@ -40,11 +40,11 @@ sub Main(args as dynamic)
         lastTestRun = registry.Read("last_test_run")
         appInfo = CreateObject("roAppInfo")
         currentVersion = appInfo.GetVersion()
-        
+
         print "DEBUG: Checking deployment test mode..."
         print "DEBUG: lastTestRun = "; lastTestRun
         print "DEBUG: currentVersion = "; currentVersion
-        
+
         ' If we haven't run tests for this version yet, run them now
         if lastTestRun <> currentVersion then
             print "DEBUG: ✅ Fresh deployment detected - enabling tests"
@@ -56,7 +56,7 @@ sub Main(args as dynamic)
             print "DEBUG: Tests already run for this version"
         end if
     end if
-    
+
     ' Set the final flag
     if runTests then
         args.RunUnitTests = "true"
