@@ -31,7 +31,7 @@ example-scenegraph-sdk/
 | `mParticleCore.brs` | Core SDK implementation containing all mParticle functionality including event tracking, identity management, media analytics, and networking. |
 | `mParticleTask.brs` | Scene Graph Task wrapper that manages the background thread for mParticle operations. |
 | `mParticleTask.xml` | Scene Graph component interface defining fields for communication between threads. |
-| `deploy-and-test.sh` | Automated script for packaging, deploying, and testing on physical Roku devices. |
+| `deploy-and-test.sh` | Automated script for packaging, deploying, and testing on physical Roku devices. Supports both Scene Graph and Legacy examples. |
 
 ## Quick Start
 
@@ -40,7 +40,11 @@ example-scenegraph-sdk/
 From the repository root:
 
 ```bash
+# Deploy Scene Graph example (default)
 ./deploy-and-test.sh YOUR_ROKU_IP
+
+# Or deploy Legacy example
+./deploy-and-test.sh YOUR_ROKU_IP legacy
 ```
 
 This will:
@@ -118,13 +122,13 @@ Before testing, ensure you have:
 
 ### Running Tests
 
-From the repository root, run the automated test script:
+From the repository root:
 
 ```bash
 ./deploy-and-test.sh YOUR_ROKU_IP
 ```
 
-Replace `YOUR_ROKU_IP` with your Roku device's IP address.
+This deploys the Scene Graph example by default. To deploy the Legacy example, add `legacy` as a second argument.
 
 ### What the Test Script Does
 

@@ -177,11 +177,22 @@ Occasionally certain integrations will require data that can only be provided cl
 mp.setIntegrationAttribute("160", "app_instance_id", "your_app_instance_id")
 ```
 
-## Sample Channel
+## Sample Channels
 
-To help you get started, we've created a complete example Scene Graph channel:
+This repository includes two example implementations:
 
-[Hello World Scene Graph](https://github.com/mParticle/mparticle-roku-sdk/tree/master/example-scenegraph-sdk)
+- **[Scene Graph Example](example-scenegraph-sdk/README.md)** - Modern Scene Graph architecture with comprehensive tests
+- **[Legacy Example](example-legacy-sdk/)** - Traditional Roku SDK implementation
+
+### Running Examples
+
+```bash
+# Deploy Scene Graph example (default)
+./deploy-and-test.sh YOUR_ROKU_IP
+
+# Deploy Legacy example
+./deploy-and-test.sh YOUR_ROKU_IP legacy
+```
 
 ## Repository Structure
 
@@ -192,16 +203,11 @@ mparticle-roku-sdk/
 ├── mParticleCore.brs              # Core SDK implementation
 ├── mParticleTask.brs              # Scene Graph Task node
 ├── mParticleTask.xml              # Scene Graph Task interface
-├── example-scenegraph-sdk/        # Scene Graph example app
-│   ├── components/                # Scene Graph components
-│   ├── source/
-│   │   ├── Main.brs               # Entry point with test support
-│   │   ├── mparticle/             # SDK files
-│   │   └── tests/                 # Comprehensive test suite
-│   └── manifest
+├── example-scenegraph-sdk/        # Scene Graph example app with tests
+├── example-legacy-sdk/            # Legacy example app
 ├── testing/
 │   └── unit-testing-framework/    # Roku unit test framework
-├── deploy-and-test.sh             # Testing script
+├── deploy-and-test.sh             # Deploy & test script (supports both examples)
 └── README.md
 ```
 
