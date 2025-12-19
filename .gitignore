@@ -51,3 +51,4 @@ local.properties
 .recommenders/
 
 *.DS_Store
+node_modules
