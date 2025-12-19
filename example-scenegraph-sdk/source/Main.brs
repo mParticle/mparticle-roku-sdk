@@ -103,61 +103,17 @@ sub Main(args as dynamic)
         screen.show()
     end if
 
-    ' Run unit tests if in dev mode
+    ' Rooibos 4+ automatically handles test execution
+    ' Tests will run automatically when the app is loaded in dev mode with RunUnitTests=true
+    ' The framework discovers and runs tests based on the @suite, @describe, and @it annotations
     appInfo = CreateObject("roAppInfo")
     print "DEBUG: appInfo.IsDev() = " + appInfo.IsDev().ToStr()
     print "DEBUG: args.RunUnitTests = " + Box(args.RunUnitTests).ToStr()
-    print "DEBUG: Type(TestRunner) = " + Type(TestRunner)
-
-    if appInfo.IsDev() and args.RunUnitTests = "true" and Type(TestRunner) = "Function" then
+    
+    if appInfo.IsDev() and args.RunUnitTests = "true" then
         print "**********************************************************************"
-        print "Starting Unit Tests..."
+        print "Rooibos 4+ Test Framework - Tests will run automatically"
         print "**********************************************************************"
-
-        Runner = TestRunner()
-        Runner.SetTestsDirectory("pkg:/source/tests")
-        Runner.SetTestSuitePrefix("TestSuite__")
-        Runner.SetFailFast(false)
-
-        print "DEBUG: Test directory: "; Runner.testsDirectory
-        print "DEBUG: Test file prefix: "; Runner.testFilePrefix
-        print "DEBUG: Suite prefix: "; Runner.testSuitePrefix
-
-        ' Get list of test files
-        testFiles = Runner.GetTestFilesList()
-        print "DEBUG: Found"; testFiles.Count(); "test files"
-        if testFiles.Count() > 0 then
-            for each file in testFiles
-                print "DEBUG:   - "; file
-            end for
-        else
-            print "DEBUG: No test files found!"
-        end if
-
-        ' Get list of test suites
-        testSuites = Runner.GetTestSuitesList()
-        print "DEBUG: Found"; testSuites.Count(); "test suites"
-        if testSuites.Count() > 0 then
-            for each suite in testSuites
-                print "DEBUG:   - "; suite.Name
-            end for
-        else
-            print "DEBUG: No test suites found!"
-        end if
-
-        Runner.logger.SetVerbosity(3)
-        Runner.logger.SetEcho(true)
-
-        Runner.Run()
-
-        print "**********************************************************************"
-        print "Unit Tests Complete"
-        print "**********************************************************************"
-
-        ' Wait a moment to ensure all output is flushed before app exits
-        sleep(2000)
-    else
-        print "DEBUG: Tests NOT running. Conditions not met."
     end if
 
     while(true)
