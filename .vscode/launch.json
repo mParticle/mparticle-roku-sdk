@@ -1,0 +1,50 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "brightscript",
+            "request": "launch",
+            "name": "Launch with Tests",
+            "stopOnEntry": false,
+            "preLaunchTask": "build-tests",
+            "host": "${input:rokuDeviceIP}",
+            "password": "${input:rokuDevPassword}",
+            "rootDir": "${workspaceFolder}/out",
+            "files": [
+                "**/*"
+            ],
+            "enableDebugProtocol": false,
+            "rendezvousTracking": false,
+            "consoleOutput": "full"
+        },
+        {
+            "type": "brightscript",
+            "request": "launch",
+            "name": "Launch without Tests (Normal App)",
+            "stopOnEntry": false,
+            "host": "${input:rokuDeviceIP}",
+            "password": "${input:rokuDevPassword}",
+            "rootDir": "${workspaceFolder}/example-scenegraph-sdk",
+            "files": [
+                "**/*"
+            ],
+            "enableDebugProtocol": false,
+            "rendezvousTracking": false,
+            "consoleOutput": "full"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "rokuDeviceIP",
+            "type": "promptString",
+            "description": "Enter your Roku device IP address"
+        },
+        {
+            "id": "rokuDevPassword",
+            "type": "promptString",
+            "description": "Enter your Roku developer password",
+            "password": true
+        }
+    ]
+}
+

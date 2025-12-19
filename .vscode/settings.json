@@ -1,0 +1,9 @@
+{
+    "brightscript.bsdk": "node_modules/brighterscript",
+    "brightscript.format.enableFormatter": true,
+    "files.associations": {
+        "*.brs": "brightscript",
+        "*.bs": "brightscript"
+    }
+}
+
