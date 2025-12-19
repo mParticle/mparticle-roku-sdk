@@ -40,11 +40,8 @@ example-scenegraph-sdk/
 From the repository root:
 
 ```bash
-# Deploy Scene Graph example (default)
+# Deploy Scene Graph example
 ./deploy-and-test.sh YOUR_ROKU_IP
-
-# Or deploy Legacy example
-./deploy-and-test.sh YOUR_ROKU_IP legacy
 ```
 
 This will:
@@ -127,8 +124,6 @@ From the repository root:
 ```bash
 ./deploy-and-test.sh YOUR_ROKU_IP
 ```
-
-This deploys the Scene Graph example by default. To deploy the Legacy example, add `legacy` as a second argument.
 
 ### What the Test Script Does
 

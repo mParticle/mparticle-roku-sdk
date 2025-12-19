@@ -177,17 +177,16 @@ Occasionally certain integrations will require data that can only be provided cl
 mp.setIntegrationAttribute("160", "app_instance_id", "your_app_instance_id")
 ```
 
-## Sample Channels
+## Sample Channel
 
-This repository includes two example implementations:
+This repository includes a complete example implementation:
 
-- **[Scene Graph Example](example-scenegraph-sdk/README.md)** - Modern Scene Graph architecture with comprehensive tests
-- **[Legacy Example](example-legacy-sdk/)** - Traditional Roku SDK implementation
+- **[Scene Graph Example](example-scenegraph-sdk/README.md)** - Complete Scene Graph implementation with comprehensive tests
 
-### Running Examples
+### Running the Example
 
 ```bash
-# Deploy Scene Graph example (default)
+# Deploy and test the Scene Graph example
 ./deploy-and-test.sh YOUR_ROKU_IP
 
 # Deploy Legacy example
@@ -204,10 +203,9 @@ mparticle-roku-sdk/
 ├── mParticleTask.brs              # Scene Graph Task node
 ├── mParticleTask.xml              # Scene Graph Task interface
 ├── example-scenegraph-sdk/        # Scene Graph example app with tests
-├── example-legacy-sdk/            # Legacy example app
 ├── testing/
 │   └── unit-testing-framework/    # Roku unit test framework
-├── deploy-and-test.sh             # Deploy & test script (supports both examples)
+├── deploy-and-test.sh             # Deploy & test script
 └── README.md
 ```
 
