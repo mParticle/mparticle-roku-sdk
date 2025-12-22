@@ -52,3 +52,12 @@ local.properties
 
 *.DS_Store
 node_modules
+
+# Roku build/staging directories
+build/
+build-test/
+out/
+.roku-deploy-staging/
+
+# Test output logs
+last_test_output.log

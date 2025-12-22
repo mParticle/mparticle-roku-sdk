@@ -60,5 +60,6 @@
     </LayoutGroup>
     </Group>
 </children>
+  <!-- <script type="text/brightscript" uri="pkg:/components/helloworld.brs"/> -->
   <script type="text/brightscript" uri="pkg:/source/mparticle/mParticleCore.brs"/>
 </component>

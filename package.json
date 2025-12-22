@@ -1,13 +1,22 @@
 {
-    "name": "mparticle-roku-sdk",
-    "description": "mParticle SDK for Roku Streaming devices",
-    "version": "2.3.1",
-    "devDependencies": {
-        "brighterscript": "^0.70.0",
-        "rooibos-roku": "^5.15.7"
-    },
-    "scripts": {
-        "build-tests": "npx bsc",
-        "test": "npm run build-tests"
-    }
+"name": "mparticle-roku-sdk",
+"version": "2.3.1",
+"description": "mParticle SDK for Roku Streaming devices",
+"homepage": "https://github.com/mParticle/mparticle-roku-sdk#readme",
+"bugs": {
+    "url": "https://github.com/mParticle/mparticle-roku-sdk/issues"
+},
+"repository": {
+    "type": "git",
+    "url": "git+https://github.com/mParticle/mparticle-roku-sdk.git"
+},
+"license": "Apache-2.0",
+"scripts": {
+    "build": "npx bsc --project bsconfig.json",
+    "build-tests": "npx bsc --project bsconfig-test.json"
+},
+"devDependencies": {
+    "brighterscript": "0.67.4",
+    "rooibos-roku": "^5.15.7"
+}
 }

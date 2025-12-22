@@ -1,0 +1,20 @@
+{
+    "rootDir": "example-scenegraph-sdk",
+    "files": [
+      "manifest",
+      "source/**/*",
+      "components/**/*"
+    ],
+    "outDir": "out",
+    "createPackage": false,
+    "stagingDir": "build-test",
+    "plugins": ["rooibos-roku"],
+    "rooibos": {
+      "testsFilePattern": "source/tests/**/*.spec.bs",
+      "testSceneName": "RooibosScene",
+      "catchCrashes": true,
+      "showOnlyFailures": false,
+      "logLevel": 2
+    }
+  }
+  
