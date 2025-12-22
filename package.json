@@ -3,8 +3,8 @@
     "description": "mParticle SDK for Roku Streaming devices",
     "version": "2.3.1",
     "devDependencies": {
-        "brighterscript": "^0.65.0",
-        "rooibos-roku": "^5.0.0"
+        "brighterscript": "^0.70.0",
+        "rooibos-roku": "^5.15.7"
     },
     "scripts": {
         "build-tests": "npx bsc",
