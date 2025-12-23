@@ -4,27 +4,12 @@
         {
             "type": "brightscript",
             "request": "launch",
-            "name": "Launch with Tests",
+            "name": "Launch and Run Tests",
             "stopOnEntry": false,
             "preLaunchTask": "build-tests",
             "host": "${input:rokuDeviceIP}",
             "password": "${input:rokuDevPassword}",
-            "rootDir": "${workspaceFolder}/out",
-            "files": [
-                "**/*"
-            ],
-            "enableDebugProtocol": false,
-            "rendezvousTracking": false,
-            "consoleOutput": "full"
-        },
-        {
-            "type": "brightscript",
-            "request": "launch",
-            "name": "Launch without Tests (Normal App)",
-            "stopOnEntry": false,
-            "host": "${input:rokuDeviceIP}",
-            "password": "${input:rokuDevPassword}",
-            "rootDir": "${workspaceFolder}/example-scenegraph-sdk",
+            "rootDir": "${workspaceFolder}/build-test",
             "files": [
                 "**/*"
             ],

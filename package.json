@@ -12,8 +12,8 @@
 },
 "license": "Apache-2.0",
 "scripts": {
-    "build": "npx bsc --project bsconfig.json",
-    "build-tests": "npx bsc --project bsconfig-test.json"
+    "build-tests": "npx bsc --project bsconfig-test.json",
+    "test": "npm run build-tests && ./run-tests.sh"
 },
 "devDependencies": {
     "brighterscript": "0.67.4",
