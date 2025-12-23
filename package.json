@@ -12,6 +12,7 @@
 },
 "license": "Apache-2.0",
 "scripts": {
+    "build-production": "npx bsc --project bsconfig.json",
     "build-tests": "npx bsc --project bsconfig-test.json",
     "test": "npm run build-tests && ./run-tests.sh"
 },

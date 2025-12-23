@@ -21,6 +21,10 @@ echo "🧪 Building and running Rooibos tests..."
 echo "📡 Roku IP: $ROKU_IP"
 echo ""
 
+# Clear old test packages
+echo "🗑️  Clearing old packages..."
+rm -f ./out/*.zip
+
 # Build the test package
 echo "📦 Building test package..."
 npx bsc --project bsconfig-test.json
@@ -33,6 +37,23 @@ fi
 echo "✅ Build successful!"
 echo ""
 
+# Create the test package zip from build-test directory
+echo "📦 Creating test package zip..."
+mkdir -p ./out
+cd build-test
+zip -q -r ../out/mparticle-roku-sdk-test.zip .
+cd ..
+
+TEST_PACKAGE="./out/mparticle-roku-sdk-test.zip"
+
+if [ ! -f "$TEST_PACKAGE" ]; then
+    echo "❌ Failed to create test package!"
+    exit 1
+fi
+
+echo "📦 Test package created: $TEST_PACKAGE"
+echo ""
+
 # Start telnet capture in background
 echo "📡 Connecting to Roku debug port..."
 nc $ROKU_IP 8085 > /tmp/roku_test_output.txt &
@@ -42,12 +63,12 @@ sleep 2
 # Deploy the package
 echo "🚀 Deploying to Roku..."
 if [ -n "$ROKU_PASSWORD" ]; then
-    curl --digest -s -S -F "mysubmit=Install" -F "archive=@./out/mparticle-roku-sdk.zip" \
+    curl --digest -s -S -F "mysubmit=Install" -F "archive=@$TEST_PACKAGE" \
         -u "rokudev:$ROKU_PASSWORD" \
         "http://$ROKU_IP/plugin_install" > /dev/null
 else
     echo "⚠️  No password provided - you may be prompted"
-    curl --digest -S -F "mysubmit=Install" -F "archive=@./out/mparticle-roku-sdk.zip" \
+    curl --digest -S -F "mysubmit=Install" -F "archive=@$TEST_PACKAGE" \
         -u "rokudev" \
         "http://$ROKU_IP/plugin_install" > /dev/null
 fi

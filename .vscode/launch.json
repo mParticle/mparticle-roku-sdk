@@ -29,6 +29,8 @@
             "files": [
                 "**/*"
             ],
+            "retainDeploymentArchive": true,
+            "retryOnChannelLoadFail": true,
             "enableDebugProtocol": false,
             "rendezvousTracking": false,
             "consoleOutput": "full"
