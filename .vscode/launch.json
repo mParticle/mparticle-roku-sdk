@@ -4,6 +4,22 @@
         {
             "type": "brightscript",
             "request": "launch",
+            "name": "Launch Production App",
+            "stopOnEntry": false,
+            "preLaunchTask": "build-production",
+            "host": "${input:rokuDeviceIP}",
+            "password": "${input:rokuDevPassword}",
+            "rootDir": "${workspaceFolder}/build",
+            "files": [
+              "**/*"
+            ],
+            "enableDebugProtocol": false,
+            "rendezvousTracking": false,
+            "consoleOutput": "full"
+          },
+          {
+            "type": "brightscript",
+            "request": "launch",
             "name": "Launch and Run Tests",
             "stopOnEntry": false,
             "preLaunchTask": "build-tests",

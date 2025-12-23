@@ -2,6 +2,35 @@
 "version": "2.0.0",
 "tasks": [
     {
+        "label": "build-production",
+        "type": "shell",
+        "command": "npx bsc --project bsconfig.json",
+        "problemMatcher": {
+            "owner": "brighterscript",
+            "fileLocation": [
+                "relative",
+                "${workspaceFolder}"
+            ],
+            "pattern": {
+                "regexp": "^(.+):(\\d+):(\\d+)\\s*-\\s*(error|warning)\\s+(.+)$",
+                "file": 1,
+                "line": 2,
+                "column": 3,
+                "severity": 4,
+                "message": 5
+            }
+        },
+        "presentation": {
+            "echo": true,
+            "reveal": "always",
+            "focus": false,
+            "panel": "shared",
+            "showReuseMessage": false,
+            "clear": false
+        },
+        "group": "build"
+    },
+    {
         "label": "build-tests",
         "type": "shell",
     "command": "npx bsc --project bsconfig-test.json",
