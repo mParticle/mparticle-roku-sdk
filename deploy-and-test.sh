@@ -130,11 +130,6 @@ INSTALL_OUTPUT=$(
     "http://$ROKU_IP/plugin_install"
 )
 
-# Uncomment this if you want to see the raw HTML response for debugging
-# echo "---- INSTALLER RESPONSE ----"
-# echo "$INSTALL_OUTPUT"
-# echo "----------------------------"
-
 if echo "$INSTALL_OUTPUT" | grep -qi "Install Success"; then
     echo ""
     echo "✅ $EXAMPLE_TYPE channel deployed successfully!"

@@ -1,10 +1,3 @@
-'*************************************************************
-'** Hello World example
-'** Copyright (c) 2015 Roku, Inc.  All rights reserved.
-'** Use of the Roku Platform is subject to the Roku SDK License Agreement:
-'** https://docs.roku.com/doc/developersdk/en-us
-'*************************************************************
-
 sub Main(args as dynamic)
     print "in showChannelSGScreen"
     print "DEBUG: Main() full args dump:"
