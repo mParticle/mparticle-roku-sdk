@@ -416,7 +416,7 @@ function mParticleConstants() as object
     '
 
     MediaSession = {
-        build: function(contentId as string, title as string, contentType as string, streamType as string, duration = 0 as integer, mediaSessionAttributes = {} as object)
+        build: function(contentId as string, title as string, contentType as string, streamType as string, duration = 0 as integer, mediaSessionAttributes = {} as object, excludeAdBreaksFromContentTime = false as boolean)
             session = {}
             session.contentId = contentId
             session.title = title
@@ -437,6 +437,8 @@ function mParticleConstants() as object
             session.mediaTotalAdTimeSpent = 0
             session.mediaAdTimeSpentRate = 0.0
             session.mediaSessionAdObjects = CreateObject("roArray", 0, true)
+            session.excludeAdBreaksFromContentTime = excludeAdBreaksFromContentTime
+            session.playbackState = "pausedByUser"
             return session
         end function,
         setDuration: function(session as object, duration as integer)
@@ -2234,6 +2236,7 @@ function mParticleSGBridge(task as object) as object
                 if (mediaSession.currentPlaybackStartTimestamp = 0) then
                     mediaSession.currentPlaybackStartTimestamp = m.unixTimeMillis()
                 end if
+                mediaSession.playbackState = "playing"
                 m.invokeFunction("media/logPlay", [mediaSession, options])
             end function,
             logPause: function(mediaSession as object, options = {} as object) as void
@@ -2241,6 +2244,7 @@ function mParticleSGBridge(task as object) as object
                     mediaSession.storedPlaybackTime = mediaSession.storedPlaybackTime + (m.unixTimeMillis() - mediaSession.currentPlaybackStartTimestamp)
                     mediaSession.currentPlaybackStartTimestamp = 0
                 end if
+                mediaSession.playbackState = "pausedByUser"
                 m.invokeFunction("media/logPause", [mediaSession, options])
             end function,
             logSeekStart: function(mediaSession as object, position as double, options = {} as object) as void
@@ -2256,9 +2260,20 @@ function mParticleSGBridge(task as object) as object
                 m.invokeFunction("media/logBufferEnd", [mediaSession, duration, bufferPercent, position, options])
             end function,
             logAdBreakStart: function(mediaSession as object, options = {} as object) as void
+                ' Pause content time tracking if excludeAdBreaksFromContentTime is enabled and playback is active
+                if (mediaSession.excludeAdBreaksFromContentTime and mediaSession.playbackState = "playing") then
+                    mediaSession.storedPlaybackTime = mediaSession.storedPlaybackTime + (m.unixTimeMillis() - mediaSession.currentPlaybackStartTimestamp)
+                    mediaSession.currentPlaybackStartTimestamp = 0
+                    mediaSession.playbackState = "pausedByAdBreak"
+                end if
                 m.invokeFunction("media/logAdBreakStart", [mediaSession, options])
             end function,
             logAdBreakEnd: function(mediaSession as object, options = {} as object) as void
+                ' Resume content time tracking if it was paused by ad break
+                if (mediaSession.excludeAdBreaksFromContentTime and mediaSession.playbackState = "pausedByAdBreak") then
+                    mediaSession.currentPlaybackStartTimestamp = m.unixTimeMillis()
+                    mediaSession.playbackState = "playing"
+                end if
                 m.invokeFunction("media/logAdBreakEnd", [mediaSession, options])
             end function,
             logAdStart: function(mediaSession as object, options = {} as object) as void

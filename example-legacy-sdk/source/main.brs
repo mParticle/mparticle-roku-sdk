@@ -1,4 +1,8 @@
 function main(args as dynamic)
+    ' Check if RunUnitTests is passed via contentId (ECP parameter passing)
+    if args.contentId <> invalid and args.contentId = "RunUnitTests=true" then
+        args.RunUnitTests = "true"
+    end if
 
     if args.RunIntegrationTests = "true" then
         screen = CreateObject("roPosterScreen")
@@ -35,7 +39,7 @@ function main(args as dynamic)
 
     else if args.RunUnitTests = "true" and type(TestRunner) = "Function" then
         Runner = TestRunner()
-        Runner.testsDirectory = "pkg:/source/testing/tests"
+        Runner.SetTestsDirectory("pkg:/source/testing/tests")
         Runner.logger.SetVerbosity(2)
         Runner.logger.SetEcho(true)
         Runner.SetFailFast(true)

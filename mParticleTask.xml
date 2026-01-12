@@ -8,6 +8,5 @@
   </interface>
   <!-- Replace with correct path if necessary -->
   <script type="text/brightscript" uri="pkg:/components/mParticleTask.brs"/>
-  <!-- Replace with correct path if necessary -->
   <script type="text/brightscript" uri="pkg:/source/mparticle/mParticleCore.brs"/>
 </component>
