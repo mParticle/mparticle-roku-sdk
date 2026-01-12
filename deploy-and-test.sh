@@ -1,24 +1,16 @@
 #!/bin/bash
 
 # Roku Test Deployment Script
-# Usage: ./deploy-and-test.sh YOUR_ROKU_IP [legacy|scenegraph]
+# Usage: ./deploy-and-test.sh YOUR_ROKU_IP
 
 set -u  # (optional) treat unset vars as errors; avoid set -e for now to not exit on grep
 
 ROKU_IP=$1
-EXAMPLE_TYPE=${2:-scenegraph}  # Default to scenegraph if not specified
 ROKU_USER="rokudev"
 
 if [ -z "$ROKU_IP" ]; then
     echo "❌ Error: Please provide your Roku IP address"
-    echo "Usage: ./deploy-and-test.sh YOUR_ROKU_IP [legacy|scenegraph]"
-    exit 1
-fi
-
-# Validate example type
-if [ "$EXAMPLE_TYPE" != "legacy" ] && [ "$EXAMPLE_TYPE" != "scenegraph" ]; then
-    echo "❌ Error: Invalid example type '$EXAMPLE_TYPE'"
-    echo "   Must be either 'legacy' or 'scenegraph'"
+    echo "Usage: ./deploy-and-test.sh YOUR_ROKU_IP"
     exit 1
 fi
 
@@ -28,23 +20,16 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # Common test framework source
 TEST_FRAMEWORK_SRC="$SCRIPT_DIR/testing/unit-testing-framework/UnitTestFramework.brs"
 
-# Set paths based on example type
-if [ "$EXAMPLE_TYPE" = "legacy" ]; then
-    EXAMPLE_DIR="$SCRIPT_DIR/example-legacy-sdk"
-    ZIP_FILE="$SCRIPT_DIR/example-legacy-sdk.zip"
-    TEST_FRAMEWORK_DEST="$EXAMPLE_DIR/source/testFramework"
-else
-    # Use project root, not /source
-    EXAMPLE_DIR="$SCRIPT_DIR/example-scenegraph-sdk"
-    ZIP_FILE="$SCRIPT_DIR/example-scenegraph-sdk.zip"
-    TEST_FRAMEWORK_DEST="$EXAMPLE_DIR/source/testFramework"
-fi
+# Set paths for Scene Graph example
+EXAMPLE_DIR="$SCRIPT_DIR/example-scenegraph-sdk"
+ZIP_FILE="$SCRIPT_DIR/example-scenegraph-sdk.zip"
+TEST_FRAMEWORK_DEST="$EXAMPLE_DIR/source/testFramework"
 
 # Clean up old package if it exists
 rm -f "$ZIP_FILE"
 
-# Clean any cached build artifacts (if Makefile exists at the project root)
-if [ "$EXAMPLE_TYPE" = "scenegraph" ] && [ -f "$EXAMPLE_DIR/Makefile" ]; then
+# Clean any cached build artifacts
+if [ -f "$EXAMPLE_DIR/Makefile" ]; then
     echo "🧹 Cleaning build cache..."
     (
         cd "$EXAMPLE_DIR"
@@ -52,25 +37,20 @@ if [ "$EXAMPLE_TYPE" = "scenegraph" ] && [ -f "$EXAMPLE_DIR/Makefile" ]; then
     )
 fi
 
-echo "📦 Packaging $EXAMPLE_TYPE channel..."
+echo "📦 Packaging Scene Graph example channel..."
 
 # Temporarily copy test framework into the example app
 echo "   Copying test framework..."
 mkdir -p "$TEST_FRAMEWORK_DEST"
 cp "$TEST_FRAMEWORK_SRC" "$TEST_FRAMEWORK_DEST/"
 
-# For scenegraph, dereference mParticleTask symlinks by copying actual files
-if [ "$EXAMPLE_TYPE" = "scenegraph" ]; then
-    echo "   Copying mParticleTask files (dereferencing symlinks)..."
-    COMPONENTS_DIR="$EXAMPLE_DIR/components"
-    # Remove symlinks and copy actual files from root
-    rm -f "$COMPONENTS_DIR/mParticleTask.brs" "$COMPONENTS_DIR/mParticleTask.xml"
-    cp "$SCRIPT_DIR/mParticleTask.brs" "$COMPONENTS_DIR/mParticleTask.brs"
-    cp "$SCRIPT_DIR/mParticleTask.xml" "$COMPONENTS_DIR/mParticleTask.xml"
-    MPARTICLE_COPIED=true
-else
-    MPARTICLE_COPIED=false
-fi
+# Dereference mParticleTask symlinks by copying actual files
+echo "   Copying mParticleTask files (dereferencing symlinks)..."
+COMPONENTS_DIR="$EXAMPLE_DIR/components"
+# Remove symlinks and copy actual files from root
+rm -f "$COMPONENTS_DIR/mParticleTask.brs" "$COMPONENTS_DIR/mParticleTask.xml"
+cp "$SCRIPT_DIR/mParticleTask.brs" "$COMPONENTS_DIR/mParticleTask.brs"
+cp "$SCRIPT_DIR/mParticleTask.xml" "$COMPONENTS_DIR/mParticleTask.xml"
 
 # Package the channel from the project root so manifest + source/ etc. are included
 echo "   Creating zip package at $ZIP_FILE..."
@@ -91,13 +71,11 @@ ZIP_RESULT=$?
 echo "   Cleaning up temporary test framework..."
 rm -rf "$TEST_FRAMEWORK_DEST"
 
-# Restore symlinks for mParticleTask files if we copied them
-if [ "$MPARTICLE_COPIED" = true ]; then
-    echo "   Restoring mParticleTask symlinks..."
-    rm -f "$COMPONENTS_DIR/mParticleTask.brs" "$COMPONENTS_DIR/mParticleTask.xml"
-    (cd "$COMPONENTS_DIR" && ln -s ../../../mParticleTask.brs mParticleTask.brs)
-    (cd "$COMPONENTS_DIR" && ln -s ../../../mParticleTask.xml mParticleTask.xml)
-fi
+# Restore symlinks for mParticleTask files
+echo "   Restoring mParticleTask symlinks..."
+rm -f "$COMPONENTS_DIR/mParticleTask.brs" "$COMPONENTS_DIR/mParticleTask.xml"
+(cd "$COMPONENTS_DIR" && ln -s ../../../mParticleTask.brs mParticleTask.brs)
+(cd "$COMPONENTS_DIR" && ln -s ../../../mParticleTask.xml mParticleTask.xml)
 
 # Check if zip was successful
 if [ $ZIP_RESULT -ne 0 ]; then
@@ -130,9 +108,14 @@ INSTALL_OUTPUT=$(
     "http://$ROKU_IP/plugin_install"
 )
 
+# Uncomment this if you want to see the raw HTML response for debugging
+# echo "---- INSTALLER RESPONSE ----"
+# echo "$INSTALL_OUTPUT"
+# echo "----------------------------"
+
 if echo "$INSTALL_OUTPUT" | grep -qi "Install Success"; then
     echo ""
-    echo "✅ $EXAMPLE_TYPE channel deployed successfully!"
+    echo "✅ Scene Graph example channel deployed successfully!"
 else
     echo "❌ Deployment failed. Roku did NOT report 'Install Success'."
     echo ""
