@@ -1,0 +1,52 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "brightscript",
+            "request": "launch",
+            "name": "Launch Production App",
+            "stopOnEntry": false,
+            "preLaunchTask": "build-production",
+            "host": "${input:rokuDeviceIP}",
+            "password": "${input:rokuDevPassword}",
+            "rootDir": "${workspaceFolder}/build",
+            "files": [
+              "**/*"
+            ],
+            "enableDebugProtocol": false,
+            "rendezvousTracking": false,
+            "consoleOutput": "full"
+          },
+          {
+            "type": "brightscript",
+            "request": "launch",
+            "name": "Launch and Run Tests",
+            "stopOnEntry": false,
+            "preLaunchTask": "build-tests",
+            "host": "${input:rokuDeviceIP}",
+            "password": "${input:rokuDevPassword}",
+            "rootDir": "${workspaceFolder}/build-test",
+            "files": [
+                "**/*"
+            ],
+            "retainDeploymentArchive": true,
+            "retryOnChannelLoadFail": true,
+            "enableDebugProtocol": false,
+            "rendezvousTracking": false,
+            "consoleOutput": "full"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "rokuDeviceIP",
+            "type": "promptString",
+            "description": "Enter your Roku device IP address"
+        },
+        {
+            "id": "rokuDevPassword",
+            "type": "promptString",
+            "description": "Enter your Roku developer password",
+            "password": true
+        }
+    ]
+}

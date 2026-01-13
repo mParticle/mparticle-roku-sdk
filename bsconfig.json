@@ -1,0 +1,13 @@
+{
+  "rootDir": "example-scenegraph-sdk",
+  "files": [
+    "manifest",
+    "source/**/*",
+    "!source/tests/**/*",
+    "components/**/*"
+  ],
+  "autoImportComponentScript": true,
+  "createPackage": false,
+  "stagingDir": "build",
+  "sourceMap": true
+}

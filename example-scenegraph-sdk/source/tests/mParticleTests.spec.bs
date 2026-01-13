@@ -1,0 +1,96 @@
+'----------------------------------------------------------------
+' mParticle Core Tests - Rooibos 5+ format
+'----------------------------------------------------------------
+
+namespace tests
+    @suite
+    class mParticleTests extends rooibos.BaseTestSuite
+
+        protected override function beforeEach()
+            super.beforeEach()
+            ' Reset mParticle instance before each test
+            getGlobalAA().mparticleInstance = invalid
+        end function
+
+        protected override function afterEach()
+            super.afterEach()
+            ' Clean up after each test
+            getGlobalAA().mparticleInstance = invalid
+        end function
+
+        ' Helper to compare values that may have type boxing issues (roInteger vs Integer)
+        private function assertEqualValue(actual as dynamic, expected as dynamic) as boolean
+            return str(actual).trim() = str(expected).trim()
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("Configuration")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("configures mParticle with all options")
+        function _()
+            options = {}
+            options.logLevel = mparticleConstants().LOG_LEVEL.DEBUG
+            options.apiKey = "fookey"
+            options.apiSecret = "foosecret"
+            options.dataPlanId = "fooId"
+            options.dataPlanVersion = 1
+            options.isscenegraph = true
+            port = CreateObject("roMessagePort")
+            mparticlestart(options, port)
+            
+            m.assertEqual(mparticle()._internal.configuration.apiKey, "fookey")
+            m.assertEqual(mparticle()._internal.configuration.apiSecret, "foosecret")
+            m.assertEqual(mparticle()._internal.configuration.dataPlanId, "fooId")
+            m.assertTrue(m.assertEqualValue(mparticle()._internal.configuration.dataPlanVersion, 1))
+            m.assertEqual(mparticle()._internal.configuration.logLevel, mparticleConstants().LOG_LEVEL.DEBUG)
+            m.assertTrue(mparticle()._internal.configuration.isscenegraph)
+        end function
+
+        @it("defaults to development environment")
+        function _()
+            options = {}
+            options.apiKey = "test-key"
+            options.apiSecret = "test-secret"
+            port = CreateObject("roMessagePort")
+            mparticlestart(options, port)
+            
+            m.assertTrue(mparticle()._internal.configuration.development)
+        end function
+
+        @it("sets environment explicitly")
+        function _()
+            options = {}
+            options.apiKey = "test-key"
+            options.apiSecret = "test-secret"
+            options.environment = mParticleConstants().ENVIRONMENT.FORCE_DEVELOPMENT
+            port = CreateObject("roMessagePort")
+            mparticlestart(options, port)
+            
+            m.assertTrue(mparticle()._internal.configuration.development)
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("User Identity")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("sets and retrieves user identity")
+        function _()
+            options = {}
+            options.apiKey = "test-key"
+            options.apiSecret = "test-secret"
+            port = CreateObject("roMessagePort")
+            mparticlestart(options, port)
+            mp = mparticle()
+            mp._internal.storage.clear()
+            currentMpid = mp._internal.storage.getCurrentMpid()
+            mp._internal.storage.setUserIdentity(currentMpid, mparticleConstants().IDENTITY_TYPE.CUSTOMER_ID, "foo-customer-id")
+            identity = mp._internal.storage.getUserIdentities(currentMpid)[mparticleConstants().IDENTITY_TYPE.CUSTOMER_ID]
+            
+            m.assertTrue(m.assertEqualValue(identity.n, mparticleConstants().IDENTITY_TYPE_INT.CUSTOMER_ID))
+            m.assertEqual(identity.i, "foo-customer-id")
+        end function
+
+    end class
+end namespace
+

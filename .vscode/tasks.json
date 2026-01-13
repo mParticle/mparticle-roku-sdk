@@ -1,0 +1,82 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build-production",
+            "type": "shell",
+            "command": "npx bsc --project bsconfig.json",
+            "problemMatcher": {
+                "owner": "brighterscript",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceFolder}"
+                ],
+                "pattern": {
+                    "regexp": "^(.+):(\\d+):(\\d+)\\s*-\\s*(error|warning)\\s+(.+)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            },
+            "group": "build"
+        },
+        {
+            "label": "build-tests",
+            "type": "shell",
+            "command": "npx bsc --project bsconfig-test.json",
+            "problemMatcher": {
+                "owner": "brighterscript",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceFolder}"
+                ],
+                "pattern": {
+                    "regexp": "^(.+):(\\d+):(\\d+)\\s*-\\s*(error|warning)\\s+(.+)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Run Rooibos Tests",
+            "type": "shell",
+            "command": "./run-tests.sh ${input:rokuIP} ${input:rokuPassword}",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "rokuIP",
+            "type": "promptString",
+            "description": "Roku IP Address"
+        },
+        {
+            "id": "rokuPassword",
+            "type": "promptString",
+            "description": "Roku Developer Password",
+            "default": "",
+            "password": true
+        }
+    ]
+}

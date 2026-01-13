@@ -177,35 +177,73 @@ Occasionally certain integrations will require data that can only be provided cl
 mp.setIntegrationAttribute("160", "app_instance_id", "your_app_instance_id")
 ```
 
+## Development & Testing
+
+This repository uses [BrighterScript](https://github.com/rokucommunity/brighterscript) for development and [Rooibos](https://github.com/rokucommunity/rooibos) for automated testing.
+
+### Building
+
+Build the production version:
+```bash
+npm run build-production
+# Output: build/
+```
+
+Build the test version with Rooibos:
+```bash
+npm run build-tests
+# Output: build-test/
+```
+
+### Running Tests
+
+#### Option 1: VSCode Debugger (Recommended)
+
+1. Open the project in VSCode
+2. Press `F5` or click the Debug icon
+3. Select **"Launch and Run Tests"** from the dropdown
+4. Enter your Roku IP and password when prompted
+5. View test results in the Debug Console
+
+#### Option 2: Command Line
+
+```bash
+# Run tests via shell script
+./run-tests.sh YOUR_ROKU_IP YOUR_PASSWORD
+```
+
+The test runner will:
+- Build the test package
+- Deploy to your Roku device
+- Execute all Rooibos tests
+- Display results in the terminal
+- Save full output to `last_test_output.log`
+
 ## Sample Channel
 
 This repository includes a complete example implementation:
 
-- **[Scene Graph Example](example-scenegraph-sdk/README.md)** - Complete Scene Graph implementation with comprehensive tests
-
-### Running the Example
-
-```bash
-# Deploy and test the Scene Graph example
-./deploy-and-test.sh YOUR_ROKU_IP
-
-# Deploy Legacy example
-./deploy-and-test.sh YOUR_ROKU_IP legacy
-```
+- **[Scene Graph Example](example-scenegraph-sdk/README.md)** - Complete Scene Graph implementation with comprehensive Rooibos tests
 
 ## Repository Structure
-
-The repository is organized as follows:
 
 ```
 mparticle-roku-sdk/
 ├── mParticleCore.brs              # Core SDK implementation
 ├── mParticleTask.brs              # Scene Graph Task node
 ├── mParticleTask.xml              # Scene Graph Task interface
-├── example-scenegraph-sdk/        # Scene Graph example app with tests
-├── testing/
-│   └── unit-testing-framework/    # Roku unit test framework
-├── deploy-and-test.sh             # Deploy & test script
+├── example-scenegraph-sdk/        # Example app with tests
+│   ├── source/
+│   │   ├── Main.bs                # Entry point with test detection
+│   │   ├── mparticle/             # SDK files
+│   │   └── tests/                 # Rooibos test suites
+│   └── components/
+├── build/                         # Production build output
+├── build-test/                    # Test build output (with Rooibos)
+├── bsconfig.json                  # BrighterScript production config
+├── bsconfig-test.json             # BrighterScript test config
+├── run-tests.sh                   # Automated test runner
+├── package.json                   # Node.js dependencies
 └── README.md
 ```
 
