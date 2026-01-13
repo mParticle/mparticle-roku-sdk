@@ -2309,7 +2309,10 @@ function mParticleSGBridge(task as object) as object
             logQoS: function(mediaSession as object, startupTime as integer, droppedFrames as integer, bitRate as integer, fps as integer, options = {} as object) as void
                 m.invokeFunction("media/logQoS", [mediaSession, startupTime, droppedFrames, bitRate, fps, options])
             end function,
-            getMediaTimeSpent: function(mediaSession as object) as longinteger
+            getCurrentMediaTimeSpent: function(mediaSession as object) as longinteger
+                if (mediaSession = invalid OR mediaSession.mediaSessionStartTime = invalid) then
+                    return 0
+                end if
                 return m.unixTimeMillis() - mediaSession.mediaSessionStartTime
             end function,
             unixTimeMillis: function() as longinteger
