@@ -17,7 +17,7 @@
     "test": "npm run build-tests && ./run-tests.sh"
   },
   "devDependencies": {
-    "brighterscript": "0.67.4",
+    "brighterscript": "0.70.3",
     "rooibos-roku": "^5.15.7"
   },
   "overrides": {
