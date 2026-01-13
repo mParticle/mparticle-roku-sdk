@@ -19,5 +19,8 @@
 "devDependencies": {
     "brighterscript": "0.67.4",
     "rooibos-roku": "^5.15.7"
+},
+"overrides": {
+    "qs": "6.14.1"
 }
 }
