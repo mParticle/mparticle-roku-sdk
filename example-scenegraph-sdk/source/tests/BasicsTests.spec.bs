@@ -353,6 +353,27 @@ namespace tests
             m.assertEqual(mediaSession.playbackState, "pausedByUser")
         end function
 
+        @it("getCurrentMediaTimeSpent returns 0 for invalid inputs")
+        function _()
+            ' Test that getCurrentMediaTimeSpent handles invalid inputs gracefully
+            mpConstants = mparticleConstants()
+
+            ' Test 1: Invalid mediaSession should return 0
+            timeSpent = m.mp.media.getCurrentMediaTimeSpent(invalid)
+            m.assertEqual(timeSpent, 0, "getCurrentMediaTimeSpent should return 0 for invalid mediaSession")
+
+            ' Test 2: Valid mediaSession but invalid mediaSessionStartTime should return 0
+            mediaSession = mpConstants.MediaSession.build("test-id-4", "Test Content 4", mpConstants.MEDIA_CONTENT_TYPE.VIDEO, mpConstants.MEDIA_STREAM_TYPE.ON_DEMAND, 180000)
+            mediaSession.mediaSessionStartTime = invalid
+            timeSpent = m.mp.media.getCurrentMediaTimeSpent(mediaSession)
+            m.assertEqual(timeSpent, 0, "getCurrentMediaTimeSpent should return 0 for invalid mediaSessionStartTime")
+
+            ' Test 3: Valid mediaSession with valid mediaSessionStartTime should return time difference
+            mediaSession.mediaSessionStartTime = m.mp.media.unixTimeMillis()
+            timeSpent = m.mp.media.getCurrentMediaTimeSpent(mediaSession)
+            m.assertTrue(timeSpent >= 0, "getCurrentMediaTimeSpent should return a non-negative value for valid session")
+        end function
+
     end class
 end namespace
 
