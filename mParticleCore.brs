@@ -833,7 +833,7 @@ function mParticleStart(options as object, messagePort as object)
             end if
             interationAttributes[attributeKey] = attributeValue
             attributes[integrationId] = interationAttributes
-            m.set(m.mpkeys.USER_ATTRIBUTES + mpid, FormatJson(attributes))
+            m.set(m.mpkeys.INTEGRATION_ATTRIBUTES + mpid, FormatJson(attributes))
             m.flush()
         end function
 
