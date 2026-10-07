@@ -30,50 +30,9 @@ When you build, BrighterScript creates:
 - **`build-test/`** - Test build (includes Rooibos framework and test files)
 - **`out/`** - Deployment packages (`.zip` files)
 
-## Getting Started
+## Running the tests and the sample app
 
-### 1. Install Dependencies
-
-```bash
-# From repository root
-npm install
-```
-
-## Running from VSCode
-
-**Prerequisites:** VSCode with [BrighterScript extension](https://marketplace.visualstudio.com/items?itemName=RokuCommunity.brightscript) installed
-
-### Run Tests (Recommended for Development)
-
-1. Open Debug panel (press `F5`)
-2. Select **"Launch and Run Tests"** from dropdown
-3. Press `F5` (or click green play button)
-4. Enter Roku IP and developer password when prompted
-5. View test results in Debug Console
-
-The debugger automatically:
-- Builds the test package with Rooibos
-- Deploys to your Roku
-- Runs all test suites
-- Displays results in real-time
-
-### Run Production App
-
-1. Open Debug panel (press `F5`)
-2. Select **"Launch Production App"** from dropdown
-3. Press `F5`
-4. Enter Roku IP and developer password
-
-### Command Line Alternative
-
-```bash
-# Build and run tests
-./run-tests.sh YOUR_ROKU_IP YOUR_PASSWORD
-
-# Results are displayed in terminal and saved to last_test_output.log
-```
-
-**What to expect:** Tests take ~10-30 seconds to run. You'll see output in the Debug Console showing each test suite and results.
+See [Development & Testing](../README.md#development--testing) in the main README for the step-by-step instructions: setting up the Roku, running the tests (`./run-tests.sh <ROKU_IP>` or VS Code), and running this app against your own workspace. The VS Code launch configurations need the [BrightScript Language extension](https://marketplace.visualstudio.com/items?itemName=RokuCommunity.brightscript).
 
 ## How It Works
 

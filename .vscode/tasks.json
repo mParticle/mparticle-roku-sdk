@@ -49,7 +49,7 @@
         {
             "label": "Run Rooibos Tests",
             "type": "shell",
-            "command": "./run-tests.sh ${input:rokuIP} ${input:rokuPassword}",
+            "command": "./run-tests.sh \"${input:rokuIP}\"",
             "problemMatcher": [],
             "presentation": {
                 "echo": true,
@@ -69,14 +69,7 @@
         {
             "id": "rokuIP",
             "type": "promptString",
-            "description": "Roku IP Address"
-        },
-        {
-            "id": "rokuPassword",
-            "type": "promptString",
-            "description": "Roku Developer Password",
-            "default": "",
-            "password": true
+            "description": "Roku IP Address (the developer password is asked for in the terminal)"
         }
     ]
 }

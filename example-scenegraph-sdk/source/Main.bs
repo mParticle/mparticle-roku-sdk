@@ -22,7 +22,7 @@ sub Main(args as dynamic)
     options = {}
     options.apiKey = "YOUR_API_KEY"
     options.apiSecret = "YOUR_API_SECRET"
-    options.logLevel = 2 ' DEBUG level
+    options.logLevel = 2 ' 1 = error, 2 = info, 3 = debug (debug shows uploads in the console)
     
     ' Set options on global node BEFORE creating scene
     screen.getGlobalNode().addFields({ mparticleOptions: options })
