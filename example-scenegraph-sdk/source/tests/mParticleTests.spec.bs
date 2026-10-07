@@ -15,6 +15,7 @@ namespace tests
         protected override function afterEach()
             super.afterEach()
             ' Clean up after each test
+            m.cleanUpIntegrationTestData()
             getGlobalAA().mparticleInstance = invalid
         end function
 
@@ -292,6 +293,178 @@ namespace tests
 
             m.assertEqual(sanitized["ad_completed"], "true")
             m.assertEqual(sanitized["ad_skipped"], "false")
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("Integration Attributes")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        ' The registry persists between runs and storage.clear() does not remove per-mpid keys, so these tests
+        ' use their own fake mpids and remove everything they write in afterEach.
+
+        private function testRegistrySection() as object
+            return CreateObject("roRegistrySection", "mparticle_storage_" + CreateObject("roAppInfo").getid())
+        end function
+
+        private function cleanUpIntegrationTestData()
+            section = m.testRegistrySection()
+            for each fakeMpid in ["it_mpid_a", "it_mpid_b", "it_mpid_api"]
+                section.Delete("integration_attributes" + fakeMpid)
+                section.Delete("user_attributes" + fakeMpid)
+            end for
+            saved = getGlobalAA().integrationTestSavedMpid
+            if saved <> invalid then
+                if saved.value = "" then
+                    section.Delete("current_mpid")
+                else
+                    section.Write("current_mpid", saved.value)
+                end if
+                getGlobalAA().integrationTestSavedMpid = invalid
+            end if
+            section.Flush()
+        end function
+
+        ' Makes the given fake mpid the current one (the original is restored in afterEach).
+        private function useMpid(fakeMpid as string)
+            section = m.testRegistrySection()
+            if getGlobalAA().integrationTestSavedMpid = invalid then
+                getGlobalAA().integrationTestSavedMpid = { value: section.Read("current_mpid") }
+            end if
+            storage = mparticle()._internal.storage
+            storage.setCurrentMpid(fakeMpid)
+        end function
+
+        ' Setting a user attribute logs a message; keep it from being queued or uploaded.
+        private function silenceLogging()
+            mp = mparticle()
+            mp.logMessage = function(message as object) as void
+            end function
+        end function
+
+        @it("stores an integration attribute under the integration key and not in user attributes")
+        function _()
+            m.startSdk()
+            storage = mparticle()._internal.storage
+
+            storage.setIntegrationAttribute("it_mpid_a", "160", "app_instance_id", "abc")
+
+            integration = storage.getIntegrationAttributes("it_mpid_a")
+            m.assertEqual(integration["160"]["app_instance_id"], "abc")
+            m.assertEqual(storage.getUserAttributes("it_mpid_a").count(), 0)
+        end function
+
+        @it("does not overwrite existing user attributes")
+        function _()
+            m.startSdk()
+            m.silenceLogging()
+            storage = mparticle()._internal.storage
+            storage.setUserAttribute("it_mpid_a", "color", "blue")
+
+            storage.setIntegrationAttribute("it_mpid_a", "160", "app_instance_id", "abc")
+
+            m.assertEqual(storage.getUserAttributes("it_mpid_a"), { "color": "blue" })
+            m.assertEqual(storage.getIntegrationAttributes("it_mpid_a")["160"]["app_instance_id"], "abc")
+        end function
+
+        @it("stores the first attribute for a brand new integration id")
+        function _()
+            m.startSdk()
+            storage = mparticle()._internal.storage
+
+            storage.setIntegrationAttribute("it_mpid_a", "999", "first_key", "first_value")
+
+            m.assertEqual(storage.getIntegrationAttributes("it_mpid_a")["999"]["first_key"], "first_value")
+        end function
+
+        @it("adds more keys to an integration id that already has attributes")
+        function _()
+            m.startSdk()
+            storage = mparticle()._internal.storage
+            ' Seed the registry directly so this does not depend on the first-attribute path
+            section = m.testRegistrySection()
+            section.Write("integration_attributes" + "it_mpid_a", FormatJson({ "160": { "existing_key": "existing_value" } }))
+            section.Flush()
+
+            storage.setIntegrationAttribute("it_mpid_a", "160", "second_key", "second_value")
+
+            integration = storage.getIntegrationAttributes("it_mpid_a")
+            m.assertEqual(integration["160"]["existing_key"], "existing_value")
+            m.assertEqual(integration["160"]["second_key"], "second_value")
+        end function
+
+        @it("keeps attributes for different integration ids separate")
+        function _()
+            m.startSdk()
+            storage = mparticle()._internal.storage
+
+            storage.setIntegrationAttribute("it_mpid_a", "160", "key_a", "value_a")
+            storage.setIntegrationAttribute("it_mpid_a", "161", "key_b", "value_b")
+
+            integration = storage.getIntegrationAttributes("it_mpid_a")
+            m.assertEqual(integration["160"], { "key_a": "value_a" })
+            m.assertEqual(integration["161"], { "key_b": "value_b" })
+        end function
+
+        @it("keeps attributes for different mpids separate")
+        function _()
+            m.startSdk()
+            storage = mparticle()._internal.storage
+
+            storage.setIntegrationAttribute("it_mpid_a", "160", "key", "for_a")
+            storage.setIntegrationAttribute("it_mpid_b", "160", "key", "for_b")
+
+            m.assertEqual(storage.getIntegrationAttributes("it_mpid_a")["160"]["key"], "for_a")
+            m.assertEqual(storage.getIntegrationAttributes("it_mpid_b")["160"]["key"], "for_b")
+        end function
+
+        @it("writes through the public API for the current mpid and accepts a string and an array of strings")
+        function _()
+            m.startSdk()
+            m.useMpid("it_mpid_api")
+            storage = mparticle()._internal.storage
+            identityApi = mparticle().identity
+
+            identityApi.setIntegrationAttribute("160", "app_instance_id", "abc")
+            identityApi.setIntegrationAttribute("160", "list_key", ["x", "y"])
+
+            integration = storage.getIntegrationAttributes("it_mpid_api")
+            m.assertEqual(integration["160"]["app_instance_id"], "abc")
+            m.assertEqual(integration["160"]["list_key"].count(), 2)
+            m.assertEqual(integration["160"]["list_key"][0], "x")
+            m.assertEqual(integration["160"]["list_key"][1], "y")
+        end function
+
+        @it("rejects numbers, invalid, objects and arrays with non-strings through the public API")
+        function _()
+            m.startSdk()
+            m.useMpid("it_mpid_api")
+            storage = mparticle()._internal.storage
+            identityApi = mparticle().identity
+            identityApi.setIntegrationAttribute("160", "keep", "original")
+
+            identityApi.setIntegrationAttribute("160", "keep", 5)
+            identityApi.setIntegrationAttribute("160", "keep", invalid)
+            identityApi.setIntegrationAttribute("160", "keep", { "k": "v" })
+            identityApi.setIntegrationAttribute("160", "keep", ["a", 1])
+
+            m.assertEqual(storage.getIntegrationAttributes("it_mpid_api")["160"]["keep"], "original")
+        end function
+
+        @it("puts integration attributes in the batch under ia and not under ua")
+        function _()
+            m.startSdk()
+            m.silenceLogging()
+            m.useMpid("it_mpid_api")
+            storage = mparticle()._internal.storage
+            storage.setUserAttribute("it_mpid_api", "color", "blue")
+            storage.setIntegrationAttribute("it_mpid_api", "160", "app_instance_id", "abc")
+            internalModel = mparticle()._internal.internalModel
+
+            batch = internalModel.Batch([])
+
+            m.assertEqual(batch.ia["160"]["app_instance_id"], "abc")
+            m.assertEqual(batch.ua, { "color": "blue" })
+            m.assertFalse(batch.ua.doesExist("160"))
         end function
 
     end class

@@ -886,10 +886,10 @@ function mParticleStart(options as object, messagePort as object)
             if (mparticle()._internal.utils.isEmpty(attributes[integrationId])) then
                 integrationAttributes = {}
             else
-                interationAttributes = attributes[integrationId]
+                integrationAttributes = attributes[integrationId]
             end if
-            interationAttributes[attributeKey] = attributeValue
-            attributes[integrationId] = interationAttributes
+            integrationAttributes[attributeKey] = attributeValue
+            attributes[integrationId] = integrationAttributes
             m.set(m.mpkeys.INTEGRATION_ATTRIBUTES + mpid, FormatJson(attributes))
             m.flush()
         end function
