@@ -691,6 +691,63 @@ function mParticleStart(options as object, messagePort as object)
 
         isArray: function(input as object) as boolean
             return input <> invalid and (LCase(type(input)) = "roarray" or LCase(type(input)) = "array")
+        end function,
+
+        ' Event attribute values are sent as strings. Strings pass through, booleans and
+        ' numbers are converted with ToStr(), and anything else (invalid, arrays,
+        ' associative arrays, objects) returns invalid so the caller can discard it.
+        toAttributeString: function(input as dynamic) as dynamic
+            if input = invalid then return invalid
+            ' Boxed values report an "ro" prefixed type (roInt, roFloat, roBoolean...) and the exact
+            ' spelling varies, so compare on the unprefixed name.
+            valueType = LCase(type(input))
+            if (Left(valueType, 2) = "ro") then valueType = Mid(valueType, 3)
+            if (valueType = "string") then
+                return input
+            end if
+            if (valueType = "boolean" or valueType = "int" or valueType = "integer" or valueType = "longinteger" or valueType = "float" or valueType = "double") then
+                return input.ToStr()
+            end if
+            return invalid
+        end function,
+
+        sanitizeEventAttributes: function(attributes as object) as object
+            mplogger = mparticle()._internal.logger
+            validAttributes = {}
+            if (LCase(type(attributes)) <> "roassociativearray") then
+                if (attributes <> invalid) then
+                    mplogger.debug("Event attributes must be an associative array. Discarding attributes of type: " + type(attributes))
+                end if
+                return validAttributes
+            end if
+            for each attributeKey in attributes.Keys()
+                attributeValue = m.toAttributeString(attributes[attributeKey])
+                if (attributeValue <> invalid) then
+                    validAttributes[attributeKey] = attributeValue
+                else if (attributes[attributeKey] <> invalid) then
+                    ' unset (invalid) values are expected and not worth logging; log the key and type, never the value
+                    mplogger.debug("Event attribute values must be strings, numbers or booleans. Discarding value for '" + attributeKey + "' of type: " + type(attributes[attributeKey]))
+                end if
+            end for
+            return validAttributes
+        end function,
+
+        ' Returns shallow copies of a list of products with their attrs sanitized, leaving the
+        ' caller's products untouched. Non-array input is returned as is.
+        sanitizeProductList: function(products as dynamic) as dynamic
+            if (not m.isArray(products)) then return products
+            sanitizedProducts = []
+            for each product in products
+                if (LCase(type(product)) = "roassociativearray" and product.attrs <> invalid) then
+                    sanitizedProduct = {}
+                    sanitizedProduct.append(product)
+                    sanitizedProduct.attrs = m.sanitizeEventAttributes(product.attrs)
+                    sanitizedProducts.push(sanitizedProduct)
+                else
+                    sanitizedProducts.push(product)
+                end if
+            end for
+            return sanitizedProducts
         end function
     }
 
@@ -1378,15 +1435,7 @@ function mParticleStart(options as object, messagePort as object)
                 if (attributes.count() = 0) then
                     attributes = invalid
                 else
-                    mputils = mparticle()._internal.utils
-                    attributeKeys = attributes.Keys()
-                    validAttributes = {}
-                    for each attributeKey in attributeKeys
-                        if (mputils.isString(attributes[attributeKey])) then
-                            validAttributes[attributeKey] = attributes[attributeKey]
-                        end if
-                    end for
-                    attributes = validAttributes
+                    attributes = mparticle()._internal.utils.sanitizeEventAttributes(attributes)
                 end if
             end if
             return {
@@ -1446,14 +1495,33 @@ function mParticleStart(options as object, messagePort as object)
 
         CommerceEvent: function(productAction = {} as object, promotionAction = {} as object, impressions = [] as object, customAttributes = {} as object, screenName = invalid as string) as object
             message = m.Message(mParticleConstants().MESSAGE_TYPE.COMMERCE, customAttributes)
+            mputils = mparticle()._internal.utils
             if (productAction <> invalid and productAction.count() > 0) then
-                message.pd = productAction
+                sanitizedProductAction = {}
+                sanitizedProductAction.append(productAction)
+                if (productAction.pl <> invalid) then
+                    sanitizedProductAction.pl = mputils.sanitizeProductList(productAction.pl)
+                end if
+                message.pd = sanitizedProductAction
             end if
             if (promotionAction <> invalid and promotionAction.count() > 0) then
                 message.pm = promotionAction
             end if
             if (impressions <> invalid and impressions.count() > 0) then
-                message.pi = impressions
+                sanitizedImpressions = []
+                for each impression in impressions
+                    if (LCase(type(impression)) = "roassociativearray") then
+                        sanitizedImpression = {}
+                        sanitizedImpression.append(impression)
+                        if (impression.pl <> invalid) then
+                            sanitizedImpression.pl = mputils.sanitizeProductList(impression.pl)
+                        end if
+                        sanitizedImpressions.push(sanitizedImpression)
+                    else
+                        sanitizedImpressions.push(impression)
+                    end if
+                end for
+                message.pi = sanitizedImpressions
             end if
             if (not mparticle()._internal.utils.isEmpty(screenName)) then
                 message.sn = screenName
@@ -1849,15 +1917,11 @@ function mParticleStart(options as object, messagePort as object)
                 end if
 
                 if (mediaSession.mediaSessionAttributes.count() > 0) then
-                    mputils = mparticle()._internal.utils
                     mediaSessionAttributes = mediaSession.mediaSessionAttributes
                     attributeKeys = mediaSessionAttributes.Keys()
                     for each attributeKey in attributeKeys
-                        if (mputils.isString(mediaSessionAttributes[attributeKey])) then
-                            eventAttributes[attributeKey] = mediaSessionAttributes[attributeKey]
-                        else
-                            eventAttributes[attributeKey] = mediaSessionAttributes[attributeKey].ToStr()
-                        end if
+                        ' non-string values are converted (or discarded) by sanitizeEventAttributes in sendMediaMessage
+                        eventAttributes[attributeKey] = mediaSessionAttributes[attributeKey]
                     end for
                 end if
             end if
@@ -1938,15 +2002,7 @@ function mParticleStart(options as object, messagePort as object)
                 if (attributes.count() = 0) then
                     attributes = invalid
                 else
-                    mputils = mparticle()._internal.utils
-                    attributeKeys = attributes.Keys()
-                    validAttributes = {}
-                    for each attributeKey in attributeKeys
-                        if (mputils.isString(attributes[attributeKey])) then
-                            validAttributes[attributeKey] = attributes[attributeKey]
-                        end if
-                    end for
-                    attributes = validAttributes
+                    attributes = mparticle()._internal.utils.sanitizeEventAttributes(attributes)
                 end if
             end if
             message = {

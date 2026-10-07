@@ -91,6 +91,209 @@ namespace tests
             m.assertEqual(identity.i, "foo-customer-id")
         end function
 
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("Event Attributes")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        private function startSdk()
+            options = {}
+            options.apiKey = "test-key"
+            options.apiSecret = "test-secret"
+            mparticlestart(options, CreateObject("roMessagePort"))
+        end function
+
+        @it("keeps string custom attributes unchanged")
+        function _()
+            m.startSdk()
+            event = mparticle().model.CustomEvent("evt", mparticleConstants().CUSTOM_EVENT_TYPE.OTHER, { "key": "value" })
+
+            m.assertEqual(event.attrs, { "key": "value" })
+        end function
+
+        @it("converts boolean and numeric custom attributes to strings")
+        function _()
+            m.startSdk()
+            attributes = {
+                "bool_true": true,
+                "bool_false": false,
+                "int": 42,
+                "negative_int": -7,
+                "long": 1234567890123&,
+                "float": 1.5!,
+                "double": 123.45#,
+                "string": "value"
+            }
+            event = mparticle().model.CustomEvent("evt", mparticleConstants().CUSTOM_EVENT_TYPE.OTHER, attributes)
+
+            m.assertEqual(event.attrs["bool_true"], "true")
+            m.assertEqual(event.attrs["bool_false"], "false")
+            m.assertEqual(event.attrs["int"], "42")
+            m.assertEqual(event.attrs["negative_int"], "-7")
+            m.assertEqual(event.attrs["long"], "1234567890123")
+            m.assertEqual(event.attrs["float"], "1.5")
+            m.assertEqual(event.attrs["double"], "123.45")
+            m.assertEqual(event.attrs["string"], "value")
+            m.assertEqual(event.attrs.count(), 8)
+        end function
+
+        @it("converts boxed numeric and boolean custom attributes to strings")
+        function _()
+            m.startSdk()
+            boxedInt = box(5)
+            boxedBool = box(true)
+            event = mparticle().model.ScreenEvent("screen", { "boxed_int": boxedInt, "boxed_bool": boxedBool })
+
+            m.assertEqual(event.attrs["boxed_int"], "5")
+            m.assertEqual(event.attrs["boxed_bool"], "true")
+        end function
+
+        @it("discards custom attributes that cannot be represented as strings")
+        function _()
+            m.startSdk()
+            attributes = {
+                "kept": "value",
+                "invalid": invalid,
+                "array": [1, 2],
+                "object": { "nested": "value" }
+            }
+            event = mparticle().model.CustomEvent("evt", mparticleConstants().CUSTOM_EVENT_TYPE.OTHER, attributes)
+
+            m.assertEqual(event.attrs, { "kept": "value" })
+        end function
+
+        @it("does not mutate the caller's custom attributes")
+        function _()
+            m.startSdk()
+            attributes = { "views": 3, "flag": true }
+            event = mparticle().model.CustomEvent("evt", mparticleConstants().CUSTOM_EVENT_TYPE.OTHER, attributes)
+
+            m.assertEqual(attributes["views"], 3)
+            m.assertEqual(attributes["flag"], true)
+        end function
+
+        @it("sends invalid attrs when no custom attributes are provided")
+        function _()
+            m.startSdk()
+            event = mparticle().model.CustomEvent("evt", mparticleConstants().CUSTOM_EVENT_TYPE.OTHER, {})
+
+            m.assertInvalid(event.attrs)
+        end function
+
+        @it("converts simple float values to clean strings")
+        function _()
+            m.startSdk()
+            event = mparticle().model.CustomEvent("evt", mparticleConstants().CUSTOM_EVENT_TYPE.OTHER, { "whole": 1.0!, "tenth": 0.1!, "negative": -0.5!, "hundred": 100.0! })
+
+            m.assertEqual(event.attrs["whole"], "1")
+            m.assertEqual(event.attrs["tenth"], "0.1")
+            m.assertEqual(event.attrs["negative"], "-0.5")
+            m.assertEqual(event.attrs["hundred"], "100")
+        end function
+
+        @it("keeps high precision floats as parseable strings close to the original")
+        function _()
+            m.startSdk()
+            event = mparticle().model.CustomEvent("evt", mparticleConstants().CUSTOM_EVENT_TYPE.OTHER, { "near_one": 0.9999999!, "pi": 3.14159265!, "large": 123456.789! })
+
+            m.assertTrue(mparticle()._internal.utils.isString(event.attrs["near_one"]))
+            m.assertTrue(mparticle()._internal.utils.isString(event.attrs["pi"]))
+            m.assertTrue(mparticle()._internal.utils.isString(event.attrs["large"]))
+            m.assertTrue(abs(val(event.attrs["near_one"]) - 0.9999999!) < 0.00001!)
+            m.assertTrue(abs(val(event.attrs["pi"]) - 3.14159265!) < 0.0001!)
+            m.assertTrue(abs(val(event.attrs["large"]) - 123456.789!) < 1.0!)
+        end function
+
+        @it("converts product custom attributes in commerce events to strings")
+        function _()
+            m.startSdk()
+            mpConstants = mparticleConstants()
+            product = mpConstants.Product.build("sku", "name", 9.99, 1, { "size": 10, "gift": true, "note": "hi", "tags": ["a"] })
+            productAction = mpConstants.ProductAction.build(mpConstants.ProductAction.ACTION_TYPE.PURCHASE, 9.99, [product])
+            event = mparticle().model.CommerceEvent(productAction, {}, [], {}, "")
+
+            m.assertEqual(event.pd.pl[0].attrs, { "size": "10", "gift": "true", "note": "hi" })
+            ' the caller's product is not modified
+            m.assertEqual(product.attrs["size"], 10)
+            m.assertEqual(product.attrs["gift"], true)
+        end function
+
+        @it("converts product custom attributes in commerce impressions to strings")
+        function _()
+            m.startSdk()
+            mpConstants = mparticleConstants()
+            product = mpConstants.Product.build("sku", "name", 9.99, 1, { "position": 3 })
+            impression = mpConstants.Impression.build("list", [product])
+            event = mparticle().model.CommerceEvent({}, {}, [impression], {}, "")
+
+            m.assertEqual(event.pi[0].pl[0].attrs, { "position": "3" })
+            m.assertEqual(event.pi[0].pil, "list")
+        end function
+
+        @it("does not add a product list to a commerce event that has none")
+        function _()
+            m.startSdk()
+            event = mparticle().model.CommerceEvent({ "an": "purchase", "tr": 1.0 }, {}, [], {}, "")
+
+            m.assertFalse(event.pd.doesExist("pl"))
+        end function
+
+        @it("sends numeric and boolean media attributes as strings and discards other types")
+        function _()
+            m.startSdk()
+            ' capture the message that sendMediaMessage hands to logMessage
+            getGlobalAA().capturedMediaMessage = invalid
+            mp = mparticle()
+            mp.logMessage = function(message as object) as void
+                getGlobalAA().capturedMediaMessage = message
+            end function
+
+            mpConstants = mparticleConstants()
+            mediaSession = mpConstants.MediaSession.build("ABC123", "Title", mpConstants.MEDIA_CONTENT_TYPE.VIDEO, mpConstants.MEDIA_STREAM_TYPE.ON_DEMAND, 1000, { "season": 2, "premium": true, "tags": ["a"], "meta": { "a": "b" } })
+            media = mparticle().media
+            media.logPlay(mediaSession, { "volume": 7, "muted": false, "bad": [1] })
+
+            message = getGlobalAA().capturedMediaMessage
+            m.assertEqual(message.attrs["volume"], "7")
+            m.assertEqual(message.attrs["muted"], "false")
+            m.assertEqual(message.attrs["season"], "2")
+            m.assertEqual(message.attrs["premium"], "true")
+            m.assertFalse(message.attrs.doesExist("bad"))
+            m.assertFalse(message.attrs.doesExist("tags"))
+            m.assertFalse(message.attrs.doesExist("meta"))
+            getGlobalAA().capturedMediaMessage = invalid
+        end function
+
+        @it("discards product attributes that are not an associative array")
+        function _()
+            m.startSdk()
+            mpConstants = mparticleConstants()
+            product = mpConstants.Product.build("sku", "name", 9.99, 1, [1, 2])
+            productAction = mpConstants.ProductAction.build(mpConstants.ProductAction.ACTION_TYPE.PURCHASE, 9.99, [product])
+            event = mparticle().model.CommerceEvent(productAction, {}, [], {}, "")
+
+            m.assertEqual(event.pd.pl[0].attrs, {})
+        end function
+
+        @it("converts media summary ad_completed and ad_skipped booleans to strings")
+        function _()
+            m.startSdk()
+            mediaSession = {
+                mediaSessionAttributes: {},
+                mediaSessionSegmentTotal: 0,
+                mediaSessionAdTotal: 1,
+                mediaTotalAdTimeSpent: 0,
+                mediaAdTimeSpentRate: 0,
+                mediaSessionAdObjects: [],
+                mediaContentComplete: false,
+                adContent: { adCompleted: true, adSkipped: false }
+            }
+            summary = mparticle().media.getSummaryAttributes(mediaSession, {})
+            sanitized = mparticle()._internal.utils.sanitizeEventAttributes(summary)
+
+            m.assertEqual(sanitized["ad_completed"], "true")
+            m.assertEqual(sanitized["ad_skipped"], "false")
+        end function
+
     end class
 end namespace
 

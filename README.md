@@ -141,6 +141,10 @@ customAttributes = {"example custom attribute": "example custom attribute value"
 mp.logEvent("hello world!", mparticleConstants().CUSTOM_EVENT_TYPE.NAVIGATION, customAttributes)
 ```
 
+Custom attribute values may be strings, numbers or booleans, matching the Android and iOS SDKs, which also send attribute values as strings. Numbers and booleans are converted to their string form (`42` becomes `"42"`, `true` becomes `"true"`). Values of any other type (arrays, associative arrays, `invalid`) are discarded; enable debug logging to see the key and type of any discarded value (unset values are not logged). The same applies to custom attributes on products in commerce events.
+
+Floating point values can lose precision when converted to strings, and a number literal too large for a 32-bit integer is a single-precision `Float` in BrightScript. If exact values matter, pass a `LongInteger` (e.g. `1593007533602&`) or format the value as a string yourself.
+
 ### Screen Events
 
 Screen events are a special case of event specifically designed to represent the viewing of a screen. Several mParticle integrations support special functionality (e.g. funnel analysis) based on screen events.
