@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "brighterscript": "0.73.5",
+    "brighterscript-formatter": "1.8.3",
     "brs-node": "2.6.0",
     "brs-scenegraph": "0.6.0",
     "rooibos-roku": "^5.17.0"
