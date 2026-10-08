@@ -1,0 +1,117 @@
+name: Release Draft
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump-type:
+        description: Version bump type
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+concurrency:
+  group: release-draft
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  create-release-pr:
+    name: Create release PR
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read # generate-changelog reads PR titles with gh
+    steps:
+      - name: Require master
+        if: github.ref_name != 'master'
+        run: |
+          echo "::error::Releases are drafted from master only"
+          exit 1
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # generate-changelog needs the tags and history since the last release
+          persist-credentials: false
+
+      - name: Read current version
+        id: current-version
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Bump version
+        id: bump-version
+        uses: actions-ecosystem/action-bump-semver@34e334551143a5301f38c830e44a22273c6ff5c5 # v1.0.0
+        with:
+          current_version: ${{ steps.current-version.outputs.version }}
+          level: ${{ inputs.bump-type }}
+
+      - name: Write new version
+        env:
+          NEW_VERSION: ${{ steps.bump-version.outputs.new_version }}
+        run: |
+          npm version "$NEW_VERSION" --no-git-tag-version
+          sed -i -E "s/^(    SDK_VERSION = \")[0-9]+\.[0-9]+\.[0-9]+(\")$/\1${NEW_VERSION}\2/" mParticleCore.brs
+          if ! grep -q "^    SDK_VERSION = \"${NEW_VERSION}\"$" mParticleCore.brs; then
+            echo "::error::Could not set SDK_VERSION in mParticleCore.brs"
+            exit 1
+          fi
+
+      - name: Generate changelog
+        id: changelog
+        uses: ROKT/rokt-workflows/actions/generate-changelog@06c7e7d32c3280a3cff72f45ba4304730a509050 # main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          version: ${{ steps.bump-version.outputs.new_version }}
+          repo-url: https://github.com/${{ github.repository }}
+          tag-prefix: v
+          changelog-path: CHANGELOG.md
+          exclude-types: chore,ci,test,build
+
+      # The generator leaves CHANGELOG.md untouched when nothing user-facing merged, and publishing reads its notes from there.
+      - name: Require release notes
+        env:
+          NEW_VERSION: ${{ steps.bump-version.outputs.new_version }}
+        run: |
+          if ! grep -q "^## \[${NEW_VERSION}\]" CHANGELOG.md 2>/dev/null; then
+            echo "::error::No user-facing changes (feat, fix, perf, refactor, docs, style, revert) since the last release"
+            exit 1
+          fi
+
+      # A pull request opened with the default token would not start the checks, so the release app opens it.
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.SDK_RELEASE_GITHUB_CLIENT_ID }}
+          private-key: ${{ secrets.SDK_RELEASE_GITHUB_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Create release PR
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          sign-commits: true
+          base: master
+          branch: chore/release-${{ steps.bump-version.outputs.new_version }}
+          title: "chore: release ${{ steps.bump-version.outputs.new_version }}"
+          commit-message: "chore: release ${{ steps.bump-version.outputs.new_version }}"
+          add-paths: |
+            CHANGELOG.md
+            mParticleCore.brs
+            package.json
+            package-lock.json
+          body: |
+            Release ${{ steps.bump-version.outputs.new_version }}, drafted by the Release Draft workflow. Merging it tags `v${{ steps.bump-version.outputs.new_version }}` and publishes the GitHub release with the notes below.
+
+            Check that `CHANGELOG.md`, `mParticleCore.brs` (`SDK_VERSION`), `package.json` and `package-lock.json` all changed.
+
+            ${{ steps.changelog.outputs.release-notes }}

@@ -218,6 +218,12 @@ CI also runs them on every pull request without a Roku, in the [brs-node](https:
 3. In the console, look for `Identity response: code 200` and then `Batch response: code 202`. Wrong credentials fail quietly, so if you see neither, check the key and secret.
 4. In your workspace's Live Stream, filter on the **Development** environment (apps installed this way are marked as development automatically) and look for your events. Uploads go out after about 15 seconds without activity.
 
+### Release a new version
+
+1. In GitHub Actions, run **Release Draft** on `master` and choose `patch`, `minor` or `major`. It opens a pull request that sets the new version in `mParticleCore.brs`, `package.json` and `package-lock.json`, and adds the merged pull requests to `CHANGELOG.md`.
+2. Run the tests on a Roku from that branch (see above), then review and merge the pull request.
+3. **Release Publish** then tags the merge commit `vX.Y.Z` and publishes the GitHub release with the notes from `CHANGELOG.md`.
+
 ## Sample Channel
 
 This repository includes a complete example implementation:
