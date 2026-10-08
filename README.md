@@ -43,7 +43,7 @@ sub main(args as dynamic)
 
     'You can force the SDK into development or production mode, 
     'otherwise the SDK will use roAppInfo's IsDev() API
-    options.environment = mParticleConstants().ENVIRONMENT.FORCE_PRODUCTION
+    'options.environment = mParticleConstants().ENVIRONMENT.FORCE_PRODUCTION
 
     'If you know the users credentials, supply them here
     'otherwise the SDK will use the last known identities
@@ -185,43 +185,36 @@ mp.setIntegrationAttribute("160", "app_instance_id", "your_app_instance_id")
 
 This repository uses [BrighterScript](https://github.com/rokucommunity/brighterscript) for development and [Rooibos](https://github.com/rokucommunity/rooibos) for automated testing.
 
-### Building
+The tests run on a real Roku in developer mode. To only build: `npm run build-production` (output in `build/`) or `npm run build-tests` (output in `build-test/`).
 
-Build the production version:
-```bash
-npm run build-production
-# Output: build/
-```
+### Run the tests on a Roku
 
-Build the test version with Rooibos:
-```bash
-npm run build-tests
-# Output: build-test/
-```
+1. **Set up the Roku once.** On the remote press Home 3 times, Up 2 times, then Right, Left, Right, Left, Right. Choose *Enable installer and restart* and set a developer password. Note the Roku's IP address (Settings > Network > About).
+2. **Allow control from your computer.** Set Settings > System > Advanced system settings > Control by mobile apps > Network access to **Permissive**. Your computer and the Roku must be on the same network; guest Wi-Fi usually blocks it.
+3. **Install dependencies:** `npm install`
+4. **Run:** `./run-tests.sh <ROKU_IP>` and type the developer password when asked. (In VS Code, use Run and Debug > *Launch and Run Tests* and enter the IP and password when prompted.)
+5. **Read the result:**
+   - `ALL TESTS PASSED` (exit code 0).
+   - `TESTS FAILED`, or `THE APP DID NOT COMPILE ON THE DEVICE` with the error lines (exit code 1).
+   - Anything that stopped the run before there was a result: a failed build or install, a rejected password, an unreachable Roku, or `No test report arrived` (exit code 2).
 
-### Running Tests
+   The output of the run is saved to `last_test_output.log`.
 
-#### Option 1: VSCode Debugger (Recommended)
+| If you see | Do this |
+| --- | --- |
+| `Could not reach the device` | Check the IP, that developer mode is on, and that both are on the same network. |
+| `Home=403` | Set Network access to Permissive (step 2). |
+| `The app was already running` | Press Home on the remote and run again. |
+| `No test report arrived` | Only one program can read the Roku's debug console at a time (the script stops any other `nc` session to it), so stop any other debug session or telnet window and run again. |
+| `The device rejected the developer password` | Run again and type the password you set in step 1. |
+| `Install did not succeed` | Read the message the script prints under it. |
 
-1. Open the project in VSCode
-2. Press `F5` or click the Debug icon
-3. Select **"Launch and Run Tests"** from the dropdown
-4. Enter your Roku IP and password when prompted
-5. View test results in the Debug Console
+### Run the sample app against your own workspace
 
-#### Option 2: Command Line
-
-```bash
-# Run tests via shell script
-./run-tests.sh YOUR_ROKU_IP YOUR_PASSWORD
-```
-
-The test runner will:
-- Build the test package
-- Deploy to your Roku device
-- Execute all Rooibos tests
-- Display results in the terminal
-- Save full output to `last_test_output.log`
+1. Put your own API key and secret in the `YOUR_API_KEY` and `YOUR_API_SECRET` lines of `example-scenegraph-sdk/source/Main.bs`, and set `options.logLevel = 3` (1 = error, 2 = info, 3 = debug). **Never commit them.** To remove them again, run `git checkout -- example-scenegraph-sdk/source/Main.bs` (this discards all uncommitted changes to that file).
+2. In VS Code run *Launch Production App* and enter the Roku's IP and developer password.
+3. In the console, look for `Identity response: code 200` and then `Batch response: code 202`. Wrong credentials fail quietly, so if you see neither, check the key and secret.
+4. In your workspace's Live Stream, filter on the **Development** environment (apps installed this way are marked as development automatically) and look for your events. Uploads go out after about 15 seconds without activity.
 
 ## Sample Channel
 
