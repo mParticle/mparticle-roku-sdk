@@ -1,0 +1,12 @@
+name: "Reusable Workflows"
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize] # edited: re-check after a title fix
+
+permissions: {}
+
+jobs:
+  pr-title-check:
+    name: "Check PR for semantic title"
+    uses: mParticle/mparticle-workflows/.github/workflows/pr-title-check.yml@f7e63ab220359bd83e20612a0ac425e8fa72a416 # stable
