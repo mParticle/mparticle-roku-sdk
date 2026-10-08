@@ -55,9 +55,9 @@ jobs:
           NEW_VERSION: ${{ steps.bump-version.outputs.new_version }}
         run: |
           npm version "$NEW_VERSION" --no-git-tag-version
-          sed -i -E "s/^(    SDK_VERSION = \")[0-9]+\.[0-9]+\.[0-9]+(\")$/\1${NEW_VERSION}\2/" mParticleCore.brs
-          if ! grep -q "^    SDK_VERSION = \"${NEW_VERSION}\"$" mParticleCore.brs; then
-            echo "::error::Could not set SDK_VERSION in mParticleCore.brs"
+          sed -i -E "s/^(    SDK_VERSION = \")[0-9]+\.[0-9]+\.[0-9]+(\")$/\1${NEW_VERSION}\2/" source/mparticle/mParticleCore.brs
+          if ! grep -q "^    SDK_VERSION = \"${NEW_VERSION}\"$" source/mparticle/mParticleCore.brs; then
+            echo "::error::Could not set SDK_VERSION in source/mparticle/mParticleCore.brs"
             exit 1
           fi
 
@@ -106,12 +106,12 @@ jobs:
           commit-message: "chore: release ${{ steps.bump-version.outputs.new_version }}"
           add-paths: |
             CHANGELOG.md
-            mParticleCore.brs
+            source/mparticle/mParticleCore.brs
             package.json
             package-lock.json
           body: |
             Release ${{ steps.bump-version.outputs.new_version }}, drafted by the Release Draft workflow. Merging it tags `v${{ steps.bump-version.outputs.new_version }}` and publishes the GitHub release with the notes below.
 
-            Check that `CHANGELOG.md`, `mParticleCore.brs` (`SDK_VERSION`), `package.json` and `package-lock.json` all changed.
+            Check that `CHANGELOG.md`, `source/mparticle/mParticleCore.brs` (`SDK_VERSION`), `package.json` and `package-lock.json` all changed.
 
             ${{ steps.changelog.outputs.release-notes }}
