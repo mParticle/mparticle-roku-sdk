@@ -187,6 +187,8 @@ This repository uses [BrighterScript](https://github.com/rokucommunity/brighters
 
 The tests run on a real Roku in developer mode. To only build: `npm run build-production` (output in `build/`) or `npm run build-tests` (output in `build-test/`).
 
+CI also runs them on every pull request without a Roku, in the [brs-node](https://www.npmjs.com/package/brs-node) simulator. To do the same locally: `npm install`, then `npm run test:headless`. The simulator is not a Roku, so still run the tests on a device before a release.
+
 ### Run the tests on a Roku
 
 1. **Set up the Roku once.** On the remote press Home 3 times, Up 2 times, then Right, Left, Right, Left, Right. Choose *Enable installer and restart* and set a developer password. Note the Roku's IP address (Settings > Network > About).

@@ -28,22 +28,22 @@ namespace tests
             mpConstants = mparticleConstants()
             actionApi = mpConstants.ProductAction
 
-            sampleProduct = {}
-            sampleProduct.id = "foo-product-sku"
-            sampleProduct.nm = "foo-product-name"
-            sampleProduct.pr = 123.45
-            sampleProduct.qt = 1
-            sampleProduct.tpa = 123.45
-            sampleProduct.attrs = {}
-            sampleProductAction = {
-                an: actionApi.ACTION_TYPE.PURCHASE,
-                tr: 123.45,
-                pl: [sampleProduct]
-            }
-
             product = mpConstants.Product.build("foo-product-sku", "foo-product-name", 123.45)
             productAction = mpConstants.ProductAction.build(actionApi.ACTION_TYPE.PURCHASE, 123.45, [product])
-            m.assertEqual(productAction, sampleProductAction)
+
+            ' The builders store prices as Double, so compare them by value and not against Float literals
+            m.assertEqual(productAction.an, actionApi.ACTION_TYPE.PURCHASE)
+            m.assertTrue(abs(productAction.tr - 123.45) < 0.001)
+            m.assertArrayCount(productAction.pl, 1)
+            builtProduct = productAction.pl[0]
+            m.assertEqual(builtProduct.id, "foo-product-sku")
+            m.assertEqual(builtProduct.nm, "foo-product-name")
+            m.assertTrue(abs(builtProduct.pr - 123.45) < 0.001)
+            m.assertEqual(builtProduct.qt, 1)
+            m.assertTrue(abs(builtProduct.tpa - 123.45) < 0.001)
+            m.assertEqual(builtProduct.attrs, {})
+            m.assertAAHasKeys(productAction, ["an", "tr", "pl"])
+            m.assertEqual(productAction.count(), 3)
         end function
 
         '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
