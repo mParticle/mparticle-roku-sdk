@@ -14,12 +14,15 @@
   "scripts": {
     "build-production": "npx bsc --project bsconfig.json",
     "build-tests": "npx bsc --project bsconfig-test.json",
-    "test": "./run-tests.sh"
+    "test": "./run-tests.sh",
+    "test:headless": "./run-tests-headless.sh"
   },
   "devDependencies": {
     "brighterscript": "0.73.5",
     "brighterscript-formatter": "1.8.3",
-    "rooibos-roku": "^5.15.7"
+    "brs-node": "2.6.0",
+    "brs-scenegraph": "0.6.0",
+    "rooibos-roku": "^5.17.0"
   },
   "overrides": {
     "qs": "6.14.1"

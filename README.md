@@ -187,6 +187,8 @@ This repository uses [BrighterScript](https://github.com/rokucommunity/brighters
 
 The tests run on a real Roku in developer mode. To only build: `npm run build-production` (output in `build/`) or `npm run build-tests` (output in `build-test/`).
 
+CI also runs them on every pull request without a Roku, in the [brs-node](https://www.npmjs.com/package/brs-node) simulator. To do the same locally: `npm install`, then `npm run test:headless`. The simulator is not a Roku, so still run the tests on a device before a release.
+
 ### Run the tests on a Roku
 
 1. **Set up the Roku once.** On the remote press Home 3 times, Up 2 times, then Right, Left, Right, Left, Right. Choose *Enable installer and restart* and set a developer password. Note the Roku's IP address (Settings > Network > About).
@@ -215,6 +217,12 @@ The tests run on a real Roku in developer mode. To only build: `npm run build-pr
 2. In VS Code run *Launch Production App* and enter the Roku's IP and developer password.
 3. In the console, look for `Identity response: code 200` and then `Batch response: code 202`. Wrong credentials fail quietly, so if you see neither, check the key and secret.
 4. In your workspace's Live Stream, filter on the **Development** environment (apps installed this way are marked as development automatically) and look for your events. Uploads go out after about 15 seconds without activity.
+
+### Release a new version
+
+1. In GitHub Actions, run **Release Draft** on `master` and choose `patch`, `minor` or `major`. It opens a pull request that sets the new version in `mParticleCore.brs`, `package.json` and `package-lock.json`, and adds the merged pull requests to `CHANGELOG.md`.
+2. Run the tests on a Roku from that branch (see above), then review and merge the pull request.
+3. **Release Publish** then tags the merge commit `vX.Y.Z` and publishes the GitHub release with the notes from `CHANGELOG.md`.
 
 ## Sample Channel
 
