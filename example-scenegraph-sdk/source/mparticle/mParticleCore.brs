@@ -1,1 +1,1 @@
-../../../mParticleCore.brs
+../../../source/mparticle/mParticleCore.brs
