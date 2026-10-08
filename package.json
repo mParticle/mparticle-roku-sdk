@@ -18,6 +18,7 @@
   },
   "devDependencies": {
     "brighterscript": "0.73.5",
+    "brighterscript-formatter": "1.8.3",
     "rooibos-roku": "^5.15.7"
   },
   "overrides": {

@@ -4,7 +4,7 @@
     "!testing/unit-testing-framework/**",
     "!example-scenegraph-sdk/components/mParticleTask.brs",
     "!example-scenegraph-sdk/components/mParticleTask.xml",
-    "!example-legacy-sdk/source/mparticle/**"
+    "!example-legacy-sdk/source/mparticle/**",
+    "!**/node_modules/**"
   ]
 }
-

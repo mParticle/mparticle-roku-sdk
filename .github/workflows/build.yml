@@ -25,5 +25,5 @@ jobs:
        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
        with:
          node-version: 22
-     - run: npm i -g brighterscript-formatter@1.8.3
-     - run: bsfmt --check --bsfmt-path "bsfmt.json"
+     - run: npm ci --ignore-scripts
+     - run: npx bsfmt --check --bsfmt-path "bsfmt.json"
