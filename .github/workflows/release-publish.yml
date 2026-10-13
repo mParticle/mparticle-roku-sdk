@@ -49,8 +49,8 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          if ! grep -q "^    SDK_VERSION = \"${VERSION}\"$" mParticleCore.brs; then
-            echo "::error::SDK_VERSION in mParticleCore.brs does not match package.json ($VERSION)"
+          if ! grep -q "^    SDK_VERSION = \"${VERSION}\"$" source/mparticle/mParticleCore.brs; then
+            echo "::error::SDK_VERSION in source/mparticle/mParticleCore.brs does not match package.json ($VERSION)"
             exit 1
           fi
           if ! grep -q "^## \[${VERSION}\]" CHANGELOG.md; then

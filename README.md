@@ -6,18 +6,38 @@ The mParticle Roku SDK allows you to track user activity in your Roku app and fo
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
-## Download
+## Installation
 
-1. Navigate to the [releases section](https://github.com/mParticle/mparticle-roku-sdk/releases) and download the latest tagged source, or clone this repository:
-   ```bash
-   git clone https://github.com/mParticle/mparticle-roku-sdk.git
-   ```
+These instructions are for version 3.0.0 and later. For 2.x, follow the README of the release you are using.
 
-2. Create an `mparticle/` directory inside the `pkg:/source/` directory.
+### With ropm (recommended)
 
-3. Copy `mParticleBundle.crt` and `mParticleCore.brs` into the newly created `pkg:/source/mparticle` directory.
+[ropm](https://github.com/rokucommunity/ropm) installs Roku packages from npm. From your channel's root folder (the one with the `manifest` file):
 
-4. **For Scene Graph support**, copy `mParticleTask.brs` and `mParticleTask.xml` into your `pkg:/components/` directory.
+```bash
+npx ropm install mparticle@npm:mparticle-roku-sdk
+```
+
+This adds the SDK to `dependencies` in your `package.json` under the alias `mparticle` and copies it into `source/roku_modules/mparticle/` and `components/roku_modules/mparticle/`. Add `roku_modules` to your `.gitignore`. If your channel is in a subfolder, first set `"ropm": { "rootDir": "<subfolder>" }` in `package.json`.
+
+ropm prefixes everything the SDK declares with the alias, so names used in the rest of this README change:
+
+| Manual install | ropm install |
+| --- | --- |
+| `mParticleSGBridge(task)` | `mparticle_mParticleSGBridge(task)` |
+| `mParticleConstants()` | `mparticle_mParticleConstants()` |
+| `createObject("roSGNode", "mParticleTask")` | `createObject("roSGNode", "mparticle_mParticleTask")` |
+| `pkg:/source/mparticle/mParticleCore.brs` | `pkg:/source/roku_modules/mparticle/mparticle/mParticleCore.brs` |
+
+To keep the unprefixed names, add `"ropm": { "noprefix": ["mparticle"] }` to your `package.json` before installing. File paths still move under `roku_modules`.
+
+### Manually
+
+1. Download the latest release from the [releases section](https://github.com/mParticle/mparticle-roku-sdk/releases), or clone this repository.
+2. Copy the `source/mparticle/` folder into your channel's `source/` folder, so `mParticleCore.brs` and `mParticleBundle.crt` are in `pkg:/source/mparticle/`.
+3. For Scene Graph support, copy `components/mParticleTask.brs` and `components/mParticleTask.xml` into your channel's `components/` folder.
+
+Upgrading from 2.x: the SDK files moved from the repository root into `source/mparticle/` and `components/`. Where they go in your channel is unchanged.
 
 ## Initialize
 
@@ -220,7 +240,7 @@ CI also runs them on every pull request without a Roku, in the [brs-node](https:
 
 ### Release a new version
 
-1. In GitHub Actions, run **Release Draft** on `master` and choose `patch`, `minor` or `major`. It opens a pull request that sets the new version in `mParticleCore.brs`, `package.json` and `package-lock.json`, and adds the merged pull requests to `CHANGELOG.md`.
+1. In GitHub Actions, run **Release Draft** on `master` and choose `patch`, `minor` or `major`. It opens a pull request that sets the new version in `source/mparticle/mParticleCore.brs`, `package.json` and `package-lock.json`, and adds the merged pull requests to `CHANGELOG.md`.
 2. Run the tests on a Roku from that branch (see above), then review and merge the pull request.
 3. **Release Publish** then tags the merge commit `vX.Y.Z` and publishes the GitHub release with the notes from `CHANGELOG.md`.
 
@@ -234,10 +254,13 @@ This repository includes a complete example implementation:
 
 ```
 mparticle-roku-sdk/
-├── mParticleCore.brs              # Core SDK implementation
-├── mParticleTask.brs              # Scene Graph Task node
-├── mParticleTask.xml              # Scene Graph Task interface
-├── example-scenegraph-sdk/        # Example app with tests
+├── source/mparticle/
+│   ├── mParticleCore.brs          # Core SDK implementation
+│   └── mParticleBundle.crt        # Pinned certificate bundle
+├── components/
+│   ├── mParticleTask.brs          # Scene Graph Task node
+│   └── mParticleTask.xml          # Scene Graph Task interface
+├── example-scenegraph-sdk/        # Example app with tests (links to the SDK files above)
 │   ├── source/
 │   │   ├── Main.bs                # Entry point with test detection
 │   │   ├── mparticle/             # SDK files
@@ -248,6 +271,7 @@ mparticle-roku-sdk/
 ├── bsconfig.json                  # BrighterScript production config
 ├── bsconfig-test.json             # BrighterScript test config
 ├── run-tests.sh                   # Automated test runner
+├── scripts/test-package.sh        # Checks the npm package installs and compiles with ropm
 ├── package.json                   # Node.js dependencies
 └── README.md
 ```
