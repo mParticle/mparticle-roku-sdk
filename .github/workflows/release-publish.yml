@@ -14,12 +14,15 @@ concurrency:
 permissions: {}
 
 jobs:
-  publish:
-    name: Tag and publish GitHub release
+  verify:
+    name: Verify release
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
-      contents: write # create the tag and the release
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      release: ${{ steps.check.outputs.release }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -30,14 +33,21 @@ jobs:
         id: version
         run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
 
-      # package.json also changes for dependency updates, so only a version without a release goes on.
-      - name: Check for an existing release
+      # package.json also changes for dependency updates. Only the push that changed the version releases it,
+      # so a later merge can never publish a release whose run failed from its own commit (re-run that run instead).
+      - name: Check this push is an unreleased version change
         id: check
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.version.outputs.version }}
+          BEFORE: ${{ github.event.before }}
+        shell: bash # adds pipefail, so a failed lookup of the previous version stops the run
         run: |
-          if gh release view "v$VERSION" > /dev/null 2>&1; then
+          previous="$(gh api "repos/$GITHUB_REPOSITORY/contents/package.json?ref=$BEFORE" --jq .content | base64 -d | node -p 'JSON.parse(require("fs").readFileSync(0, "utf8")).version')"
+          if [ "$previous" = "$VERSION" ]; then
+            echo "This push did not change the version ($VERSION); nothing to release"
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          elif gh release view "v$VERSION" > /dev/null 2>&1; then
             echo "v$VERSION is already released; nothing to do"
             echo "release=false" >> "$GITHUB_OUTPUT"
           else
@@ -58,17 +68,78 @@ jobs:
             exit 1
           fi
 
-      - name: Extract release notes
+      - name: Setup Node.js
         if: steps.check.outputs.release == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Install dependencies
+        if: steps.check.outputs.release == 'true'
+        run: npm ci --ignore-scripts
+
+      - name: Check the npm package installs with ropm
+        if: steps.check.outputs.release == 'true'
+        run: npm run test:package
+
+  npm:
+    name: Publish to npm
+    needs: verify
+    if: needs.verify.outputs.release == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # npm's trusted publisher accepts only this workflow running in this environment, which only master can use.
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write # npm trusted publishing (OIDC); keep third-party actions and dependency installs out of this job
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24 # trusted publishing needs npm 11.5.1 or later
+          package-manager-cache: false
+
+      # On a re-run after npm succeeded but the GitHub release failed, skip straight to the release.
+      - name: Publish to npm
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          npm --version
+          if [ -n "$(npm view "mparticle-roku-sdk@$VERSION" version 2>/dev/null)" ]; then
+            echo "mparticle-roku-sdk@$VERSION is already on npm; skipping"
+          else
+            npm publish --provenance --ignore-scripts
+          fi
+
+  github-release:
+    name: Tag and publish GitHub release
+    needs: [verify, npm]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write # create the tag and the release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Extract release notes
         uses: ffurrer2/extract-release-notes@273da39a24fb7db106a35526c8162815faffd31d # v3.1.0
         with:
           release_notes_file: RELEASE_NOTES.md
 
       - name: Create GitHub release
-        if: steps.check.outputs.release == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ steps.version.outputs.version }}
+          VERSION: ${{ needs.verify.outputs.version }}
           RELEASE_COMMIT: ${{ github.sha }}
         run: >-
           gh release create "v$VERSION"

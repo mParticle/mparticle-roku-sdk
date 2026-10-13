@@ -242,7 +242,9 @@ CI also runs them on every pull request without a Roku, in the [brs-node](https:
 
 1. In GitHub Actions, run **Release Draft** on `master` and choose `patch`, `minor` or `major`. It opens a pull request that sets the new version in `source/mparticle/mParticleCore.brs`, `package.json` and `package-lock.json`, and adds the merged pull requests to `CHANGELOG.md`.
 2. Run the tests on a Roku from that branch (see above), then review and merge the pull request.
-3. **Release Publish** then tags the merge commit `vX.Y.Z` and publishes the GitHub release with the notes from `CHANGELOG.md`.
+3. **Release Publish** then publishes `mparticle-roku-sdk` to npm, tags the merge commit `vX.Y.Z` and publishes the GitHub release with the notes from `CHANGELOG.md`. The tag and GitHub release wait for the npm publish. If the run fails or is cancelled, re-run that same run (it skips versions already on npm); later merges never pick up an unfinished release.
+
+Publishing to npm needs one-time setup by an admin, in this order: create a GitHub environment named `npm` that only `master` can deploy to (GitHub would otherwise create it unrestricted on first use); add a trusted publisher for `mparticle-roku-sdk` on npmjs.com (organization `mParticle`, repository `mparticle-roku-sdk`, workflow `release-publish.yml`, environment `npm`); and, in the Default branch ruleset, require approval of the most recent push, so whoever pushes to a release pull request cannot also approve it.
 
 ## Sample Channel
 

@@ -110,7 +110,7 @@ jobs:
             package.json
             package-lock.json
           body: |
-            Release ${{ steps.bump-version.outputs.new_version }}, drafted by the Release Draft workflow. Merging it tags `v${{ steps.bump-version.outputs.new_version }}` and publishes the GitHub release with the notes below.
+            Release ${{ steps.bump-version.outputs.new_version }}, drafted by the Release Draft workflow. Merging it publishes `mparticle-roku-sdk@${{ steps.bump-version.outputs.new_version }}` to npm, tags `v${{ steps.bump-version.outputs.new_version }}` and publishes the GitHub release with the notes below.
 
             Check that `CHANGELOG.md`, `source/mparticle/mParticleCore.brs` (`SDK_VERSION`), `package.json` and `package-lock.json` all changed.
 
