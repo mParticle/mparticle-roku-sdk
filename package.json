@@ -18,7 +18,7 @@
     "test:headless": "./run-tests-headless.sh"
   },
   "devDependencies": {
-    "brighterscript": "0.73.5",
+    "brighterscript": "0.73.7",
     "brighterscript-formatter": "1.8.3",
     "brs-node": "2.6.0",
     "brs-scenegraph": "0.6.0",
