@@ -63,7 +63,7 @@ jobs:
 
       - name: Generate changelog
         id: changelog
-        uses: ROKT/rokt-workflows/actions/generate-changelog@06c7e7d32c3280a3cff72f45ba4304730a509050 # main
+        uses: ROKT/rokt-workflows/actions/generate-changelog@da0c5fd5d38e9cf113a24ec9aaea079cc7d0bc40 # zizmor: ignore[ref-version-mismatch]
         env:
           GH_TOKEN: ${{ github.token }}
         with:
