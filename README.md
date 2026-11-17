@@ -224,6 +224,8 @@ CI also runs them on every pull request without a Roku, in the [brs-node](https:
 2. Run the tests on a Roku from that branch (see above), then review and merge the pull request.
 3. **Release Publish** then tags the merge commit `vX.Y.Z` and publishes the GitHub release with the notes from `CHANGELOG.md`.
 
+**Release Draft** runs in the `release` GitHub environment, which holds the release GitHub App's credentials and allows only `master`.
+
 ## Sample Channel
 
 This repository includes a complete example implementation:
