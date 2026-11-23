@@ -45,7 +45,7 @@ sub main(args as dynamic)
     'otherwise the SDK will use roAppInfo's IsDev() API
     'options.environment = mParticleConstants().ENVIRONMENT.FORCE_PRODUCTION
 
-    'If you know the users credentials, supply them here
+    'If you know the user's credentials, supply them here
     'otherwise the SDK will use the last known identities
     identityApiRequest = {userIdentities:{}}
     'Note that you must specifically use the 'userIdentities' key
@@ -68,7 +68,7 @@ sub main(args as dynamic)
 end sub
 ```
 
-See [Identity](#identity) for more information on the `identityApiRequest`.
+See the [Roku SDK docs](https://docs.mparticle.com/developers/client-sdks/roku/) for more information on the `identityApiRequest`.
 
 If you plan to use proxy tools such as Charles Proxy for testing in your development build, you may wish to disable SSL pinning. To do so, insert the following line at the end of the options section:
 
